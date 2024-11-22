@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <link href="./output.css" rel="stylesheet">
+  <script src="https://unpkg.com/typeit@8.0.7/dist/index.umd.js"></script>
 <style>
-  body {
+    body {
       margin: 0;
       padding: 18px;
       font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
@@ -13,18 +15,34 @@
       text-align: left;
       max-width: 1200px;
       background: white;
-      border:solid 1px grey;
-      /* background-color: color(display-p3 1 0 0.331); */
-  }
+      border: solid 1px grey;
+    }
+    #animated-text {
+      white-space: pre-wrap; /* Ensures line breaks and spaces are respected */
+    }
 </style>
 </head>
 <body>
 
-<h1>Hello</h1>
-I take products and experiences from simple ideas to market-proved concepts. By prototyping solutions based on insights and user needs, verifying them through research, and crafting visual stories to explain them internally and externally.
+  <div id="animated-text">
+    Hello. I take products and experiences from simple ideas to market-proved concepts. By prototyping solutions based on insights and user needs, verifying them through research, and crafting visual stories to explain them internally and externally.
+    What I do. I have spent the last 21 years working with talented multi-disciplinary teams of designers, engineers, product experts and business developers. Delivering engaging customer experiences, fostering innovation and increasing revenue. Previously Product Design Director with Adaptive Lab, Idean. Founder of Mentally Friendly LDN.
+  </div>
 
-<h2>What I do</h2>
-I have spent the last 21 years working with talented multi-disciplinary teams of designers, engineers, product experts and business developers. Delivering engaging customer experiences, fostering innovation and increasing revenue. Previously Product Design Director with Adaptive Lab, Idean. Founder of Mentally Friendly LDN
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const content = `Hello. I take products and experiences from simple ideas to market-proved concepts. By prototyping solutions based on insights and user needs, verifying them through research, and crafting visual stories to explain them internally and externally.
+      What I do. I have spent the last 21 years working with talented multi-disciplinary teams of designers, engineers, product experts and business developers. Delivering engaging customer experiences, fostering innovation and increasing revenue. Previously Product Design Director with Adaptive Lab, Idean. Founder of Mentally Friendly LDN.`;
+
+      new TypeIt("#animated-text", {
+        speed: 24, // Adjust typing speed
+        startDelay: 200, // Delay before typing starts
+        lifeLike: true, // Mimics human typing
+      })
+        .type(content, { html: true }) // Use the provided content
+        .go();
+    });
+</script>
 
 <div style="
   background-color: lightgrey;
@@ -42,28 +60,48 @@ I have spent the last 21 years working with talented multi-disciplinary teams of
   height: fit-content;
 ">B</div>
 
-<h2>Selected current & past clients</h2>
-Barclays
-British Museum
-Department for Work and Pensions
-HSBC
-Lloyd’s of London
-NatWest
-Natural History Museum
-Netflix
-Nike
-Nile
-Santander
-Scottish Water
-Tate
-Ustwo
+<div class="mt-12 max-w-4xl mx-auto">
+  <h2 class="text-2xl font-semibold text-gray-800 tracking-wide border-b-2 border-gray-200 pb-2 mb-6">
+    Selected current & past clients
+  </h2>
+  <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-4 text-lg text-gray-700 leading-relaxed">
+    <li class="hover:text-gray-900">Barclays</li>
+    <li class="hover:text-gray-900">British Museum</li>
+    <li class="hover:text-gray-900">Department for Work and Pensions</li>
+    <li class="hover:text-gray-900">HSBC</li>
+    <li class="hover:text-gray-900">Lloyd’s of London</li>
+    <li class="hover:text-gray-900">NatWest</li>
+    <li class="hover:text-gray-900">Natural History Museum</li>
+    <li class="hover:text-gray-900">Netflix</li>
+    <li class="hover:text-gray-900">Nike</li>
+    <li class="hover:text-gray-900">Nile</li>
+    <li class="hover:text-gray-900">Santander</li>
+    <li class="hover:text-gray-900">Scottish Water</li>
+    <li class="hover:text-gray-900">Tate</li>
+    <li class="hover:text-gray-900">Ustwo</li>
+  </ul>
+</div>
 
-<h2>Services</h2>
-Strategic design
-Product design
-Prototyping
-User research
-Design leadership
+<div class="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 p-10 rounded-lg shadow-lg text-white max-w-lg mx-auto mt-8">
+  <h2 class="text-3xl font-bold mb-4">Services</h2>
+  <ul class="space-y-2 text-lg">
+    <li class="bg-white text-pink-500 px-4 py-2 rounded shadow-md hover:bg-pink-100 transition">
+      Strategic design
+    </li>
+    <li class="bg-white text-purple-500 px-4 py-2 rounded shadow-md hover:bg-purple-100 transition">
+      Product design
+    </li>
+    <li class="bg-white text-blue-500 px-4 py-2 rounded shadow-md hover:bg-blue-100 transition">
+      Prototyping
+    </li>
+    <li class="bg-white text-green-500 px-4 py-2 rounded shadow-md hover:bg-green-100 transition">
+      User research
+    </li>
+    <li class="bg-white text-yellow-500 px-4 py-2 rounded shadow-md hover:bg-yellow-100 transition">
+      Design leadership
+    </li>
+  </ul>
+</div>
 
 
 </body>
