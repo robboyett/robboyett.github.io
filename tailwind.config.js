@@ -4,7 +4,11 @@ module.exports = {
     "./index.html",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'], // Replace the default sans-serif stack
+      },
+    },
   },
   plugins: [],
 };

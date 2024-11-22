@@ -1,64 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link href="./output.css" rel="stylesheet">
-  <script src="https://unpkg.com/typeit@8.0.7/dist/index.umd.js"></script>
-<style>
-    body {
-      margin: 0;
-      padding: 18px;
-      font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
-      font-size: 1rem;
-      font-weight: 400;
-      line-height: 1.5;
-      color: #000;
-      text-align: left;
-      max-width: 1200px;
-      background: white;
-      border: solid 1px grey;
-    }
-    #animated-text {
-      white-space: pre-wrap; /* Ensures line breaks and spaces are respected */
-    }
-</style>
 </head>
 <body>
 
-  <div id="animated-text">
-    Hello. I take products and experiences from simple ideas to market-proved concepts. By prototyping solutions based on insights and user needs, verifying them through research, and crafting visual stories to explain them internally and externally.
-    What I do. I have spent the last 21 years working with talented multi-disciplinary teams of designers, engineers, product experts and business developers. Delivering engaging customer experiences, fostering innovation and increasing revenue. Previously Product Design Director with Adaptive Lab, Idean. Founder of Mentally Friendly LDN.
-  </div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const content = `Hello. I take products and experiences from simple ideas to market-proved concepts. By prototyping solutions based on insights and user needs, verifying them through research, and crafting visual stories to explain them internally and externally.
-      What I do. I have spent the last 21 years working with talented multi-disciplinary teams of designers, engineers, product experts and business developers. Delivering engaging customer experiences, fostering innovation and increasing revenue. Previously Product Design Director with Adaptive Lab, Idean. Founder of Mentally Friendly LDN.`;
-
-      new TypeIt("#animated-text", {
-        speed: 24, // Adjust typing speed
-        startDelay: 200, // Delay before typing starts
-        lifeLike: true, // Mimics human typing
-      })
-        .type(content, { html: true }) // Use the provided content
-        .go();
-    });
-</script>
-
-<div style="
-  background-color: lightgrey;
-  padding: 24px;
-  border-radius: 8px;
-  width: fit-content;
-  height: fit-content;
-">A</div>
-
-<div style="
-  background-color: #FAFF01;
-  padding: 24px;
-  border-radius: 8px;
-  width: fit-content;
-  height: fit-content;
-">B</div>
+  <h1 class="text-9xl tracking-tighter">Hello. I take products and experiences from simple ideas to market-proved concepts.</h1>
+  <h2 class="text-8xl tracking-tighter">Hello. I take products and experiences from simple ideas to market-proved concepts.</h2>
+  <h2 class="text-7xl tracking-tighter">Hello. I take products and experiences from simple ideas to market-proved concepts.</h2>
 
 <div class="mt-12 max-w-4xl mx-auto">
   <h2 class="text-2xl font-semibold text-gray-800 tracking-wide border-b-2 border-gray-200 pb-2 mb-6">
@@ -102,7 +52,6 @@
     </li>
   </ul>
 </div>
-
 
 </body>
 </html>
