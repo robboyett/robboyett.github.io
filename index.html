@@ -3,8 +3,25 @@
 <head>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link href="./output.css" rel="stylesheet">
+  <script src="https://unpkg.com/@barba/core"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <meta charset="UTF-8" />
+  <title>Home</title>
+  <style>
+    .barba-container {
+  transition: opacity 0.5s ease-in-out;
+  opacity: 1;
+}
+  </style>
 </head>
-<body>
+<body data-barba="wrapper">
+
+  <p>Not changing</p>
+  <a href="index.html">Home</a>
+  <a href="projects.html">Projects</a>
+
+  <main data-barba="container" data-barba-namespace="home">
+    <!-- put here the content you wish to change between your pages, like your main content <h1> or <p> -->
 
   <h1 class="text-9xl tracking-tighter">Hello. I take products and experiences from simple ideas to market-proved concepts.</h1>
   <h2 class="text-8xl tracking-tighter">Hello. I take products and experiences from simple ideas to market-proved concepts.</h2>
@@ -52,6 +69,24 @@
     </li>
   </ul>
 </div>
+
+</main>
+
+<script>
+  barba.init({
+    transitions: [
+      {
+        name: 'opacity-transition',
+        leave(data) {
+          return gsap.to(data.current.container, { opacity: 0, duration: 0.2 });
+        },
+        enter(data) {
+          return gsap.from(data.next.container, { opacity: 0, duration: 0.5 });
+        }
+      }
+    ]
+  });
+</script>
 
 </body>
 </html>

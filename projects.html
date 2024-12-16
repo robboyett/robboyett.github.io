@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="./output.css" rel="stylesheet">
+    <script src="https://unpkg.com/@barba/core"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <meta charset="UTF-8" />
+    <title>Projects</title>
+    <style>
+      .barba-container {
+        transition: opacity 0.5s ease-in-out;
+        opacity: 1;
+    }
+      </style>
+</head>
+<body data-barba="wrapper">
+
+    <p>Not changing</p>
+    <a href="index.html">Home</a>
+    <a href="projects.html">Projects</a>
+
+    <main data-barba="container" data-barba-namespace="projects">
+
+        <div class="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 p-10 rounded-lg shadow-lg text-white max-w-lg mx-auto mt-8">
+            <h2 class="text-3xl font-bold mb-4">Services</h2>
+            <ul class="space-y-2 text-lg">
+              <li class="bg-white text-pink-500 px-4 py-2 rounded shadow-md hover:bg-pink-100 transition">
+                Strategic design
+              </li>
+              <li class="bg-white text-purple-500 px-4 py-2 rounded shadow-md hover:bg-purple-100 transition">
+                Product design
+              </li>
+              <li class="bg-white text-blue-500 px-4 py-2 rounded shadow-md hover:bg-blue-100 transition">
+                Prototyping
+              </li>
+              <li class="bg-white text-green-500 px-4 py-2 rounded shadow-md hover:bg-green-100 transition">
+                User research
+              </li>
+              <li class="bg-white text-yellow-500 px-4 py-2 rounded shadow-md hover:bg-yellow-100 transition">
+                Design leadership
+              </li>
+            </ul>
+          </div>
+          
+    </main>
+    
+    <script>
+        barba.init({
+          transitions: [
+            {
+              name: 'opacity-transition',
+              leave(data) {
+                return gsap.to(data.current.container, { opacity: 0, duration: 0.2 });
+              },
+              enter(data) {
+                return gsap.from(data.next.container, { opacity: 0, duration: 0.5 });
+              }
+            }
+          ]
+        });
+      </script>
+
+</body>
+</html>
