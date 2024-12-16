@@ -109,7 +109,7 @@
     let speedLabel = document.getElementById('speed-label');
 
     let isPlaying = false;
-    let barSpeed = 2; // Initial speed for the bar
+    let barSpeed = 9; // Initial speed for the bar
     let barDirection = 1;
     let currentPosition = 0;
 
@@ -127,7 +127,7 @@
 
     function updateSpeedLabel() {
         const speedNames = ["Snail (Super Easy)", "Chicken (Easy)", "Fox (Normal)", "Car (Hard)", "Rocket (Impossible)"];
-        const speedValues = [2, 4, 6, 8, 10];
+        const speedValues = [4, 6, 9, 14, 18];
         const index = parseInt(speedSlider.value) - 1;
         speedLabel.textContent = speedNames[index];
         barSpeed = speedValues[index];
