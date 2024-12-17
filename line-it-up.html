@@ -1,42 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Basic page metadata -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Line It Up</title>
     <style>
+        /* General styling for the game page */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            text-align: center;
+            text-align: center; /* Center align content */
         }
 
+        /* Sections that are hidden until they need to display */
         #game-screen, #scoreboard, #result-screen, #mode-selection {
             display: none;
         }
 
+        /* Container for game content */
         .container {
-            max-width: 600px;
+            max-width: 600px; /* Limit width for better appearance */
             margin: 0 auto;
         }
 
+        /* Bar container styling */
         #bar-container {
             width: 100%;
             height: 30px;
             border: 2px solid black;
             margin: 20px 0;
             position: relative;
-            background-color: #f0f0f0;
+            background-color: #f0f0f0; /* Light grey background */
         }
 
+        /* The moving bar itself */
         #bar {
-            width: 10%;
+            width: 10%; /* Bar occupies 10% of container */
             height: 100%;
             background-color: red;
             position: absolute;
         }
 
+        /* Button styling for the stop button */
         #stop-button {
             padding: 10px 20px;
             font-size: 18px;
@@ -44,14 +51,17 @@
             margin-top: 20px;
         }
 
+        /* Scoreboard area styling */
         #scoreboard {
             margin-top: 20px;
         }
 
+        /* Hidden class utility to hide elements */
         .hidden {
             display: none;
         }
 
+        /* Speed slider container styling */
         .slider-container {
             margin: 20px 0;
         }
@@ -67,15 +77,20 @@
 </head>
 <body>
 
+<!-- Landing Page -->
 <div id="landing-page">
     <h1>Line It Up</h1>
+    <!-- Start Game Button -->
     <button onclick="showModeSelection()">Start Game</button>
 </div>
 
+<!-- Mode Selection Page -->
 <div id="mode-selection" class="container">
     <h2>Select Mode</h2>
+    <!-- Mode Selection Buttons -->
     <button onclick="startGame(1)">One Player</button>
     <button onclick="startGame(2)">Two Player</button>
+    <!-- Slider to Adjust Starting Speed -->
     <div class="slider-container">
         <label for="speed-slider" class="slider-label">Choose Starting Speed:</label>
         <input type="range" id="speed-slider" min="1" max="5" step="1" value="3" />
@@ -83,48 +98,63 @@
     </div>
 </div>
 
+<!-- Game Screen -->
 <div id="game-screen" class="container">
-    <h2 id="round-info"></h2>
+    <h2 id="round-info"></h2> <!-- Displays current round info -->
+    <!-- Container for the moving bar -->
     <div id="bar-container">
-        <div id="bar"></div>
+        <div id="bar"></div> <!-- The bar that moves back and forth -->
     </div>
+    <!-- Stop button to stop the bar -->
     <button id="stop-button" onclick="stopBar()">Stop</button>
+    <!-- Information about the current player and their score -->
     <h3 id="player-info"></h3>
     <h3 id="score-info">Score: 0</h3>
 </div>
 
+<!-- Result Screen -->
 <div id="result-screen" class="container">
     <h2>Game Over!</h2>
+    <!-- Final score display -->
     <h3 id="final-score"></h3>
+    <!-- Restart button -->
     <button onclick="restartGame()">Play Again</button>
 </div>
 
 <script>
-    let bar = document.getElementById('bar');
-    let roundInfo = document.getElementById('round-info');
-    let scoreInfo = document.getElementById('score-info');
-    let playerInfo = document.getElementById('player-info');
-    let finalScore = document.getElementById('final-score');
-    let speedSlider = document.getElementById('speed-slider');
-    let speedLabel = document.getElementById('speed-label');
+    /* ----------------------
+       Game Variables Setup
+    ---------------------- */
+    let bar = document.getElementById('bar'); // The moving bar element
+    let roundInfo = document.getElementById('round-info'); // Round information
+    let scoreInfo = document.getElementById('score-info'); // Player's score
+    let playerInfo = document.getElementById('player-info'); // Current player's turn info
+    let finalScore = document.getElementById('final-score'); // Final score display
+    let speedSlider = document.getElementById('speed-slider'); // Slider to adjust bar speed
+    let speedLabel = document.getElementById('speed-label'); // Label showing speed names
 
-    let isPlaying = false;
-    let barSpeed = 9; // Initial speed for the bar
-    let barDirection = 1;
-    let currentPosition = 0;
+    let isPlaying = false; // Controls whether the game is active
+    let barSpeed = 9; // Default speed of the bar
+    let barDirection = 1; // Direction of bar movement (left or right)
+    let currentPosition = 0; // Tracks the bar's position
 
-    let mode = 1; // 1 for one-player, 2 for two-player
-    let round = 1;
-    const totalRounds = 5;
+    let mode = 1; // Game mode: 1 = Single player, 2 = Two players
+    let round = 1; // Current round
+    const totalRounds = 5; // Total rounds per player
 
-    let playerTurn = 1; // 1 or 2
-    let scores = { player1: 0, player2: 0 };
+    let playerTurn = 1; // Tracks which player's turn it is
+    let scores = { player1: 0, player2: 0 }; // Player scores
 
+    /* ----------------------
+       Mode Selection Logic
+    ---------------------- */
     function showModeSelection() {
+        // Hide landing page and show mode selection screen
         document.getElementById('landing-page').style.display = 'none';
         document.getElementById('mode-selection').style.display = 'block';
     }
 
+    /* Update speed label when slider is moved */
     function updateSpeedLabel() {
         const speedNames = ["Snail (Super Easy)", "Chicken (Easy)", "Fox (Normal)", "Car (Hard)", "Rocket (Impossible)"];
         const speedValues = [4, 6, 9, 19, 38];
@@ -132,142 +162,91 @@
         speedLabel.textContent = speedNames[index];
         barSpeed = speedValues[index];
     }
+    speedSlider.addEventListener('input', updateSpeedLabel); // Event listener for slider changes
 
-    speedSlider.addEventListener('input', updateSpeedLabel);
-
+    /* ----------------------
+       Start Game Logic
+    ---------------------- */
     function startGame(selectedMode) {
-        mode = selectedMode;
+        mode = selectedMode; // Set the game mode
         document.getElementById('mode-selection').style.display = 'none';
         document.getElementById('game-screen').style.display = 'block';
         resetRound();
     }
 
+    /* ----------------------
+       Bar Animation Logic
+    ---------------------- */
+    let animationId; // Holds animation frame ID
+
+    function startBar() {
+        // Reset bar to starting position
+        isPlaying = true;
+        currentPosition = 0;
+        bar.style.left = currentPosition + '%';
+        barDirection = 1;
+
+        animationId = requestAnimationFrame(animateBar); // Start animation
+    }
+
+    function animateBar() {
+        if (!isPlaying) return;
+
+        // Move the bar in the current direction
+        currentPosition += barDirection * barSpeed * 0.1;
+
+        // Change direction when hitting edges
+        if (currentPosition >= 90 || currentPosition <= 0) {
+            barDirection *= -1;
+        }
+
+        bar.style.left = currentPosition + '%';
+        animationId = requestAnimationFrame(animateBar); // Keep animating
+    }
+
+    /* ----------------------
+       Stop Bar and Scoring
+    ---------------------- */
+    function stopBar() {
+        if (!isPlaying) return;
+        isPlaying = false;
+
+        // Scoring logic based on bar position
+        let center = 45; // Center position
+        let distanceFromCenter = Math.abs(currentPosition - center);
+        let points = distanceFromCenter <= 5 ? 10 : distanceFromCenter <= 12.5 ? 5 : distanceFromCenter <= 15 ? 2 : 0;
+
+        scores[`player${playerTurn}`] += points;
+        alert(`Player ${playerTurn} scored ${points} points!`);
+
+        round++;
+        resetRound();
+    }
+
+    /* ----------------------
+       End Game Logic
+    ---------------------- */
     function resetRound() {
-    if (round > totalRounds && mode === 1) {
-        endGame();
-        return;
+        if (round > totalRounds) {
+            if (mode === 2 && playerTurn === 1) {
+                playerTurn = 2; round = 1; 
+            } else return endGame();
+        }
+        startBar(); // Restart animation
     }
-
-    // Switch to Player 2 after Player 1 completes all rounds
-    if (round > totalRounds && mode === 2 && playerTurn === 1) {
-        playerTurn = 2; // Switch to Player 2
-        round = 1; // Reset round counter for Player 2
-        // Remove the barSpeed reset here to carry forward progression
-    } else if (round > totalRounds && mode === 2 && playerTurn === 2) {
-        endGame();
-        return;
-    }
-
-    roundInfo.textContent = `Round ${round} of ${totalRounds}`;
-    if (mode === 2) {
-        playerInfo.textContent = `Player ${playerTurn}'s Turn`;
-    }
-
-    startBar(); // Start the bar animation
-}
-
-    let animationId; // Holds the ID of the current animation frame
-
-function startBar() {
-    // Cancel any existing animation
-    if (animationId) {
-        cancelAnimationFrame(animationId);
-    }
-
-    // Reset bar state
-    isPlaying = true;
-    currentPosition = 0;
-    bar.style.left = currentPosition + '%';
-    barDirection = 1;
-    scoreInfo.textContent = `Score: ${scores[`player${playerTurn}`]}`;
-
-    // Start the animation
-    animationId = requestAnimationFrame(animateBar);
-}
-
-function animateBar() {
-    if (!isPlaying) return;
-
-    // Update the bar's position
-    currentPosition += barDirection * barSpeed * 0.1;
-
-    // Reverse direction if hitting the edges
-    if (currentPosition >= 90 || currentPosition <= 0) {
-        barDirection *= -1;
-    }
-
-    // Apply the new position
-    bar.style.left = currentPosition + '%';
-
-    // Request the next animation frame
-    animationId = requestAnimationFrame(animateBar);
-}
-
-function stopBar() {
-    if (!isPlaying) return;
-    isPlaying = false;
-
-    let center = 45; // Midpoint range
-    let goldRange = 5; // 10% total width (5% either side)
-    let silverRange = 12.5;
-    let bronzeRange = 15;
-
-    let distanceFromCenter = Math.abs(currentPosition - center);
-    let points = 0;
-
-    if (distanceFromCenter <= goldRange) {
-        points = 10;
-    } else if (distanceFromCenter <= goldRange + silverRange) {
-        points = 5;
-    } else if (distanceFromCenter <= goldRange + silverRange + bronzeRange) {
-        points = 2;
-    }
-
-    scores[`player${playerTurn}`] += points;
-    alert(`Player ${playerTurn} scored ${points} points!`);
-
-    round++;
-    if (mode === 2 && playerTurn === 1 && round > totalRounds) {
-        playerTurn = 2; // Switch to Player 2
-        round = 1; // Reset rounds for Player 2
-        barSpeed = parseFloat(speedSlider.value); // Reset to initial speed for Player 2
-    }
-    resetRound();
-}
 
     function endGame() {
         document.getElementById('game-screen').style.display = 'none';
         document.getElementById('result-screen').style.display = 'block';
-
-        if (mode === 1) {
-            finalScore.textContent = `Your final score: ${scores.player1}`;
-        } else {
-            let winner =
-                scores.player1 > scores.player2
-                    ? "Player 1 Wins!"
-                    : scores.player1 < scores.player2
-                    ? "Player 2 Wins!"
-                    : "It's a tie!";
-            finalScore.textContent = `Player 1: ${scores.player1}, Player 2: ${scores.player2}. ${winner}`;
-        }
+        finalScore.textContent = mode === 1 ? `Your final score: ${scores.player1}` :
+        `Player 1: ${scores.player1}, Player 2: ${scores.player2}. ${scores.player1 > scores.player2 ? "Player 1 Wins!" : "Player 2 Wins!"}`;
     }
 
     function restartGame() {
+        scores = { player1: 0, player2: 0 }; round = 1; playerTurn = 1;
         document.getElementById('result-screen').style.display = 'none';
         document.getElementById('landing-page').style.display = 'block';
-        scores = { player1: 0, player2: 0 };
-        round = 1;
-        playerTurn = 1;
     }
-
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 's' || event.key === 'S') {
-            stopBar();
-        }
-    });
-
-    // Initialise speed label on load
-    updateSpeedLabel();
 </script>
 
 </body>
