@@ -61,47 +61,47 @@
         }
 
         #speed-slider {
-    -webkit-appearance: none; /* Remove default styling for Webkit browsers */
-    width: 70vw; /* Set width to 70% of the viewport */
-    height: 20px; /* Chunky height for the slider track */
-    background: #ddd; /* Light grey track background */
-    border-radius: 10px; /* Rounded corners for the track */
-    outline: none; /* Remove outline */
-    cursor: pointer; /* Pointer cursor on hover */
-    margin: 20px 0; /* Vertical spacing */
-}
+            -webkit-appearance: none; /* Remove default styling for Webkit browsers */
+            width: 70vw; /* Set width to 70% of the viewport */
+            height: 20px; /* Chunky height for the slider track */
+            background: #ddd; /* Light grey track background */
+            border-radius: 10px; /* Rounded corners for the track */
+            outline: none; /* Remove outline */
+            cursor: pointer; /* Pointer cursor on hover */
+            margin: 20px 0; /* Vertical spacing */
+        }
 
-/* Custom thumb (slider handle) styling for WebKit browsers */
-#speed-slider::-webkit-slider-thumb {
-    -webkit-appearance: none; /* Remove default thumb */
-    appearance: none;
-    width: 30px; /* Chunky thumb width */
-    height: 30px; /* Chunky thumb height */
-    background: red; /* Red thumb */
-    border-radius: 50%; /* Circular thumb */
-    border: 2px solid #333; /* Border for visibility */
-    cursor: pointer; /* Pointer cursor */
-    transition: background 0.3s ease; /* Smooth hover effect */
-}
+        /* Custom thumb (slider handle) styling for WebKit browsers */
+        #speed-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; /* Remove default thumb */
+            appearance: none;
+            width: 30px; /* Chunky thumb width */
+            height: 30px; /* Chunky thumb height */
+            background: red; /* Red thumb */
+            border-radius: 50%; /* Circular thumb */
+            border: 2px solid #333; /* Border for visibility */
+            cursor: pointer; /* Pointer cursor */
+            transition: background 0.3s ease; /* Smooth hover effect */
+        }
 
-#speed-slider::-webkit-slider-thumb:hover {
-    background: darkred; /* Slightly darker red on hover */
-}
+        #speed-slider::-webkit-slider-thumb:hover {
+            background: darkred; /* Slightly darker red on hover */
+        }
 
-/* Custom thumb styling for Firefox */
-#speed-slider::-moz-range-thumb {
-    width: 30px; /* Chunky thumb width */
-    height: 30px; /* Chunky thumb height */
-    background: red; /* Red thumb */
-    border-radius: 50%; /* Circular thumb */
-    border: 2px solid #333; /* Border for visibility */
-    cursor: pointer; /* Pointer cursor */
-    transition: background 0.3s ease;
-}
+        /* Custom thumb styling for Firefox */
+        #speed-slider::-moz-range-thumb {
+            width: 30px; /* Chunky thumb width */
+            height: 30px; /* Chunky thumb height */
+            background: red; /* Red thumb */
+            border-radius: 50%; /* Circular thumb */
+            border: 2px solid #333; /* Border for visibility */
+            cursor: pointer; /* Pointer cursor */
+            transition: background 0.3s ease;
+        }
 
-#speed-slider::-moz-range-thumb:hover {
-    background: darkred; /* Slightly darker red on hover */
-}
+        #speed-slider::-moz-range-thumb:hover {
+            background: darkred; /* Slightly darker red on hover */
+        }
 
         .slider-label {
             font-size: 14px;
@@ -121,30 +121,31 @@
             box-sizing: border-box; /* Includes border in width/height */
         }
 
-.container button {
-    padding: 15px 30px; /* Large padding: 15px vertical, 30px horizontal */
-    font-size: 40px; /* Larger font size for the button text */
-    background-color: red; /* Red background */
-    color: white; /* White text for contrast */
-    border: none; /* Remove default border */
-    border-radius: 8px; /* 8-pixel rounded corners */
-    cursor: pointer; /* Pointer cursor on hover */
-    transition: background-color 0.3s ease; /* Smooth hover effect */
-}
+        .container button {
+            padding: 15px 30px;
+            font-size: 40px;
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 10px 0; /* Add vertical margin above and below buttons */
+        }
 
-.container button:hover {
-    background-color: darkred; /* Slightly darker red on hover */
-}
+        .container button:hover {
+            background-color: darkred; /* Slightly darker red on hover */
+        }
 
-h1 {
-    font-size: clamp(100px, 10vw, 1000px); /* Minimum 20px, scales with 10vw, no hard cap */
-    letter-spacing: 2px; /* Add small extra tracking */
-    text-transform: uppercase; /* Make all text uppercase */
-    margin: 0; /* Optional: Reset default margin for cleaner alignment */
-}
-.speedlabel{
-    font-size: 40px; /* Larger font size for the button text */
-}
+        h1 {
+            font-size: clamp(100px, 10vw, 1000px); /* Minimum 20px, scales with 10vw, no hard cap */
+            letter-spacing: 2px; /* Add small extra tracking */
+            text-transform: uppercase; /* Make all text uppercase */
+            margin: 0; /* Optional: Reset default margin for cleaner alignment */
+        }
+        .speedlabel{
+            font-size: 40px; /* Larger font size for the button text */
+        }
     </style>
 </head>
 <body>
@@ -152,6 +153,7 @@ h1 {
 <!-- Landing Page -->
 <div id="landing-page" class="container">
     <h1>Line-It-Up</h1>
+    <div id="high-score" style="font-size: 24px; margin: 10px 0;">Your all time best score: <span id="high-score-value">0</span></div>
     <!-- Start Game Button -->
     <button onclick="showModeSelection()">Start Game</button>
 </div>
@@ -204,6 +206,7 @@ h1 {
     let finalScore = document.getElementById('final-score'); // Final score display
     let speedSlider = document.getElementById('speed-slider'); // Slider to adjust bar speed
     let speedLabel = document.getElementById('speed-label'); // Label showing speed names
+    let highScore = localStorage.getItem('lineItUpHighScore') || 0; // Add this line
 
     let isPlaying = false; // Controls whether the game is active
     let barSpeed = 9; // Default speed of the bar
@@ -216,6 +219,8 @@ h1 {
 
     let playerTurn = 1; // Tracks which player's turn it is
     let scores = { player1: 0, player2: 0 }; // Player scores
+
+    document.getElementById('high-score-value').textContent = highScore;
 
     /* ----------------------
        Mode Selection Logic
@@ -289,6 +294,8 @@ h1 {
         let points = distanceFromCenter <= 5 ? 10 : distanceFromCenter <= 12.5 ? 5 : distanceFromCenter <= 15 ? 2 : 0;
 
         scores[`player${playerTurn}`] += points;
+        // Update the score display
+        scoreInfo.textContent = `Score: ${scores[`player${playerTurn}`]}`;
         alert(`Player ${playerTurn} scored ${points} points!`);
 
         round++;
@@ -297,21 +304,32 @@ h1 {
 
     /* ----------------------
        End Game Logic
-    ---------------------- */
+     ---------------------- */
     function resetRound() {
         if (round > totalRounds) {
             if (mode === 2 && playerTurn === 1) {
                 playerTurn = 2; round = 1; 
             } else return endGame();
         }
+        // Cancel any existing animation before starting a new one
+        cancelAnimationFrame(animationId);
         startBar(); // Restart animation
     }
 
     function endGame() {
         document.getElementById('game-screen').style.display = 'none';
         document.getElementById('result-screen').style.display = 'block';
-        finalScore.textContent = mode === 1 ? `Your final score: ${scores.player1}` :
-        `Player 1: ${scores.player1}, Player 2: ${scores.player2}. ${scores.player1 > scores.player2 ? "Player 1 Wins!" : "Player 2 Wins!"}`;
+        
+        // Check for new high score (single player mode only)
+        if (mode === 1 && scores.player1 > highScore) {
+            highScore = scores.player1;
+            localStorage.setItem('lineItUpHighScore', highScore);
+            document.getElementById('high-score-value').textContent = highScore;
+        }
+        
+        finalScore.textContent = mode === 1 ? 
+            `Your final score: ${scores.player1}` :
+            `Player 1: ${scores.player1}, Player 2: ${scores.player2}. ${scores.player1 > scores.player2 ? "Player 1 Wins!" : "Player 2 Wins!"}\n`;
     }
 
     function restartGame() {
