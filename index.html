@@ -29,7 +29,21 @@
                            'cv08' 1,  /* alternate 8 */
                            'cv09' 1,  /* alternate 9 */
                            'cv10' 1,  /* alternate 10 */
-                           'cv11' 1;  /* alternate 11 */
+                           'cv11' 1,  /* alternate 11 */
+                           'kern' 1; /* Enable kerning */
+      font-kerning: normal;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
     }
     @supports (font-variation-settings: normal) {
       :root {
@@ -40,6 +54,10 @@
       transition: opacity 0.5s ease-in-out;
       opacity: 1;
     }
+    h1 {
+      font-size: clamp(60px, 8vw, 1000px);
+      letter-spacing: -0.02em
+    }
   </style>
 </head>
 <body data-barba="wrapper">
@@ -47,7 +65,7 @@
   <main data-barba="container" data-barba-namespace="home">
     <!-- put here the content you wish to change between your pages, like your main content <h1> or <p> -->
 
-  <h1 class="text-9xl tracking-tighter">Welcome</h1>
+  <h1>Welcome</h1>
 
 </main>
 
