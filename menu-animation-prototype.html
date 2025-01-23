@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'menu-dark': '#18181B',
+                        'menu-button': '#27272A'
+                    },
+                    borderRadius: {
+                        '14px': '14px',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Add SVG template -->
+    <template id="plus-icon">
+        <svg width="22" height="23" viewBox="0 0 22 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12.4103 9.96005H21.1663V13.0841H12.4103V22.1481H9.24233V13.0841H0.486328V9.96005H9.24233V0.852051H12.4103V9.96005Z" fill="white" />
+        </svg>
+    </template>
+
+    <template id="minus-icon">
+        <svg width="28" height="5" viewBox="0 0 28 5" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0.259766 4.21594V0.783936H40.7398V4.21594H0.259766Z" fill="white" />
+        </svg>
+    </template>
+
+
+</head>
+
+<body class="bg-[#E5E5E5] flex justify-center pt-1">
+    <div class="relative w-[1636px]">
+        <nav class="flex items-center gap-1 p-2 rounded-xl">
+            <div class="min-w-[169px] h-14 bg-menu-dark rounded-14px flex items-center justify-center text-white/80 text-sm font-mono leading-none">
+                <div class="w-full h-full p-3"> <!-- control the logo size with padding -->
+                <svg class="w-full h-full" preserveAspectRatio="xMinYMid meet" viewBox="0 0 35 39" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0.96875 28.7849V9.71454L17.5 0.152344L34.0313 9.71454V28.7849L17.5 38.3471L0.96875 28.7849ZM2.48141 27.9205L17.5 36.6183L32.5186 27.9205V10.5789L17.5 1.8811L2.48141 10.5789V27.9205ZM17.5 27.9205C12.7459 27.9205 8.85621 24.0308 8.85621 19.2767C8.85621 14.4686 12.7459 10.6329 17.5 10.6329C22.2541 10.6329 26.1438 14.4686 26.1438 19.2767C26.1438 24.0308 22.2541 27.9205 17.5 27.9205ZM11.1252 19.2767C11.1252 22.7342 13.9885 25.5975 17.5 25.5975C21.0115 25.5975 23.8208 22.7342 23.8208 19.2767C23.8208 15.7652 21.0115 12.9019 17.5 12.9019C13.9885 12.9019 11.1252 15.7652 11.1252 19.2767ZM12.5298 19.2767C12.5298 16.5215 14.7448 14.3065 17.5 14.3065C20.2012 14.3065 22.4162 16.5215 22.4162 19.2767C22.4162 21.9779 20.2012 24.1929 17.5 24.1929C14.7448 24.1929 12.5298 21.9779 12.5298 19.2767Z" fill="white" />
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M17.5039 3.05831L3.4696 11.1427V27.3023L17.5039 35.3867L31.5382 27.3023V11.1427L17.5039 3.05831ZM33.916 9.76836L17.5039 0.314209L1.0918 9.76836V28.6767L17.5039 38.1308L33.916 28.6767V9.76836Z" fill="white" />
+                    </svg>
+                </div>
+            </div>
+            <button id="toggle-btn" class="w-14 h-14 bg-menu-button rounded-14px text-white/80 text-2xl cursor-pointer hover:bg-zinc-600/80 transition-colors grid place-items-center">
+                <span id="toggle-icon"></span>
+            </button>
+            <div id="nav-items" class="flex items-center gap-1 overflow-hidden w-0">
+                <div class="bg-white/95 h-14 px-6 py-3 rounded-14px whitespace-nowrap font-mono text-sm">Journal</div>
+                <div class="bg-white/95 h-14 px-6 py-3 rounded-14px whitespace-nowrap font-mono text-sm">About</div>
+                <div class="bg-white/95 h-14 px-6 py-3 rounded-14px whitespace-nowrap font-mono text-sm">Contact</div>
+            </div>
+            <div id="brand" class="ml-auto bg-white/95 px-6 py-3 rounded-14px h-14 flex-1 transition-all flex justify-end items-center">
+                <div class="w-full h-full p-1"> <!-- control the logo size with padding -->
+                    <svg class="w-full h-full" preserveAspectRatio="xMaxYMid meet" viewBox="0 0 172 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M161.534 33.6894C155.946 33.6894 150.666 31.3134 150.578 25.5054L157.706 25.2414C157.794 26.7814 159.422 27.9694 161.754 27.9694C163.382 27.9694 164.614 27.4414 164.614 26.4734C164.614 23.3054 151.458 25.7254 151.458 17.0134C151.458 12.3054 155.902 9.57739 161.138 9.57739C167.21 9.57739 171.214 13.1414 171.258 17.2334L164.306 17.4534C164.13 16.1774 163.074 15.0774 161.05 15.0774C159.774 15.0774 158.542 15.5174 158.542 16.4854C158.542 19.6534 171.962 17.1014 171.962 26.1214C171.962 30.9614 167.518 33.6894 161.534 33.6894Z" fill="#0F0F0F" />
+                        <path d="M141.397 10.1055H148.789V22.3815C148.789 29.2015 144.125 33.7335 137.173 33.7335C130.221 33.7335 125.557 29.2015 125.557 22.3815V10.1055H132.949V22.3815C132.949 25.4615 134.621 27.4855 137.173 27.4855C139.725 27.4855 141.397 25.4615 141.397 22.3815V10.1055Z" fill="#0F0F0F" />
+                        <path d="M110.901 33.6896C103.553 33.6896 98.3613 28.7176 98.3613 21.6776C98.3613 14.6376 103.553 9.62158 110.901 9.62158C118.293 9.62158 123.529 14.6376 123.529 21.6776C123.529 28.7176 118.293 33.6896 110.901 33.6896ZM110.901 27.0896C114.157 27.0896 116.445 24.8456 116.445 21.6336C116.445 18.4216 114.157 16.1776 110.901 16.1776C107.733 16.1776 105.445 18.4216 105.445 21.6336C105.445 24.8456 107.733 27.0896 110.901 27.0896Z" fill="#0F0F0F" />
+                        <path d="M92.0431 8.25746C89.8431 8.25746 88.0391 6.49746 88.0391 4.29745C88.0391 2.05345 89.8431 0.293457 92.0431 0.293457C94.2431 0.293457 96.0471 2.05345 96.0471 4.29745C96.0471 6.49746 94.2431 8.25746 92.0431 8.25746ZM88.3911 10.1055H95.6951V33.2495H88.3911V10.1055Z" fill="#0F0F0F" />
+                        <path d="M78.6341 10.1055H86.3781L77.7541 33.2495H70.3181L61.0781 10.1055H69.0421C72.3421 19.6535 73.5301 23.5255 74.0581 26.0775C74.4101 23.2615 75.5101 19.5655 78.6341 10.1055Z" fill="#0F0F0F" />
+                        <path d="M50.908 9.66551C57.948 9.66551 61.908 15.2535 61.908 21.7655C61.908 28.5855 57.684 33.7335 50.512 33.7335C48.048 33.7335 45.188 32.7655 43.472 30.5655V33.2495H36.168V0.249512H43.472V13.4935C44.484 11.0735 47.388 9.66551 50.908 9.66551ZM48.972 27.1335C52.228 27.1335 54.516 24.8895 54.516 21.6775C54.516 18.4655 52.228 16.2215 48.972 16.2215C45.804 16.2215 43.516 18.4655 43.516 21.6775C43.516 24.8895 45.804 27.1335 48.972 27.1335Z" fill="#0F0F0F" />
+                        <path d="M16.9936 33.6896C7.66559 33.6896 0.933594 26.9576 0.933594 17.6296C0.933594 8.30158 7.66559 1.56958 16.9936 1.56958C26.3216 1.56958 33.0536 8.30158 33.0536 17.6296C33.0536 26.9576 26.3216 33.6896 16.9936 33.6896ZM16.9936 26.6496C22.1416 26.6496 25.5736 22.5576 25.5736 17.6296C25.5736 12.7016 22.1416 8.60958 16.9936 8.60958C11.8456 8.60958 8.41359 12.7016 8.41359 17.6296C8.41359 22.5576 11.8456 26.6496 16.9936 26.6496Z" fill="#0F0F0F" />
+                    </svg>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script>
+        const toggleBtn = document.querySelector('#toggle-btn');
+        const navItems = document.querySelector('#nav-items');
+        const brand = document.querySelector('#brand');
+        const toggleIcon = document.querySelector('#toggle-icon');
+        const plusIcon = document.querySelector('#plus-icon').content.cloneNode(true);
+        let isOpen = false;
+
+        // Set initial icon
+        toggleIcon.appendChild(plusIcon);
+
+        toggleBtn.addEventListener('click', () => {
+            isOpen = !isOpen;
+            
+            // Timeline for coordinated animations
+            const tl = gsap.timeline();
+            
+            if (isOpen) {
+                toggleIcon.innerHTML = '';
+                toggleIcon.appendChild(document.querySelector('#minus-icon').content.cloneNode(true));
+                tl.to(navItems, {
+                    width: 'auto',
+                    duration: 0.6,
+                    ease: 'power4.out'
+                })
+                .to(navItems.children, {
+                    opacity: 1,
+                    x: 0,
+                    stagger: 0.1,
+                    duration: 0.4,
+                    ease: 'power4.out'
+                }, '-=0.3');
+            } else {
+                toggleIcon.innerHTML = '';
+                toggleIcon.appendChild(document.querySelector('#plus-icon').content.cloneNode(true));
+                tl.to(navItems.children, {
+                    opacity: 0,
+                    x: -20,
+                    stagger: 0.1,
+                    duration: 0.2,
+                    ease: 'circ.in',
+                })
+                .to(navItems, {
+                    width: 0,
+                    duration: 0.3,
+                    ease: 'circ.inOut'
+                }, '-=0.2');
+            }
+        });
+
+        // Initial setup
+        gsap.set(navItems, { width: 0 });
+        gsap.set(navItems.children, { opacity: 0, x: -20 });
+    </script>
+</body>
+</html>

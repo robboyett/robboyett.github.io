@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign-in Validation Prototype</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      width: 500px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .container h2 {
+      margin: 0 0 20px;
+      font-size: 20px;
+      text-align: center;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .error-message {
+      color: red;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    .success-message {
+      color: green;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #6c63ff;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Sign in</h2>
+    <div class="input-group">
+      <label for="emailOrUsername">Email or username</label>
+      <input type="text" id="emailOrUsername" style="width: 100%; box-sizing: border-box;" placeholder="e.g., user@example.com or username123" />
+      <div class="error-message" id="error"></div>
+      <div class="success-message" id="success"></div>
+    </div>
+    <button id="signInButton" disabled>Sign in</button>
+  </div>
+
+  <script>
+    const inputField = document.getElementById('emailOrUsername');
+    const errorDiv = document.getElementById('error');
+    const successDiv = document.getElementById('success');
+    const signInButton = document.getElementById('signInButton');
+
+    inputField.addEventListener('input', () => {
+      const value = inputField.value.trim();
+      errorDiv.textContent = '';
+      successDiv.textContent = '';
+      signInButton.disabled = true;
+
+      if (value.includes('@')) {
+        // Validate as email
+        if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          successDiv.textContent = 'Valid email address';
+          signInButton.disabled = false;
+        } else {
+          errorDiv.textContent = 'Invalid email format';
+        }
+      } else if (value.length > 0) {
+        // Validate as username
+        if (/^[a-zA-Z0-9_.-]+$/.test(value) && value.length >= 3) {
+          successDiv.textContent = 'Valid username';
+          signInButton.disabled = false;
+        } else {
+          errorDiv.textContent = value.length < 3 ? 'Username must be at least 3 characters' : 'Invalid username format (letters, numbers, ., _, and - only)';
+        }
+      }
+    });
+  </script>
+</body>
+</html>
