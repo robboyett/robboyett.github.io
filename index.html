@@ -1,74 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
   <link href="./output.css" rel="stylesheet">
   <script src="https://unpkg.com/@barba/core"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <meta charset="UTF-8" />
   <title>Home</title>
   <style>
+    /* CSS */
+    :root {
+      font-family: 'Inter', sans-serif;
+      font-feature-settings: 'liga' 1,  /* standard ligatures */
+                           'calt' 1,  /* contextual alternates */
+                           'dlig' 1,  /* discretionary ligatures */
+                           'ss01' 1,  /* alternate 1 */
+                           'ss02' 1,  /* alternate 2 */
+                           'ss03' 1,  /* alternate 3 */
+                           'zero' 1,  /* slashed zero */
+                           'tnum' 1,  /* tabular numbers */
+                           'cv01' 1,  /* alternate 1 */
+                           'cv02' 1,  /* alternate 2 */
+                           'cv03' 1,  /* alternate 3 */
+                           'cv04' 1,  /* alternate 4 */
+                           'cv05' 1,  /* alternate 5 */
+                           'cv06' 1,  /* alternate 6 */
+                           'cv07' 1,  /* alternate 7 */
+                           'cv08' 1,  /* alternate 8 */
+                           'cv09' 1,  /* alternate 9 */
+                           'cv10' 1,  /* alternate 10 */
+                           'cv11' 1;  /* alternate 11 */
+    }
+    @supports (font-variation-settings: normal) {
+      :root {
+        font-family: 'Inter var', sans-serif;
+      }
+    }
     .barba-container {
-  transition: opacity 0.5s ease-in-out;
-  opacity: 1;
-}
+      transition: opacity 0.5s ease-in-out;
+      opacity: 1;
+    }
   </style>
 </head>
 <body data-barba="wrapper">
 
-  <p>Not changing</p>
-  <a href="index.html">Home</a>
-  <a href="projects.html">Projects</a>
-
   <main data-barba="container" data-barba-namespace="home">
     <!-- put here the content you wish to change between your pages, like your main content <h1> or <p> -->
 
-  <h1 class="text-9xl tracking-tighter">Hello. I take products and experiences from simple ideas to market-proved concepts.</h1>
-  <h2 class="text-8xl tracking-tighter">Hello. I take products and experiences from simple ideas to market-proved concepts.</h2>
-  <h2 class="text-7xl tracking-tighter">Hello. I take products and experiences from simple ideas to market-proved concepts.</h2>
-
-<div class="mt-12 max-w-4xl mx-auto">
-  <h2 class="text-2xl font-semibold text-gray-800 tracking-wide border-b-2 border-gray-200 pb-2 mb-6">
-    Selected current & past clients
-  </h2>
-  <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-4 text-lg text-gray-700 leading-relaxed">
-    <li class="hover:text-gray-900">Barclays</li>
-    <li class="hover:text-gray-900">British Museum</li>
-    <li class="hover:text-gray-900">Department for Work and Pensions</li>
-    <li class="hover:text-gray-900">HSBC</li>
-    <li class="hover:text-gray-900">Lloyd’s of London</li>
-    <li class="hover:text-gray-900">NatWest</li>
-    <li class="hover:text-gray-900">Natural History Museum</li>
-    <li class="hover:text-gray-900">Netflix</li>
-    <li class="hover:text-gray-900">Nike</li>
-    <li class="hover:text-gray-900">Nile</li>
-    <li class="hover:text-gray-900">Santander</li>
-    <li class="hover:text-gray-900">Scottish Water</li>
-    <li class="hover:text-gray-900">Tate</li>
-    <li class="hover:text-gray-900">Ustwo</li>
-  </ul>
-</div>
-
-<div class="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 p-10 rounded-lg shadow-lg text-white max-w-lg mx-auto mt-8">
-  <h2 class="text-3xl font-bold mb-4">Services</h2>
-  <ul class="space-y-2 text-lg">
-    <li class="bg-white text-pink-500 px-4 py-2 rounded shadow-md hover:bg-pink-100 transition">
-      Strategic design
-    </li>
-    <li class="bg-white text-purple-500 px-4 py-2 rounded shadow-md hover:bg-purple-100 transition">
-      Product design
-    </li>
-    <li class="bg-white text-blue-500 px-4 py-2 rounded shadow-md hover:bg-blue-100 transition">
-      Prototyping
-    </li>
-    <li class="bg-white text-green-500 px-4 py-2 rounded shadow-md hover:bg-green-100 transition">
-      User research
-    </li>
-    <li class="bg-white text-yellow-500 px-4 py-2 rounded shadow-md hover:bg-yellow-100 transition">
-      Design leadership
-    </li>
-  </ul>
-</div>
+  <h1 class="text-9xl tracking-tighter">Welcome</h1>
 
 </main>
 
