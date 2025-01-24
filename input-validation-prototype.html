@@ -101,9 +101,18 @@
         </ul>
       </li>
     </ul>
+    <strong style="display: block; margin-top: 15px;">Test URL</strong>
+    <p>https://robboyett.github.io/input-validation-prototype.html
+      <br>?email=user@example.com
+      <br>&studyName=THARROS
+      <br>&studyCode=D5989C00001</p>
   </div>
   <div class="container">
     <h2>Sign-in for professionals</h2>
+    <div id="study-info" class="study-info" style="border-left: 1px solid #6c63ff; padding-left: 10px; margin-bottom: 20px;">
+      <p id="study-name">Study Name</p>
+      <p id="study-code">Study Code</p>
+    </div>
     <div class="input-group">
       <label for="emailOrUsername">Enter your email or username</label>
       <input type="text" id="emailOrUsername" style="width: 100%; box-sizing: border-box;" placeholder="e.g., user@example.com or username123" />
@@ -118,23 +127,46 @@
     const errorDiv = document.getElementById('error');
     const successDiv = document.getElementById('success');
     const signInButton = document.getElementById('signInButton');
+    const studyInfoDiv = document.getElementById('study-info');
+    const studyNameElement = document.getElementById('study-name');
+    const studyCodeElement = document.getElementById('study-code');
     let debounceTimer;
     let hasShownError = false;
 
     // Add URL parameter handling
-    function getEmailFromURL() {
+    function getURLParams() {
       const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('email');
+      return {
+        email: urlParams.get('email'),
+        studyName: urlParams.get('studyName'),
+        studyCode: urlParams.get('studyCode')
+      };
     }
 
-    // Pre-populate email and validate if present in URL
+    // Handle study info display
+    function handleStudyInfo(studyName, studyCode) {
+      if (studyName && studyCode && studyName.trim() && studyCode.trim()) {
+        studyNameElement.textContent = studyName;
+        studyCodeElement.textContent = studyCode;
+        studyInfoDiv.style.display = 'block';
+      } else {
+        studyInfoDiv.style.display = 'none';
+      }
+    }
+
+    // Pre-populate fields and handle study info on load
     window.addEventListener('load', () => {
-      const emailParam = getEmailFromURL();
-      if (emailParam) {
-        inputField.value = emailParam;
-        validateInput(emailParam);
+      const params = getURLParams();
+      
+      // Handle email pre-population
+      if (params.email) {
+        inputField.value = params.email;
+        validateInput(params.email);
         hasShownError = true; // Skip initial delay since this is pre-populated
       }
+
+      // Handle study info
+      handleStudyInfo(params.studyName, params.studyCode);
     });
 
     inputField.addEventListener('input', () => {
