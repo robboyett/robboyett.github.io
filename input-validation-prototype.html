@@ -77,36 +77,48 @@
   </style>
 </head>
 <body>
-  <div style="position: fixed; top: 20px; left: 20px; max-width: 300px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-size: 14px; line-height: 1.5;">
-    <strong>Prototype Purpose:</strong>
-    <p>This prototype demonstrates a single login input that accepts both usernames and email addresses. It provides real-time validation feedback as the user types, eliminating the need to submit the form to see validation errors.</p>
-    
-    <strong style="display: block; margin-top: 15px;">Key Technical Details:</strong>
-    <ul style="margin-top: 8px; padding-left: 20px; list-style-type: disc;">
-      <li>Accepts email addresses and usernames in the same field</li>
-      <li>1000ms debounce delay on first validation error</li>
-      <li>Immediate validation after first error</li>
-      <li>URL parameter support for email, study name, study code</li>
-      <li>Username requirements:
-        <ul style="margin-top: 4px; padding-left: 20px; list-style-type: circle;">
-          <li>Minimum 3 characters</li>
-          <li>Letters, numbers, dots, underscores, hyphens only</li>
-        </ul>
-      </li>
-      <li>Email validation using standard format (text@domain.tld)</li>
-      <li>Real-time visual feedback:
-        <ul style="margin-top: 4px; padding-left: 20px; list-style-type: circle;">
-          <li>Success/error messages</li>
-          <li>Button enable/disable states</li>
-        </ul>
-      </li>
-    </ul>
-    <strong style="display: block; margin-top: 15px;">Test URL</strong>
-    <p>https://robboyett.github.io/input-validation-prototype.html
-      <br>?email=user@example.com
-      <br>&studyName=THARROS
-      <br>&studyCode=D5989C00001</p>
+
+  <!-- Prototype purpose -->
+  <div id="info-panel" style="position: fixed; top: 20px; left: 20px;">
+    <!-- Toggle Button -->
+    <button onclick="toggleInfo()" style="background: white; padding: 8px 16px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 8px; text-align: left; width: 100%;">
+      <span id="toggle-text" style="color: #6c63ff;">Hide Info</span>
+    </button>
+
+    <!-- Info Content -->
+    <div id="info-content" style="max-width: 300px; max-height: 80vh; overflow-y: auto; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-size: 14px; line-height: 1.5;">
+      <strong>Prototype Purpose:</strong>
+      <p>This prototype demonstrates a single login input that accepts both usernames and email addresses. It provides real-time validation feedback as the user types, eliminating the need to submit the form to see validation errors.</p>
+      
+      <strong style="display: block; margin-top: 15px;">Key Technical Details:</strong>
+      <ul style="margin-top: 8px; padding-left: 20px; list-style-type: disc;">
+        <li>Accepts email addresses and usernames in the same field</li>
+        <li>1000ms debounce delay on first validation error</li>
+        <li>Immediate validation after first error</li>
+        <li>URL parameter support for email, study name, study code</li>
+        <li>Username requirements:
+          <ul style="margin-top: 4px; padding-left: 20px; list-style-type: circle;">
+            <li>Minimum 3 characters</li>
+            <li>Letters, numbers, dots, underscores, hyphens only</li>
+          </ul>
+        </li>
+        <li>Email validation using standard format (text@domain.tld)</li>
+        <li>Real-time visual feedback:
+          <ul style="margin-top: 4px; padding-left: 20px; list-style-type: circle;">
+            <li>Success/error messages</li>
+            <li>Button enable/disable states</li>
+          </ul>
+        </li>
+      </ul>
+      <strong style="display: block; margin-top: 15px;">Test URL</strong>
+      <p>https://robboyett.github.io/input-validation-prototype.html
+        <br>?email=user@example.com
+        <br>&studyName=THARROS
+        <br>&studyCode=D5989C00001</p>
+    </div>
   </div>
+
+  <!-- Sign-in form -->
   <div class="container">
     <h2>Sign-in for professionals</h2>
     <div id="study-info" class="study-info" style="border-left: 1px solid #6c63ff; padding-left: 10px; margin-bottom: 20px;">
@@ -211,6 +223,27 @@
         }
       }
     }
+
+    function toggleInfo() {
+      const content = document.getElementById('info-content');
+      const toggleText = document.getElementById('toggle-text');
+      
+      if (content.style.display === 'none') {
+        content.style.display = 'block';
+        toggleText.textContent = 'Hide Info';
+      } else {
+        content.style.display = 'none';
+        toggleText.textContent = 'Show Info';
+      }
+    }
+
+    // Check for mobile on load
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.innerWidth < 768) {
+        document.getElementById('info-content').style.display = 'none';
+        document.getElementById('toggle-text').textContent = 'Show Info';
+      }
+    });
   </script>
 </body>
 </html>
