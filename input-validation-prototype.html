@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
+      background-color: #F9F8F6;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -17,16 +17,15 @@
 
     .container {
       background: #fff;
-      border: 1px solid #ddd;
+      border: 1px solid #CECDCA;
       border-radius: 8px;
       padding: 20px;
       width: 500px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
     .container h2 {
       margin: 0 0 40px;
-      font-size: 20px;
+      font-size: 32px;
     }
 
     .input-group {
@@ -128,8 +127,10 @@
     <div class="input-group">
       <label for="emailOrUsername">Enter your email or username</label>
       <input type="text" id="emailOrUsername" style="width: 100%; box-sizing: border-box;" placeholder="e.g., user@example.com or username123" />
+      <div style="height: 20px;">
       <div class="error-message" id="error"></div>
       <div class="success-message" id="success"></div>
+      </div>
     </div>
     <button id="signInButton" disabled>Sign in</button>
   </div>
@@ -194,7 +195,7 @@
         errorDiv.textContent = '';
         debounceTimer = setTimeout(() => {
           validateInput(value);
-          hasShownError = true;
+          /* hasShownError = true; */
         }, 1000);
       } else {
         // After first error has been shown, validate immediately
@@ -206,7 +207,7 @@
       if (value.includes('@')) {
         // Validate as email
         if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          successDiv.textContent = 'Valid email address';
+          successDiv.textContent = 'Valid email address format';
           signInButton.disabled = false;
           errorDiv.textContent = '';
         } else {
@@ -215,7 +216,7 @@
       } else if (value.length > 0) {
         // Validate as username
         if (/^[a-zA-Z0-9_.-]+$/.test(value) && value.length >= 3) {
-          successDiv.textContent = 'Valid username';
+          successDiv.textContent = 'Valid username format';
           signInButton.disabled = false;
           errorDiv.textContent = '';
         } else {
