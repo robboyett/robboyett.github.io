@@ -182,7 +182,6 @@
     inputField.addEventListener('input', () => {
       const value = inputField.value.trim();
       successDiv.textContent = '';
-      /* signInButton.disabled = true; */
 
       // Clear any existing timer
       clearTimeout(debounceTimer);
@@ -192,7 +191,6 @@
         errorDiv.textContent = '';
         debounceTimer = setTimeout(() => {
           validateInput(value);
-          /* hasShownError = true; */
         }, 1000);
       } else {
         // After first error has been shown, validate immediately
@@ -222,6 +220,13 @@
         }
       }
     }
+
+    // Add form submission handler
+    signInButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      successDiv.textContent = '';
+      errorDiv.textContent = 'User name or email not registered with System';
+    });
 
     function toggleInfo() {
       const content = document.getElementById('info-content');
