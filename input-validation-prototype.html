@@ -92,8 +92,7 @@
       <strong style="display: block; margin-top: 15px;">Key Technical Details:</strong>
       <ul style="margin-top: 8px; padding-left: 20px; list-style-type: disc;">
         <li>Accepts email addresses and usernames in the same field</li>
-        <li>1000ms debounce delay on first validation error</li>
-        <li>Immediate validation after first error</li>
+        <li>1000ms debounce delay error message</li>
         <li>URL parameter support for email, study name, study code</li>
         <li>Username requirements:
           <ul style="margin-top: 4px; padding-left: 20px; list-style-type: circle;">
@@ -105,13 +104,11 @@
         <li>Real-time visual feedback:
           <ul style="margin-top: 4px; padding-left: 20px; list-style-type: circle;">
             <li>Success/error messages</li>
-            <li>Button enable/disable states</li>
           </ul>
         </li>
       </ul>
       <strong style="display: block; margin-top: 15px;">Test URL</strong>
-      <p>https://robboyett.github.io/input-validation-prototype.html
-        <br>?email=user@example.com
+      <p>?email=user@example.com
         <br>&studyName=THARROS
         <br>&studyCode=D5989C00001</p>
     </div>
@@ -185,7 +182,7 @@
     inputField.addEventListener('input', () => {
       const value = inputField.value.trim();
       successDiv.textContent = '';
-      signInButton.disabled = true;
+      /* signInButton.disabled = true; */
 
       // Clear any existing timer
       clearTimeout(debounceTimer);
@@ -204,11 +201,13 @@
     });
 
     function validateInput(value) {
+      // First, enable button if there's any input
+      signInButton.disabled = value.length === 0;
+
       if (value.includes('@')) {
         // Validate as email
         if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
           successDiv.textContent = 'Valid email address format';
-          signInButton.disabled = false;
           errorDiv.textContent = '';
         } else {
           errorDiv.textContent = 'Enter a valid email address';
@@ -217,7 +216,6 @@
         // Validate as username
         if (/^[a-zA-Z0-9_.-]+$/.test(value) && value.length >= 3) {
           successDiv.textContent = 'Valid username format';
-          signInButton.disabled = false;
           errorDiv.textContent = '';
         } else {
           errorDiv.textContent = value.length < 3 ? 'Username must be at least 3 characters' : 'Usernames can only include letters, numbers, dots (.), underscores (_), or dashes (-). Please update your entry.';
