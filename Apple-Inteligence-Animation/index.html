@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GSAP Text Load Animation</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/16327/SplitText.min.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
@@ -64,104 +65,21 @@
 </head>
 
 <body>
-    <di class="layout">
-    <div class="text-container" id="text">
-        <p>We see the incredible potential of using technology creatively within your design process—unlocking new levels of
-        efficiency, creativity, and innovation.
-        Many brands find themselves sticking to familiar routines, unsure where to start with modern design innovation. This can
-        mean missing out on opportunities to approach challenges in more creative and effective ways.
-        We work with teams like yours to confidently embrace change and explore new possibilities through Generative AI-driven
-        solutions. Innovation might seem complex at first, but it also opens the door to the most rewarding and profitable
-        opportunities. We're here to support you at every step, making the process smoother and more enjoyable.</p>
-    </div>
-    <button class="btn" onclick="restartAnimation()">Replay Animation</button>
+    <div class="layout">
+        <div class="text-container" id="text">
+            <p>We see the incredible potential of using technology creatively within your design process—unlocking new levels of
+            efficiency, creativity, and innovation.
+            Many brands find themselves sticking to familiar routines, unsure where to start with modern design innovation. This can
+            mean missing out on opportunities to approach challenges in more creative and effective ways.
+            We work with teams like yours to confidently embrace change and explore new possibilities through Generative AI-driven
+            solutions. Innovation might seem complex at first, but it also opens the door to the most rewarding and profitable
+            opportunities. We're here to support you at every step, making the process smoother and more enjoyable.</p>
+        </div>
+        <button class="btn" onclick="restartAnimation()">Replay Animation</button>
     </div>
 
     <script>
-        function processTextContent() {
-            const container = document.querySelector('.text-container');
-            const elements = container.querySelectorAll('p, a, span, h1, h2, h3, h4, h5, h6, div');
-            const originalContent = Array.from(elements).map(el => ({
-                content: el.textContent,
-                tagName: el.tagName.toLowerCase(),
-                href: el.href || null,
-                class: el.className || null,
-                id: el.id || null
-            }));
-            
-            // Clear container
-            container.innerHTML = '';
-            
-            originalContent.forEach(item => {
-                const block = document.createElement('div');
-                block.className = 'text-block';
-                
-                // Create temporary element to measure text
-                const measurer = document.createElement(item.tagName);
-                measurer.style.cssText = `
-                    position: absolute;
-                    width: auto;
-                    white-space: nowrap;
-                    visibility: hidden;
-                    font-size: ${getComputedStyle(container).fontSize};
-                    font-weight: ${getComputedStyle(container).fontWeight};
-                `;
-                document.body.appendChild(measurer);
-                
-                // Split into words and recombine into lines
-                const words = item.content.split(/\s+/);
-                let currentLine = [];
-                let lines = [];
-                const maxWidth = container.offsetWidth * 0.8; // 80% of container width
-                
-                words.forEach(word => {
-                    currentLine.push(word);
-                    measurer.textContent = currentLine.join(' ');
-                    
-                    if (measurer.offsetWidth > maxWidth && currentLine.length > 1) {
-                        // Remove last word and create new line
-                        currentLine.pop();
-                        lines.push(currentLine.join(' '));
-                        currentLine = [word];
-                    }
-                });
-                
-                if (currentLine.length > 0) {
-                    lines.push(currentLine.join(' '));
-                }
-                
-                // Remove measurer
-                document.body.removeChild(measurer);
-                
-                // Create spans for each line
-                lines.forEach(line => {
-                    const wrapper = document.createElement(item.tagName);
-                    if (item.href) wrapper.href = item.href;
-                    if (item.class) wrapper.className = item.class;
-                    if (item.id) wrapper.id = item.id;
-                    
-                    const span = document.createElement('span');
-                    span.className = 'line';
-                    span.textContent = line;
-                    
-                    wrapper.appendChild(span);
-                    block.appendChild(wrapper);
-                });
-                
-                container.appendChild(block);
-            });
-        }
-
-        function setInitialColors() {
-            const lines = document.querySelectorAll('.line');
-            const totalLines = lines.length;
-            
-            lines.forEach((line, index) => {
-                const progress = index / (totalLines - 1);
-                const color = getGradientColor(progress);
-                line.style.color = color;
-            });
-        }
+        gsap.registerPlugin(SplitText);
 
         function getGradientColor(progress) {
             const colors = [
@@ -202,26 +120,30 @@
         }
 
         function animateText() {
-            const tl = gsap.timeline();
-            const lines = document.querySelectorAll('.line');
-            
-            if (!lines.length) {
-                console.warn('No lines found to animate');
-                return;
-            }
+            // Split text into lines
+            const split = new SplitText("#text", { type: "lines", linesClass: "line" });
+            const lines = split.lines;
+            const totalLines = lines.length;
 
-            // Reset styles - hide everything initially
+            // Reset animation
             gsap.set(lines, {
                 y: 30,
-                opacity: 0,
-                immediateRender: true
+                opacity: 0
             });
 
-            setInitialColors();
-            
-            // Create individual animations for each line
+            // Set initial gradient colors
             lines.forEach((line, index) => {
-                // Animate line in
+                const progress = index / (totalLines - 1);
+                const color = getGradientColor(progress);
+                gsap.set(line, { color: color });
+            });
+
+            // Create timeline
+            const tl = gsap.timeline();
+
+            // Animate each line
+            lines.forEach((line, index) => {
+                // Animate in
                 tl.to(line, {
                     y: 0,
                     opacity: 1,
@@ -229,37 +151,22 @@
                     ease: "back.out(1.9)"
                 }, index * 0.1);
 
-                // Fade to black shortly after
+                // Fade to black
                 tl.to(line, {
                     color: "#0F0F0F",
                     duration: 0.6,
                     ease: "power2.inOut"
-                }, `>-0.1`);
+                }, ">-0.1");
             });
         }
 
         function restartAnimation() {
-            // Reset lines
-            document.querySelectorAll('.line').forEach((line, index) => {
-                const progress = index / (document.querySelectorAll('.line').length - 1);
-                const color = getGradientColor(progress);
-                gsap.set(line, {
-                    y: 30,
-                    opacity: 0,
-                    color: color
-                });
-            });
-            
+            // SplitText will automatically revert on timeline restart
             animateText();
         }
 
-        // Replace the DOMContentLoaded event listener with this:
-        document.addEventListener('DOMContentLoaded', () => {
-            // Process text immediately
-            processTextContent();
-            // Start animation immediately
-            animateText();
-        });
+        // Start animation when page loads
+        document.addEventListener('DOMContentLoaded', animateText);
     </script>
 </body>
 

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GSAP Text Load Animation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: white;
+            margin: 0;
+        }
+
+        .text-container {
+            font-size: 1rem;
+            line-height: 1.4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: left;
+        }
+
+        .text-block {
+            width: 100%;
+        }
+
+        .line {
+            margin: 0;
+            opacity: 0;
+            display: block;
+            padding: 0.1em 0;
+            width: 100%;
+        }
+
+        .btn {
+            margin-top: 40px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            background: #242424;
+            color: white;
+            border-radius: 8px;
+        }
+
+        .text-container p {
+            margin: 0;
+            padding: 0;
+            margin-top: -0.3em;
+        }
+
+        .layout {
+            width: 80%;
+            max-width: 1000px;
+        }
+    </style>
+</head>
+
+<body>
+    <di class="layout">
+    <div class="text-container" id="text">
+        <p>We see the incredible potential of using technology creatively within your design process—unlocking new levels of
+        efficiency, creativity, and innovation.
+        Many brands find themselves sticking to familiar routines, unsure where to start with modern design innovation. This can
+        mean missing out on opportunities to approach challenges in more creative and effective ways.
+        We work with teams like yours to confidently embrace change and explore new possibilities through Generative AI-driven
+        solutions. Innovation might seem complex at first, but it also opens the door to the most rewarding and profitable
+        opportunities. We're here to support you at every step, making the process smoother and more enjoyable.</p>
+    </div>
+    <button class="btn" onclick="restartAnimation()">Replay Animation</button>
+    </div>
+
+    <script>
+        function processTextContent() {
+            const container = document.querySelector('.text-container');
+            const elements = container.querySelectorAll('p, a, span, h1, h2, h3, h4, h5, h6, div');
+            const originalContent = Array.from(elements).map(el => ({
+                content: el.textContent,
+                tagName: el.tagName.toLowerCase(),
+                href: el.href || null,
+                class: el.className || null,
+                id: el.id || null
+            }));
+            
+            // Clear container
+            container.innerHTML = '';
+            
+            originalContent.forEach(item => {
+                const block = document.createElement('div');
+                block.className = 'text-block';
+                
+                // Create temporary element to measure text
+                const measurer = document.createElement(item.tagName);
+                measurer.style.cssText = `
+                    position: absolute;
+                    width: auto;
+                    white-space: nowrap;
+                    visibility: hidden;
+                    font-size: ${getComputedStyle(container).fontSize};
+                    font-weight: ${getComputedStyle(container).fontWeight};
+                `;
+                document.body.appendChild(measurer);
+                
+                // Split into words and recombine into lines
+                const words = item.content.split(/\s+/);
+                let currentLine = [];
+                let lines = [];
+                const maxWidth = container.offsetWidth * 0.8; // 80% of container width
+                
+                words.forEach(word => {
+                    currentLine.push(word);
+                    measurer.textContent = currentLine.join(' ');
+                    
+                    if (measurer.offsetWidth > maxWidth && currentLine.length > 1) {
+                        // Remove last word and create new line
+                        currentLine.pop();
+                        lines.push(currentLine.join(' '));
+                        currentLine = [word];
+                    }
+                });
+                
+                if (currentLine.length > 0) {
+                    lines.push(currentLine.join(' '));
+                }
+                
+                // Remove measurer
+                document.body.removeChild(measurer);
+                
+                // Create spans for each line
+                lines.forEach(line => {
+                    const wrapper = document.createElement(item.tagName);
+                    if (item.href) wrapper.href = item.href;
+                    if (item.class) wrapper.className = item.class;
+                    if (item.id) wrapper.id = item.id;
+                    
+                    const span = document.createElement('span');
+                    span.className = 'line';
+                    span.textContent = line;
+                    
+                    wrapper.appendChild(span);
+                    block.appendChild(wrapper);
+                });
+                
+                container.appendChild(block);
+            });
+        }
+
+        function setInitialColors() {
+            const lines = document.querySelectorAll('.line');
+            const totalLines = lines.length;
+            
+            lines.forEach((line, index) => {
+                const progress = index / (totalLines - 1);
+                const color = getGradientColor(progress);
+                line.style.color = color;
+            });
+        }
+
+        function getGradientColor(progress) {
+            const colors = [
+                { pos: 0, color: '#4b0082' },    // Deep purple
+                { pos: 0.3, color: '#800080' },  // Purple
+                { pos: 0.7, color: '#ff4500' },  // Orange
+                { pos: 1, color: '#ffd700' }     // Yellow
+            ];
+
+            // Find the two colors to interpolate between
+            for (let i = 0; i < colors.length - 1; i++) {
+                if (progress >= colors[i].pos && progress <= colors[i + 1].pos) {
+                    const localProgress = (progress - colors[i].pos) / (colors[i + 1].pos - colors[i].pos);
+                    
+                    // Convert hex to RGB for interpolation
+                    const color1 = hexToRgb(colors[i].color);
+                    const color2 = hexToRgb(colors[i + 1].color);
+                    
+                    // Interpolate between the two colors
+                    const r = Math.round(color1.r + (color2.r - color1.r) * localProgress);
+                    const g = Math.round(color1.g + (color2.g - color1.g) * localProgress);
+                    const b = Math.round(color1.b + (color2.b - color1.b) * localProgress);
+                    
+                    return `rgb(${r}, ${g}, ${b})`;
+                }
+            }
+            return colors[0].color;
+        }
+
+        // Helper function to convert hex to RGB
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function animateText() {
+            const tl = gsap.timeline();
+            const lines = document.querySelectorAll('.line');
+            
+            if (!lines.length) {
+                console.warn('No lines found to animate');
+                return;
+            }
+
+            // Reset styles - hide everything initially
+            gsap.set(lines, {
+                y: 30,
+                opacity: 0,
+                immediateRender: true
+            });
+
+            setInitialColors();
+            
+            // Create individual animations for each line
+            lines.forEach((line, index) => {
+                // Animate line in
+                tl.to(line, {
+                    y: 0,
+                    opacity: 1,
+                    duration: 0.2,
+                    ease: "back.out(1.9)"
+                }, index * 0.1);
+
+                // Fade to black shortly after
+                tl.to(line, {
+                    color: "#0F0F0F",
+                    duration: 0.6,
+                    ease: "power2.inOut"
+                }, `>-0.1`);
+            });
+        }
+
+        function restartAnimation() {
+            // Reset lines
+            document.querySelectorAll('.line').forEach((line, index) => {
+                const progress = index / (document.querySelectorAll('.line').length - 1);
+                const color = getGradientColor(progress);
+                gsap.set(line, {
+                    y: 30,
+                    opacity: 0,
+                    color: color
+                });
+            });
+            
+            animateText();
+        }
+
+        // Replace the DOMContentLoaded event listener with this:
+        document.addEventListener('DOMContentLoaded', () => {
+            // Process text immediately
+            processTextContent();
+            // Start animation immediately
+            animateText();
+        });
+    </script>
+</body>
+
+</html>
