@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipping Address Form</title>
+    <style>
+        /* CSS Custom Properties for theming */
+        :root {
+            --primary-color: #2563eb;
+            --success-color: #22c55e;
+            --error-color: #ef4444;
+            --border-color: #e5e7eb;
+            --text-color: #1f2937;
+            --background-color: #ffffff;
+            --input-padding: 0.75rem;
+            --border-radius: 0.375rem;
+            --transition-duration: 0.2s;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.5;
+            color: var(--text-color);
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 1rem;
+        }
+
+        .form-container {
+            max-width: 40rem;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: var(--background-color);
+            border-radius: var(--border-radius);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-title {
+            margin: 0 0 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: var(--input-padding);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: border-color var(--transition-duration);
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-input.success {
+            border-color: var(--success-color);
+            animation: successPulse 0.3s ease-out;
+        }
+
+        .form-input.error {
+            border-color: var(--error-color);
+        }
+
+        .error-message {
+            color: var(--error-color);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            opacity: 0;
+            transition: opacity var(--transition-duration);
+        }
+
+        .error-message.visible {
+            opacity: 1;
+        }
+
+        .optional {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-left: 0.5rem;
+            font-weight: normal;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+        }
+
+        .submit-button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color var(--transition-duration);
+        }
+
+        .submit-button:hover {
+            background-color: #1d4ed8;
+        }
+
+        .submit-button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .form-container {
+                padding: 1rem;
+                margin: 1rem auto;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1 class="form-title">Shipping Address</h1>
+        <form id="shippingForm" novalidate>
+            <div class="form-group">
+                <label for="fullName" class="form-label">Full Name</label>
+                <input type="text" 
+                       id="fullName" 
+                       name="fullName" 
+                       class="form-input"
+                       required
+                       aria-required="true"
+                       placeholder="Enter your full name">
+                <div class="error-message" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="address1" class="form-label">Address Line 1</label>
+                <input type="text" 
+                       id="address1" 
+                       name="address1" 
+                       class="form-input"
+                       required
+                       aria-required="true"
+                       placeholder="Street address">
+                <div class="error-message" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="address2" class="form-label">
+                    Address Line 2
+                    <span class="optional">(Optional)</span>
+                </label>
+                <input type="text" 
+                       id="address2" 
+                       name="address2" 
+                       class="form-input"
+                       placeholder="Apartment, suite, etc.">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="city" class="form-label">City</label>
+                    <input type="text" 
+                           id="city" 
+                           name="city" 
+                           class="form-input"
+                           required
+                           aria-required="true"
+                           placeholder="Enter city">
+                    <div class="error-message" aria-live="polite"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="county" class="form-label">County</label>
+                    <input type="text" 
+                           id="county" 
+                           name="county" 
+                           class="form-input"
+                           required
+                           aria-required="true"
+                           placeholder="Enter county">
+                    <div class="error-message" aria-live="polite"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="postcode" class="form-label">Postcode</label>
+                    <input type="text" 
+                           id="postcode" 
+                           name="postcode" 
+                           class="form-input"
+                           required
+                           aria-required="true"
+                           placeholder="Enter postcode">
+                    <div class="error-message" aria-live="polite"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="country" class="form-label">Country</label>
+                    <input type="text" 
+                           id="country" 
+                           name="country" 
+                           class="form-input"
+                           required
+                           aria-required="true"
+                           placeholder="Enter country">
+                    <div class="error-message" aria-live="polite"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="phone" class="form-label">Phone Number</label>
+                    <input type="tel" 
+                           id="phone" 
+                           name="phone" 
+                           class="form-input"
+                           required
+                           aria-required="true"
+                           placeholder="Enter phone number">
+                    <div class="error-message" aria-live="polite"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" 
+                           id="email" 
+                           name="email" 
+                           class="form-input"
+                           required
+                           aria-required="true"
+                           placeholder="Enter email address">
+                    <div class="error-message" aria-live="polite"></div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-button">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        // Validation patterns and messages
+        const validationRules = {
+            fullName: {
+                pattern: /^[a-zA-Z\s]{2,}$/,
+                message: 'Please enter a valid name (minimum 2 characters, letters only)'
+            },
+            address1: {
+                pattern: /.{5,}/,
+                message: 'Please enter a valid address (minimum 5 characters)'
+            },
+            city: {
+                pattern: /^[a-zA-Z\s]{2,}$/,
+                message: 'Please enter a valid city name'
+            },
+            county: {
+                pattern: /^[a-zA-Z\s]{2,}$/,
+                message: 'Please enter a valid county name'
+            },
+            postcode: {
+                pattern: /^[A-Z]{1,2}[0-9][A-Z0-9]? ?[0-9][A-Z]{2}$/i,
+                message: 'Please enter a valid UK postcode'
+            },
+            country: {
+                pattern: /^[a-zA-Z\s]{2,}$/,
+                message: 'Please enter a valid country name'
+            },
+            phone: {
+                pattern: /^(\+44|0)[0-9]{10}$/,
+                message: 'Please enter a valid UK phone number'
+            },
+            email: {
+                pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: 'Please enter a valid email address'
+            }
+        };
+
+        // Form validation handler
+        function validateInput(input) {
+            const rule = validationRules[input.id];
+            const errorElement = input.nextElementSibling;
+            
+            // Skip validation for optional fields if empty
+            if (input.id === 'address2' && !input.value) {
+                return true;
+            }
+
+            if (!rule) return true;
+
+            const isValid = rule.pattern.test(input.value);
+            
+            if (!isValid) {
+                input.classList.remove('success');
+                input.classList.add('error');
+                errorElement.textContent = rule.message;
+                errorElement.classList.add('visible');
+            } else {
+                input.classList.remove('error');
+                input.classList.add('success');
+                errorElement.classList.remove('visible');
+                
+                // Remove success class after animation
+                setTimeout(() => {
+                    input.classList.remove('success');
+                }, 1000);
+            }
+
+            return isValid;
+        }
+
+        // Form submission handler
+        document.getElementById('shippingForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            let isValid = true;
+            const inputs = e.target.querySelectorAll('input[required]');
+            
+            inputs.forEach(input => {
+                if (!validateInput(input)) {
+                    isValid = false;
+                }
+            });
+
+            if (isValid) {
+                // Handle form submission here
+                console.log('Form submitted successfully');
+            }
+        });
+
+        // Real-time validation
+        document.getElementById('shippingForm').addEventListener('input', (e) => {
+            if (e.target.tagName === 'INPUT') {
+                validateInput(e.target);
+            }
+        });
+    </script>
+</body>
+</html> 
