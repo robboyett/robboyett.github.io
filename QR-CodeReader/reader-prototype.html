@@ -5,7 +5,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Scanner Prototype</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+    <!-- Primary jsQR library source -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js" 
+            integrity="sha512-3ReIQUUL/EvpTQoGHX4ht04cFVXwpq/cG2Vjmj5xXYbyAcLgLKjv/5Kb0EwkYGWSXhH9kMHIH4uVjdQxGkDYQ==" 
+            crossorigin="anonymous" 
+            referrerpolicy="no-referrer"></script>
+    <!-- Fallback jsQR library source -->
+    <script>
+        // Check if jsQR loaded correctly from the CDN
+        window.addEventListener('DOMContentLoaded', function() {
+            if (typeof jsQR !== 'function') {
+                console.log('Primary jsQR source failed, loading fallback...');
+                var fallbackScript = document.createElement('script');
+                fallbackScript.src = 'https://unpkg.com/jsqr@1.4.0/dist/jsQR.js';
+                fallbackScript.onload = function() {
+                    console.log('Fallback jsQR library loaded successfully');
+                    if (typeof jsQR === 'function') {
+                        document.getElementById('debug-info').textContent = 'jsQR library loaded from fallback source';
+                    }
+                };
+                fallbackScript.onerror = function() {
+                    console.error('Failed to load fallback jsQR library');
+                    document.getElementById('debug-info').textContent = 'Failed to load jsQR library. Please check your internet connection.';
+                    document.getElementById('scan-button').disabled = true;
+                    document.getElementById('scan-button').textContent = 'QR Scanner Unavailable';
+                };
+                document.head.appendChild(fallbackScript);
+            }
+        });
+    </script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -143,7 +171,7 @@
 </head>
 
 <body>
-    <div>Version 0.0.1</div>
+    <div>Version 0.0.2</div>
     <div id="app">
         <h1>QR Code Scanner</h1>
         <p>Click the button below to scan a QR code</p>
@@ -179,6 +207,22 @@
             let canvas;
             let scanning = false;
             let scanAttempts = 0;
+
+            // Check if jsQR is available
+            if (typeof jsQR !== 'function') {
+                debugInfo.textContent = 'jsQR library not loaded. Waiting for fallback...';
+                scanButton.disabled = true;
+                
+                // Check again after a delay to allow fallback to load
+                setTimeout(function() {
+                    if (typeof jsQR === 'function') {
+                        debugInfo.textContent = 'jsQR library loaded successfully';
+                        scanButton.disabled = false;
+                    } else {
+                        debugInfo.textContent = 'Failed to load jsQR library. Please refresh the page.';
+                    }
+                }, 3000);
+            }
 
             scanButton.addEventListener('click', startScan);
             closeButton.addEventListener('click', stopScan);
@@ -275,6 +319,14 @@
                         // Get image data from canvas
                         const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
 
+                        // Check if jsQR is available before calling it
+                        if (typeof jsQR !== 'function') {
+                            debugInfo.textContent = 'Error: jsQR library not available';
+                            console.error('jsQR is not defined');
+                            stopScan();
+                            return;
+                        }
+
                         // Process image with jsQR
                         const code = jsQR(imageData.data, imageData.width, imageData.height, {
                             inversionAttempts: "dontInvert",
@@ -294,6 +346,11 @@
                     } catch (error) {
                         console.error('Error processing frame:', error);
                         debugInfo.textContent = 'Error processing frame: ' + error.message;
+                        
+                        // If the error is related to jsQR, stop scanning
+                        if (error.message.includes('jsQR')) {
+                            stopScan();
+                        }
                     }
                 }
 
