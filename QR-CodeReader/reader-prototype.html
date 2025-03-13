@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner Prototype</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        #app {
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        #scan-button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 20px 0;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        #scan-button:hover {
+            background-color: #45a049;
+        }
+
+        #video-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        #video-wrapper {
+            position: relative;
+            width: 300px;
+            height: 300px;
+        }
+
+        #qrVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            border: 50px solid rgba(0, 0, 0, 0.3);
+            box-shadow: inset 0 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        #close-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <h1>QR Code Scanner</h1>
+        <p>Click the button below to scan a QR code</p>
+        <button id="scan-button">Scan QR Code</button>
+        <div id="result">
+            <h2>QR Code Recognised</h2>
+            <p id="qr-content"></p>
+        </div>
+    </div>
+
+    <div id="video-container">
+        <div id="video-wrapper">
+            <video id="qrVideo" playsinline></video>
+            <div id="scanner-overlay"></div>
+        </div>
+        <button id="close-button">Cancel</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const scanButton = document.getElementById('scan-button');
+            const videoContainer = document.getElementById('video-container');
+            const video = document.getElementById('qrVideo');
+            const closeButton = document.getElementById('close-button');
+            const resultDiv = document.getElementById('result');
+            const qrContentElement = document.getElementById('qr-content');
+
+            let canvasElement;
+            let canvas;
+            let scanning = false;
+
+            scanButton.addEventListener('click', startScan);
+            closeButton.addEventListener('click', stopScan);
+
+            function startScan() {
+                videoContainer.style.display = 'flex';
+
+                // Create canvas for QR processing if not already created
+                if (!canvasElement) {
+                    canvasElement = document.createElement('canvas');
+                    canvas = canvasElement.getContext('2d');
+                }
+
+                // Access the camera
+                navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: "environment",
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                })
+                    .then(function (stream) {
+                        video.srcObject = stream;
+                        video.setAttribute('playsinline', true);
+                        video.play();
+                        scanning = true;
+                        requestAnimationFrame(tick);
+                    })
+                    .catch(function (error) {
+                        console.error('Error accessing camera:', error);
+                        alert('Could not access the camera. Please make sure you have granted permission.');
+                        videoContainer.style.display = 'none';
+                    });
+            }
+
+            function stopScan() {
+                scanning = false;
+                videoContainer.style.display = 'none';
+
+                // Stop all tracks of the video stream
+                if (video.srcObject) {
+                    video.srcObject.getTracks().forEach(track => track.stop());
+                }
+            }
+
+            function tick() {
+                if (!scanning) return;
+
+                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                    // Set canvas dimensions to match video
+                    canvasElement.height = video.videoHeight;
+                    canvasElement.width = video.videoWidth;
+
+                    // Draw video frame to canvas
+                    canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+
+                    // Get image data from canvas
+                    const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+
+                    // Process image with jsQR
+                    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                        inversionAttempts: "dontInvert",
+                    });
+
+                    if (code) {
+                        // QR code found
+                        console.log("QR Code detected:", code.data);
+
+                        // Show result and hide scanner
+                        stopScan();
+                        qrContentElement.textContent = "Content: " + code.data;
+                        resultDiv.style.display = 'block';
+                    }
+                }
+
+                // Continue scanning
+                if (scanning) {
+                    requestAnimationFrame(tick);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
