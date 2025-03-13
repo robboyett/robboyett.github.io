@@ -59,14 +59,17 @@
 
         #video-wrapper {
             position: relative;
-            width: 300px;
-            height: 300px;
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            aspect-ratio: 4/3;
         }
 
         #qrVideo {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            border-radius: 8px;
         }
 
         #scanner-overlay {
@@ -78,6 +81,7 @@
             box-sizing: border-box;
             border: 50px solid rgba(0, 0, 0, 0.3);
             box-shadow: inset 0 0 0 5px rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
         }
 
         #result {
@@ -87,6 +91,7 @@
             border-radius: 4px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             display: none;
+            word-break: break-all;
         }
 
         #close-button {
@@ -96,6 +101,43 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
+        }
+
+        #debug-info {
+            color: white;
+            margin-top: 10px;
+            font-size: 12px;
+            max-width: 80%;
+            text-align: center;
+        }
+
+        #scanning-indicator {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0.5;
+            }
         }
     </style>
 </head>
@@ -115,7 +157,9 @@
         <div id="video-wrapper">
             <video id="qrVideo" playsinline></video>
             <div id="scanner-overlay"></div>
+            <div id="scanning-indicator" class="pulse">Scanning...</div>
         </div>
+        <div id="debug-info"></div>
         <button id="close-button">Cancel</button>
     </div>
 
@@ -127,48 +171,81 @@
             const closeButton = document.getElementById('close-button');
             const resultDiv = document.getElementById('result');
             const qrContentElement = document.getElementById('qr-content');
+            const debugInfo = document.getElementById('debug-info');
+            const scanningIndicator = document.getElementById('scanning-indicator');
 
             let canvasElement;
             let canvas;
             let scanning = false;
+            let scanAttempts = 0;
 
             scanButton.addEventListener('click', startScan);
             closeButton.addEventListener('click', stopScan);
 
             function startScan() {
                 videoContainer.style.display = 'flex';
+                scanningIndicator.style.display = 'block';
+                debugInfo.textContent = 'Initializing camera...';
 
                 // Create canvas for QR processing if not already created
                 if (!canvasElement) {
                     canvasElement = document.createElement('canvas');
-                    canvas = canvasElement.getContext('2d');
+                    canvas = canvasElement.getContext('2d', { willReadFrequently: true });
                 }
 
-                // Access the camera
+                // Reset scan attempts counter
+                scanAttempts = 0;
+
+                // Try to access the back camera first
                 navigator.mediaDevices.getUserMedia({
                     video: {
-                        facingMode: "environment",
+                        facingMode: { exact: "environment" },
                         width: { ideal: 1280 },
                         height: { ideal: 720 }
                     }
                 })
-                    .then(function (stream) {
-                        video.srcObject = stream;
-                        video.setAttribute('playsinline', true);
-                        video.play();
+                .then(handleStream)
+                .catch(function(err) {
+                    console.log("Couldn't access back camera, trying any camera:", err);
+                    debugInfo.textContent = 'Back camera not available, trying default camera...';
+                    
+                    // If back camera fails, try any available camera
+                    return navigator.mediaDevices.getUserMedia({
+                        video: true
+                    }).then(handleStream);
+                })
+                .catch(function (error) {
+                    console.error('Error accessing camera:', error);
+                    debugInfo.textContent = 'Camera error: ' + error.message;
+                    alert('Could not access the camera. Please make sure you have granted permission.');
+                    videoContainer.style.display = 'none';
+                });
+            }
+
+            function handleStream(stream) {
+                video.srcObject = stream;
+                video.setAttribute('playsinline', true);
+                debugInfo.textContent = 'Camera connected. Starting video...';
+                
+                // Wait for video to be ready
+                video.onloadedmetadata = function() {
+                    video.play()
+                    .then(() => {
+                        debugInfo.textContent = 'Scanning for QR codes...';
                         scanning = true;
                         requestAnimationFrame(tick);
                     })
-                    .catch(function (error) {
-                        console.error('Error accessing camera:', error);
-                        alert('Could not access the camera. Please make sure you have granted permission.');
-                        videoContainer.style.display = 'none';
+                    .catch(err => {
+                        debugInfo.textContent = 'Error playing video: ' + err.message;
+                        console.error('Error playing video:', err);
                     });
+                };
             }
 
             function stopScan() {
                 scanning = false;
                 videoContainer.style.display = 'none';
+                scanningIndicator.style.display = 'none';
 
                 // Stop all tracks of the video stream
                 if (video.srcObject) {
@@ -179,30 +256,43 @@
             function tick() {
                 if (!scanning) return;
 
+                scanAttempts++;
+                
+                if (scanAttempts % 30 === 0) {
+                    debugInfo.textContent = `Still scanning... (${scanAttempts} frames processed)`;
+                }
+
                 if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                    // Set canvas dimensions to match video
-                    canvasElement.height = video.videoHeight;
-                    canvasElement.width = video.videoWidth;
+                    try {
+                        // Set canvas dimensions to match video
+                        canvasElement.height = video.videoHeight;
+                        canvasElement.width = video.videoWidth;
 
-                    // Draw video frame to canvas
-                    canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                        // Draw video frame to canvas
+                        canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
 
-                    // Get image data from canvas
-                    const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                        // Get image data from canvas
+                        const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
 
-                    // Process image with jsQR
-                    const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                        inversionAttempts: "dontInvert",
-                    });
+                        // Process image with jsQR
+                        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                            inversionAttempts: "dontInvert",
+                        });
 
-                    if (code) {
-                        // QR code found
-                        console.log("QR Code detected:", code.data);
+                        if (code) {
+                            // QR code found
+                            console.log("QR Code detected:", code.data);
+                            debugInfo.textContent = 'QR Code found!';
 
-                        // Show result and hide scanner
-                        stopScan();
-                        qrContentElement.textContent = "Content: " + code.data;
-                        resultDiv.style.display = 'block';
+                            // Show result and hide scanner
+                            stopScan();
+                            qrContentElement.textContent = "Content: " + code.data;
+                            resultDiv.style.display = 'block';
+                            return;
+                        }
+                    } catch (error) {
+                        console.error('Error processing frame:', error);
+                        debugInfo.textContent = 'Error processing frame: ' + error.message;
                     }
                 }
 
