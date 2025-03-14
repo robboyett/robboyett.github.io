@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Repulsion Effect with p5.js</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        #p5-container {
+            width: 100vw;
+            height: 50vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+
+        .instructions {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #666;
+            z-index: 10;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+</head>
+
+<body>
+    <div id="p5-container"></div>
+    <div class="instructions">Move your cursor over the text to see the effect</div>
+    <div>
+        Many brands find themselves sticking to familiar routines, unsure where to start with modern design innovation. This can
+        mean missing out on opportunities to approach challenges in more creative and effective ways.
+    </div>
+
+    <script>
+        const sketch = (p) => {
+            // Text to display
+            const text = "We see the incredible potential of using technology creatively within your design process—unlocking new levels of efficiency, creativity, and innovation.";
+
+            // Array to hold Character objects
+            let characters = [];
+
+            // Configuration
+            const config = {
+                repulsionRadius: 100,
+                maxRepulsion: 80,
+                repulsionStrength: 1.4,     // Reduced from 0.8 for gentler initial movement
+                returnDelay: 1000,           // Reduced delay before returning
+                returnSpeed: 0.05,          // Slower return speed for smoother motion
+                dampingFactor: 1.95,        // Increased damping for less oscillation
+                fontSize: 44,
+                lineHeight: 44,
+                easing: 0.08,               // Added easing factor for smoother transitions
+                rgbSplitDistance: 18,       // Further increased distance between RGB components
+                rgbSplitSpeed: 0.15,        // Speed of RGB splitting
+                rgbMergeSpeed: 0.08,        // Speed of RGB merging
+                rgbRotationSpeed: 0.005     // Speed of RGB rotation
+            };
+
+            // Character class
+            class Character {
+                constructor(char, x, y) {
+                    this.char = char;
+                    this.originalX = x;
+                    this.originalY = y;
+                    this.x = x;
+                    this.y = y;
+                    this.targetX = x;      // Target position for smooth movement
+                    this.targetY = y;
+                    this.returning = false;
+                    this.returnTimer = null;
+                    
+                    // RGB components with more saturated colors
+                    this.isDisrupted = false;
+                    this.rgbComponents = [
+                        { x: x, y: y, targetX: x, targetY: y, color: [255, 0, 0] },    // Pure Red
+                        { x: x, y: y, targetX: x, targetY: y, color: [0, 255, 0] },    // Pure Green
+                        { x: x, y: y, targetX: x, targetY: y, color: [0, 0, 255] }     // Pure Blue
+                    ];
+                    
+                    // Opacity for smooth transitions
+                    this.blackOpacity = 255;
+                    this.rgbOpacity = 0;
+                    
+                    // Random offset for each character's RGB rotation
+                    this.angleOffset = p.random(0, p.TWO_PI);
+                }
+
+                update() {
+                    // Calculate distance from mouse
+                    const dx = this.x - p.mouseX;
+                    const dy = this.y - p.mouseY;
+                    const distance = p.sqrt(dx * dx + dy * dy);
+
+                    // Apply repulsion force if mouse is close enough
+                    if (distance < config.repulsionRadius) {
+                        // Cancel return timer
+                        if (this.returnTimer) {
+                            clearTimeout(this.returnTimer);
+                            this.returnTimer = null;
+                        }
+
+                        // Calculate repulsion force
+                        const force = (1 - distance / config.repulsionRadius) * config.repulsionStrength;
+
+                        // Calculate target position with repulsion
+                        const angle = p.atan2(dy, dx);
+                        const repulsionX = p.cos(angle) * force * config.repulsionRadius;
+                        const repulsionY = p.sin(angle) * force * config.repulsionRadius;
+                        
+                        this.targetX = this.originalX + repulsionX;
+                        this.targetY = this.originalY + repulsionY;
+                        
+                        // Start RGB fracturing
+                        this.isDisrupted = true;
+                        
+                        // Fade out black, fade in RGB - faster transition when closer to mouse
+                        const fadeSpeed = p.map(distance, 0, config.repulsionRadius, 40, 15);
+                        this.blackOpacity = p.max(this.blackOpacity - fadeSpeed, 20); // Keep a bit of black for better readability
+                        this.rgbOpacity = p.min(this.rgbOpacity + fadeSpeed, 200); // Cap at 200 for better blending
+
+                        // Set return timer
+                        this.returnTimer = setTimeout(() => {
+                            this.returning = true;
+                        }, config.returnDelay);
+                    }
+
+                    // Handle character return
+                    if (this.returning) {
+                        this.targetX = this.originalX;
+                        this.targetY = this.originalY;
+                        
+                        // Start merging RGB components
+                        this.blackOpacity = p.min(this.blackOpacity + 10, 255);
+                        this.rgbOpacity = p.max(this.rgbOpacity - 10, 0);
+                        
+                        // Stop returning when very close to original position
+                        const dxReturn = this.originalX - this.x;
+                        const dyReturn = this.originalY - this.y;
+                        if (p.abs(dxReturn) < 0.1 && p.abs(dyReturn) < 0.1) {
+                            this.returning = false;
+                            this.isDisrupted = false;
+                            this.x = this.originalX;
+                            this.y = this.originalY;
+                            this.targetX = this.originalX;
+                            this.targetY = this.originalY;
+                            
+                            // Reset RGB components
+                            this.rgbComponents.forEach(comp => {
+                                comp.x = this.originalX;
+                                comp.y = this.originalY;
+                                comp.targetX = this.originalX;
+                                comp.targetY = this.originalY;
+                            });
+                        }
+                    }
+
+                    // Limit maximum displacement for target position
+                    const maxDisplacement = config.maxRepulsion;
+                    const displaceX = this.targetX - this.originalX;
+                    const displaceY = this.targetY - this.originalY;
+                    const displacement = p.sqrt(displaceX * displaceX + displaceY * displaceY);
+
+                    if (displacement > maxDisplacement) {
+                        const ratio = maxDisplacement / displacement;
+                        this.targetX = this.originalX + displaceX * ratio;
+                        this.targetY = this.originalY + displaceY * ratio;
+                    }
+                    
+                    // Smooth movement using easing
+                    this.x += (this.targetX - this.x) * config.easing;
+                    this.y += (this.targetY - this.y) * config.easing;
+                    
+                    // Update RGB components
+                    this.updateRGBComponents();
+                }
+                
+                updateRGBComponents() {
+                    if (this.isDisrupted) {
+                        // Set fixed angles for RGB components to spread out in a triangle pattern
+                        // Add unique offset per character and slower rotation
+                        const baseAngle = (p.frameCount * config.rgbRotationSpeed) + this.angleOffset;
+                        const angles = [
+                            baseAngle,                    // Red component
+                            baseAngle + (2 * p.PI / 3),   // Green component (120 degrees)
+                            baseAngle + (4 * p.PI / 3)    // Blue component (240 degrees)
+                        ];
+                        
+                        // Update each RGB component
+                        this.rgbComponents.forEach((comp, i) => {
+                            if (!this.returning) {
+                                // Spread out RGB components
+                                const spreadDistance = p.min(config.rgbSplitDistance, 
+                                    p.map(this.rgbOpacity, 0, 200, 0, config.rgbSplitDistance));
+                                
+                                comp.targetX = this.x + p.cos(angles[i]) * spreadDistance;
+                                comp.targetY = this.y + p.sin(angles[i]) * spreadDistance;
+                            } else {
+                                // Merge RGB components back to main position
+                                comp.targetX = this.x;
+                                comp.targetY = this.y;
+                            }
+                            
+                            // Apply easing to RGB component movement
+                            const speed = this.returning ? config.rgbMergeSpeed : config.rgbSplitSpeed;
+                            comp.x += (comp.targetX - comp.x) * speed;
+                            comp.y += (comp.targetY - comp.y) * speed;
+                        });
+                    } else {
+                        // Keep RGB components at the same position as the main character
+                        this.rgbComponents.forEach(comp => {
+                            comp.x = this.x;
+                            comp.y = this.y;
+                            comp.targetX = this.x;
+                            comp.targetY = this.y;
+                        });
+                    }
+                }
+
+                display() {
+                    // Display the main black character with reduced opacity when disrupted
+                    if (this.blackOpacity > 0) {
+                        // Use darker color instead of pure black for better contrast with RGB
+                        p.fill(20, 20, 20, this.blackOpacity);
+                        p.text(this.char, this.x, this.y);
+                    }
+                    
+                    // Display RGB components if disrupted - draw AFTER the black character
+                    if (this.rgbOpacity > 0) {
+                        // Use ADD blend mode for more vibrant colors
+                        p.blendMode(p.ADD);
+                        
+                        this.rgbComponents.forEach(comp => {
+                            // Use higher opacity for RGB components
+                            const colorOpacity = p.map(this.rgbOpacity, 0, 200, 0, 150);
+                            p.fill(comp.color[0], comp.color[1], comp.color[2], colorOpacity);
+                            p.text(this.char, comp.x, comp.y);
+                        });
+                        
+                        // Reset blend mode for other elements
+                        p.blendMode(p.BLEND);
+                    }
+                }
+            }
+
+            // Setup function
+            p.setup = () => {
+                const container = document.getElementById('p5-container');
+                p.createCanvas(container.offsetWidth, container.offsetHeight);
+                p.textSize(config.fontSize);
+                p.textAlign(p.LEFT, p.TOP);
+
+                // Create characters
+                setupText();
+            };
+
+            // Setup the text characters
+            function setupText() {
+                characters = [];
+
+                // Calculate wrapping
+                const words = text.split(' ');
+                const maxWidth = p.width * 0.8;
+                const startX = p.width / 2 - maxWidth / 2;
+                const startY = p.height / 2 - config.lineHeight * 2; // Centered vertically
+
+                let currentX = startX;
+                let currentY = startY;
+                let lineCount = 0;
+
+                // Process each word
+                words.forEach(word => {
+                    const wordWidth = p.textWidth(word + ' ');
+
+                    // Check if we need to wrap to a new line
+                    if (currentX + wordWidth > startX + maxWidth) {
+                        currentX = startX;
+                        currentY += config.lineHeight;
+                        lineCount++;
+                    }
+
+                    // Process each character in the word
+                    for (let i = 0; i < word.length; i++) {
+                        const char = word[i];
+                        const charWidth = p.textWidth(char);
+                        characters.push(new Character(char, currentX, currentY));
+                        currentX += charWidth;
+                    }
+
+                    // Add space between words
+                    characters.push(new Character(' ', currentX, currentY));
+                    currentX += p.textWidth(' ');
+                });
+            }
+
+            // Draw function
+            p.draw = () => {
+                p.background(240);
+                
+                // Update and display each character
+                characters.forEach(char => {
+                    char.update();
+                    char.display();
+                });
+            };
+
+            // Window resize handler
+            p.windowResized = () => {
+                const container = document.getElementById('p5-container');
+                p.resizeCanvas(container.offsetWidth, container.offsetHeight);
+
+                // Reset all characters
+                characters.forEach(char => {
+                    char.returning = false;
+                    if (char.returnTimer) {
+                        clearTimeout(char.returnTimer);
+                        char.returnTimer = null;
+                    }
+                });
+
+                // Re-setup text with new dimensions
+                setupText();
+            };
+        };
+
+        // Create the p5 instance
+        new p5(sketch, 'p5-container');
+    </script>
+</body>
+
+</html>
