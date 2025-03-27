@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Isometric Grid Art Creator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #e0e0e0;
+      font-family: Arial, sans-serif;
+    }
+    #canvas-container {
+      position: relative;
+    }
+    #export-btn {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      padding: 8px 15px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+    #export-btn:hover {
+      background-color: #2980b9;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container">
+    <!-- Canvas will be created here by p5.js -->
+  </div>
+  <script>
+    let grid = [];
+    const GRID_SIZE = 20;
+    let cellSize; // Will be calculated based on canvas size
+    let originX, originY; // Origin point for the isometric grid
+    let currentColor = [0, 0, 0]; // Default color: black
+    let colorPalette = [
+      [0, 0, 0],         // Black
+      [220, 80, 80],     // Red
+      [80, 180, 80],     // Green
+      [80, 80, 220],     // Blue
+      [220, 180, 80]     // Yellow
+    ];
+    let selectedColorIndex = 0;
+    let hoverCell = { x: -1, y: -1 };
+    
+    // Shape types
+    const EMPTY = 0;
+    const CUBE = 1;
+    const SPHERE = 2;
+    const PYRAMID = 3;
+    const PRISM = 4;
+    const CYLINDER = 5;
+    const CONE = 6;
+    
+    function setup() {
+      // Create the canvas inside the container and make it responsive
+      const container = document.getElementById('canvas-container');
+      const size = Math.min(windowWidth * 0.9, windowHeight * 0.85);
+      let canvas = createCanvas(size, size);
+      canvas.parent('canvas-container');
+      
+      // Calculate cell size based on canvas dimensions
+      // Making it smaller to fit the whole grid comfortably
+      cellSize = min(width, height) / (GRID_SIZE * 1.5);
+      
+      // Set the origin point for the isometric grid (centered)
+      originX = width / 2;
+      originY = height * 0.3; // Place the origin point near the top to fit everything
+      
+      // Initialize grid with empty cells
+      for (let y = 0; y < GRID_SIZE; y++) {
+        grid[y] = [];
+        for (let x = 0; x < GRID_SIZE; x++) {
+          grid[y][x] = {
+            type: EMPTY,
+            color: [...currentColor]
+          };
+        }
+      }
+      
+      // Create export button
+      let exportBtn = createButton('Export PNG');
+      exportBtn.id('export-btn');
+      exportBtn.parent('canvas-container');
+      exportBtn.mousePressed(exportImage);
+    }
+    
+    function draw() {
+      background('#f5f5f5');
+      
+      // Update hover cell
+      updateHoverCell();
+      
+      // Draw the grid with shapes (from back to front)
+      drawIsometricGrid();
+      
+      // Draw the color palette
+      drawColorPalette();
+    }
+    
+    function drawIsometricGrid() {
+      // Draw grid from back to front for proper layering (important for isometric view)
+      for (let y = 0; y < GRID_SIZE; y++) {
+        for (let x = 0; x < GRID_SIZE; x++) {
+          let isoX = (x - y) * cellSize * 0.5;
+          let isoY = (x + y) * cellSize * 0.25;
+          
+          // Calculate screen coordinates
+          let screenX = originX + isoX;
+          let screenY = originY + isoY;
+          
+          // Draw the cell (diamond shape)
+          drawIsometricCell(screenX, screenY, x, y);
+        }
+      }
+    }
+    
+    function drawIsometricCell(x, y, gridX, gridY) {
+      push();
+      translate(x, y);
+      
+      // Determine if this cell is being hovered over
+      let isHovered = (gridX === hoverCell.x && gridY === hoverCell.y);
+      
+      // Draw the cell diamond outline
+      stroke(200);
+      strokeWeight(0.5);
+      noFill();
+      
+      // Diamond points
+      beginShape();
+      vertex(0, -cellSize * 0.25); // Top
+      vertex(cellSize * 0.5, 0);   // Right
+      vertex(0, cellSize * 0.25);  // Bottom
+      vertex(-cellSize * 0.5, 0);  // Left
+      endShape(CLOSE);
+      
+      // If hovering, fill with light pink
+      if (isHovered) {
+        fill(255, 200, 200, 100);
+        noStroke();
+        beginShape();
+        vertex(0, -cellSize * 0.25);
+        vertex(cellSize * 0.5, 0);
+        vertex(0, cellSize * 0.25);
+        vertex(-cellSize * 0.5, 0);
+        endShape(CLOSE);
+      }
+      
+      // Draw the shape if the cell is not empty
+      if (grid[gridY][gridX].type !== EMPTY) {
+        let cellColor = grid[gridY][gridX].color;
+        // Calculate lighter and darker shades for 3D effect
+        let lightColor = [
+          min(255, cellColor[0] * 1.2),
+          min(255, cellColor[1] * 1.2),
+          min(255, cellColor[2] * 1.2)
+        ];
+        let darkColor = [
+          cellColor[0] * 0.7,
+          cellColor[1] * 0.7,
+          cellColor[2] * 0.7
+        ];
+        
+        // Draw the shape
+        switch (grid[gridY][gridX].type) {
+          case CUBE:
+            drawCube(cellColor, lightColor, darkColor);
+            break;
+          case SPHERE:
+            drawSphere(cellColor, lightColor, darkColor);
+            break;
+          case PYRAMID:
+            drawPyramid(cellColor, lightColor, darkColor);
+            break;
+          case PRISM:
+            drawPrism(cellColor, lightColor, darkColor);
+            break;
+          case CYLINDER:
+            drawCylinder(cellColor, lightColor, darkColor);
+            break;
+          case CONE:
+            drawCone(cellColor, lightColor, darkColor);
+            break;
+        }
+      }
+      
+      pop();
+    }
+    
+    // Drawing functions for each shape
+    function drawCube(baseColor, lightColor, darkColor) {
+      const s = cellSize * 0.4; // Size of the cube
+      
+      // Top face
+      fill(lightColor);
+      noStroke();
+      beginShape();
+      vertex(0, -s * 0.75);
+      vertex(s * 0.5, -s * 0.5);
+      vertex(0, -s * 0.25);
+      vertex(-s * 0.5, -s * 0.5);
+      endShape(CLOSE);
+      
+      // Right face
+      fill(baseColor);
+      beginShape();
+      vertex(0, -s * 0.25);
+      vertex(s * 0.5, -s * 0.5);
+      vertex(s * 0.5, 0);
+      vertex(0, s * 0.25);
+      endShape(CLOSE);
+      
+      // Left face
+      fill(darkColor);
+      beginShape();
+      vertex(0, -s * 0.25);
+      vertex(-s * 0.5, -s * 0.5);
+      vertex(-s * 0.5, 0);
+      vertex(0, s * 0.25);
+      endShape(CLOSE);
+    }
+    
+    function drawSphere(baseColor, lightColor, darkColor) {
+      const r = cellSize * 0.25; // Radius of the sphere
+      
+      // Main sphere body
+      fill(baseColor);
+      noStroke();
+      ellipse(0, 0, r * 2, r * 1.5);
+      
+      // Highlight (light reflection)
+      fill(lightColor);
+      ellipse(-r * 0.3, -r * 0.3, r * 0.8, r * 0.6);
+      
+      // Shadow at bottom
+      fill(darkColor);
+      arc(0, r * 0.2, r * 1.8, r * 0.6, 0, PI);
+    }
+    
+    function drawPyramid(baseColor, lightColor, darkColor) {
+      const s = cellSize * 0.4; // Size of the pyramid base
+      
+      // Right face
+      fill(baseColor);
+      noStroke();
+      beginShape();
+      vertex(0, -s * 0.8); // Top point
+      vertex(s * 0.5, s * 0.25); // Bottom right
+      vertex(0, s * 0.25); // Bottom center
+      endShape(CLOSE);
+      
+      // Left face
+      fill(darkColor);
+      beginShape();
+      vertex(0, -s * 0.8); // Top point
+      vertex(-s * 0.5, s * 0.25); // Bottom left
+      vertex(0, s * 0.25); // Bottom center
+      endShape(CLOSE);
+      
+      // Base (slightly visible)
+      fill(lightColor);
+      beginShape();
+      vertex(0, s * 0.25); // Bottom center
+      vertex(s * 0.5, s * 0.25); // Bottom right
+      vertex(0, s * 0.3); // Visible edge of base
+      vertex(-s * 0.5, s * 0.25); // Bottom left
+      endShape(CLOSE);
+    }
+    
+    function drawPrism(baseColor, lightColor, darkColor) {
+      const s = cellSize * 0.4; // Size of the prism
+      
+      // Top face
+      fill(lightColor);
+      noStroke();
+      beginShape();
+      vertex(-s * 0.5, -s * 0.3);
+      vertex(s * 0.5, -s * 0.3);
+      vertex(0, -s * 0.6);
+      endShape(CLOSE);
+      
+      // Right face
+      fill(baseColor);
+      beginShape();
+      vertex(0, -s * 0.6);
+      vertex(s * 0.5, -s * 0.3);
+      vertex(s * 0.5, s * 0.2);
+      vertex(0, s * 0.3);
+      endShape(CLOSE);
+      
+      // Left face
+      fill(darkColor);
+      beginShape();
+      vertex(0, -s * 0.6);
+      vertex(-s * 0.5, -s * 0.3);
+      vertex(-s * 0.5, s * 0.2);
+      vertex(0, s * 0.3);
+      endShape(CLOSE);
+    }
+    
+    function drawCylinder(baseColor, lightColor, darkColor) {
+      const r = cellSize * 0.25; // Radius
+      const h = cellSize * 0.4; // Height
+      
+      // Top ellipse
+      fill(lightColor);
+      noStroke();
+      ellipse(0, -h * 0.5, r * 2, r);
+      
+      // Body
+      fill(baseColor);
+      rect(-r, -h * 0.5, r * 2, h, 0, 0, 0, 0);
+      
+      // Left side (darker)
+      fill(darkColor);
+      beginShape();
+      vertex(-r, -h * 0.5);
+      vertex(-r, h * 0.5);
+      vertex(0, h * 0.5);
+      vertex(0, -h * 0.5);
+      endShape(CLOSE);
+      
+      // Bottom ellipse (partially visible)
+      fill(darkColor);
+      arc(0, h * 0.5, r * 2, r, 0, PI);
+    }
+    
+    function drawCone(baseColor, lightColor, darkColor) {
+      const r = cellSize * 0.3; // Base radius
+      const h = cellSize * 0.6; // Height
+      
+      // Base ellipse (partially visible)
+      fill(darkColor);
+      noStroke();
+      arc(0, h * 0.3, r * 2, r, 0, PI);
+      
+      // Right side of cone
+      fill(baseColor);
+      beginShape();
+      vertex(0, -h * 0.5); // Top point
+      vertex(r, h * 0.3); // Base right
+      vertex(0, h * 0.3); // Base center
+      endShape(CLOSE);
+      
+      // Left side of cone (darker)
+      fill(darkColor);
+      beginShape();
+      vertex(0, -h * 0.5); // Top point
+      vertex(-r, h * 0.3); // Base left
+      vertex(0, h * 0.3); // Base center
+      endShape(CLOSE);
+    }
+    
+    function drawColorPalette() {
+      const paletteWidth = width * 0.6;
+      const colorBoxSize = paletteWidth / colorPalette.length;
+      const paletteX = (width - paletteWidth) / 2;
+      const paletteY = height - colorBoxSize * 1.5;
+      
+      // Draw each color box
+      for (let i = 0; i < colorPalette.length; i++) {
+        // Calculate position
+        const x = paletteX + i * colorBoxSize;
+        const y = paletteY;
+        
+        // Draw the color box
+        fill(colorPalette[i]);
+        
+        // If selected, draw thicker border
+        if (i === selectedColorIndex) {
+          stroke(255);
+          strokeWeight(3);
+        } else {
+          stroke(100);
+          strokeWeight(1);
+        }
+        
+        rect(x, y, colorBoxSize, colorBoxSize);
+        
+        // Check for mouse click on color palette
+        if (mouseIsPressed && 
+            mouseX >= x && mouseX <= x + colorBoxSize &&
+            mouseY >= y && mouseY <= y + colorBoxSize) {
+          selectedColorIndex = i;
+          currentColor = [...colorPalette[i]];
+        }
+      }
+    }
+    
+    function updateHoverCell() {
+      // Reset hover cell
+      hoverCell = { x: -1, y: -1 };
+      
+      // Convert mouse position to isometric grid coordinates
+      // This is a bit complex due to the isometric projection
+      
+      // Calculate relative position from origin
+      const relX = mouseX - originX;
+      const relY = mouseY - originY;
+      
+      // Transform screen coordinates to isometric grid coordinates
+      // These formulas reverse the isometric projection
+      const isoX = (2 * relY + relX) / cellSize;
+      const isoY = (2 * relY - relX) / cellSize;
+      
+      // Convert to grid coordinates and round to integers
+      const gridX = Math.floor((isoX + isoY) / 2);
+      const gridY = Math.floor((isoY - isoX) / 2);
+      
+      // Check if within grid bounds
+      if (gridX >= 0 && gridX < GRID_SIZE && gridY >= 0 && gridY < GRID_SIZE) {
+        hoverCell = { x: gridX, y: gridY };
+      }
+    }
+    
+    function keyPressed() {
+      // Cycle through shapes when spacebar is pressed and hovering over a cell
+      if (keyCode === 32 && hoverCell.x >= 0 && hoverCell.y >= 0) { // 32 is the keyCode for spacebar
+        const cell = grid[hoverCell.y][hoverCell.x];
+        
+        // Cycle to the next shape type
+        cell.type = (cell.type + 1) % 7; // 7 types: 0=empty, 1=cube, etc.
+        
+        // If changing from empty to a shape, assign the current color
+        if (cell.type === CUBE) { // Changing from EMPTY (0) to CUBE (1)
+          cell.color = [...currentColor];
+        }
+      }
+    }
+    
+    function exportImage() {
+      // Create a temporary graphics buffer for the export
+      let exportGraphics = createGraphics(width, height);
+      exportGraphics.background('#f5f5f5');
+      
+      // Draw only the grid and shapes (no UI elements)
+      exportGraphics.push();
+      exportGraphics.noFill();
+      
+      // Draw the isometric grid
+      for (let y = 0; y < GRID_SIZE; y++) {
+        for (let x = 0; x < GRID_SIZE; x++) {
+          let isoX = (x - y) * cellSize * 0.5;
+          let isoY = (x + y) * cellSize * 0.25;
+          
+          let screenX = originX + isoX;
+          let screenY = originY + isoY;
+          
+          // Draw cell and shape (if any)
+          exportGraphics.push();
+          exportGraphics.translate(screenX, screenY);
+          
+          // Draw the cell diamond outline
+          exportGraphics.stroke(220);
+          exportGraphics.strokeWeight(0.5);
+          exportGraphics.noFill();
+          
+          exportGraphics.beginShape();
+          exportGraphics.vertex(0, -cellSize * 0.25);
+          exportGraphics.vertex(cellSize * 0.5, 0);
+          exportGraphics.vertex(0, cellSize * 0.25);
+          exportGraphics.vertex(-cellSize * 0.5, 0);
+          exportGraphics.endShape(CLOSE);
+          
+          // Draw the shape if not empty
+          if (grid[y][x].type !== EMPTY) {
+            let cellColor = grid[y][x].color;
+            let lightColor = [
+              min(255, cellColor[0] * 1.2),
+              min(255, cellColor[1] * 1.2),
+              min(255, cellColor[2] * 1.2)
+            ];
+            let darkColor = [
+              cellColor[0] * 0.7,
+              cellColor[1] * 0.7,
+              cellColor[2] * 0.7
+            ];
+            
+            // Draw shapes using same functions as main canvas
+            exportGraphics.noStroke();
+            switch (grid[y][x].type) {
+              case CUBE:
+                drawExportCube(exportGraphics, cellColor, lightColor, darkColor);
+                break;
+              case SPHERE:
+                drawExportSphere(exportGraphics, cellColor, lightColor, darkColor);
+                break;
+              case PYRAMID:
+                drawExportPyramid(exportGraphics, cellColor, lightColor, darkColor);
+                break;
+              case PRISM:
+                drawExportPrism(exportGraphics, cellColor, lightColor, darkColor);
+                break;
+              case CYLINDER:
+                drawExportCylinder(exportGraphics, cellColor, lightColor, darkColor);
+                break;
+              case CONE:
+                drawExportCone(exportGraphics, cellColor, lightColor, darkColor);
+                break;
+            }
+          }
+          
+          exportGraphics.pop();
+        }
+      }
+      
+      exportGraphics.pop();
+      
+      // Save the image
+      saveCanvas(exportGraphics, 'isometric-artwork', 'png');
+    }
+    
+    // Export drawing functions (similar to the regular draw functions but for the export canvas)
+    function drawExportCube(g, baseColor, lightColor, darkColor) {
+      const s = cellSize * 0.4;
+      
+      // Top face
+      g.fill(lightColor);
+      g.beginShape();
+      g.vertex(0, -s * 0.75);
+      g.vertex(s * 0.5, -s * 0.5);
+      g.vertex(0, -s * 0.25);
+      g.vertex(-s * 0.5, -s * 0.5);
+      g.endShape(CLOSE);
+      
+      // Right face
+      g.fill(baseColor);
+      g.beginShape();
+      g.vertex(0, -s * 0.25);
+      g.vertex(s * 0.5, -s * 0.5);
+      g.vertex(s * 0.5, 0);
+      g.vertex(0, s * 0.25);
+      g.endShape(CLOSE);
+      
+      // Left face
+      g.fill(darkColor);
+      g.beginShape();
+      g.vertex(0, -s * 0.25);
+      g.vertex(-s * 0.5, -s * 0.5);
+      g.vertex(-s * 0.5, 0);
+      g.vertex(0, s * 0.25);
+      g.endShape(CLOSE);
+    }
+    
+    function drawExportSphere(g, baseColor, lightColor, darkColor) {
+      const r = cellSize * 0.25;
+      g.fill(baseColor);
+      g.ellipse(0, 0, r * 2, r * 1.5);
+      g.fill(lightColor);
+      g.ellipse(-r * 0.3, -r * 0.3, r * 0.8, r * 0.6);
+      g.fill(darkColor);
+      g.arc(0, r * 0.2, r * 1.8, r * 0.6, 0, PI);
+    }
+    
+    function drawExportPyramid(g, baseColor, lightColor, darkColor) {
+      const s = cellSize * 0.4;
+      
+      // Right face
+      g.fill(baseColor);
+      g.beginShape();
+      g.vertex(0, -s * 0.8);
+      g.vertex(s * 0.5, s * 0.25);
+      g.vertex(0, s * 0.25);
+      g.endShape(CLOSE);
+      
+      // Left face
+      g.fill(darkColor);
+      g.beginShape();
+      g.vertex(0, -s * 0.8);
+      g.vertex(-s * 0.5, s * 0.25);
+      g.vertex(0, s * 0.25);
+      g.endShape(CLOSE);
+      
+      // Base
+      g.fill(lightColor);
+      g.beginShape();
+      g.vertex(0, s * 0.25);
+      g.vertex(s * 0.5, s * 0.25);
+      g.vertex(0, s * 0.3);
+      g.vertex(-s * 0.5, s * 0.25);
+      g.endShape(CLOSE);
+    }
+    
+    function drawExportPrism(g, baseColor, lightColor, darkColor) {
+      const s = cellSize * 0.4;
+      
+      // Top face
+      g.fill(lightColor);
+      g.beginShape();
+      g.vertex(-s * 0.5, -s * 0.3);
+      g.vertex(s * 0.5, -s * 0.3);
+      g.vertex(0, -s * 0.6);
+      g.endShape(CLOSE);
+      
+      // Right face
+      g.fill(baseColor);
+      g.beginShape();
+      g.vertex(0, -s * 0.6);
+      g.vertex(s * 0.5, -s * 0.3);
+      g.vertex(s * 0.5, s * 0.2);
+      g.vertex(0, s * 0.3);
+      g.endShape(CLOSE);
+      
+      // Left face
+      g.fill(darkColor);
+      g.beginShape();
+      g.vertex(0, -s * 0.6);
+      g.vertex(-s * 0.5, -s * 0.3);
+      g.vertex(-s * 0.5, s * 0.2);
+      g.vertex(0, s * 0.3);
+      g.endShape(CLOSE);
+    }
+    
+    function drawExportCylinder(g, baseColor, lightColor, darkColor) {
+      const r = cellSize * 0.25;
+      const h = cellSize * 0.4;
+      
+      // Top ellipse
+      g.fill(lightColor);
+      g.ellipse(0, -h * 0.5, r * 2, r);
+      
+      // Body
+      g.fill(baseColor);
+      g.rect(-r, -h * 0.5, r * 2, h, 0, 0, 0, 0);
+      
+      // Left side
+      g.fill(darkColor);
+      g.beginShape();
+      g.vertex(-r, -h * 0.5);
+      g.vertex(-r, h * 0.5);
+      g.vertex(0, h * 0.5);
+      g.vertex(0, -h * 0.5);
+      g.endShape(CLOSE);
+      
+      // Bottom ellipse
+      g.fill(darkColor);
+      g.arc(0, h * 0.5, r * 2, r, 0, PI);
+    }
+    
+    function drawExportCone(g, baseColor, lightColor, darkColor) {
+      const r = cellSize * 0.3;
+      const h = cellSize * 0.6;
+      
+      // Base ellipse
+      g.fill(darkColor);
+      g.arc(0, h * 0.3, r * 2, r, 0, PI);
+      
+      // Right side
+      g.fill(baseColor);
+      g.beginShape();
+      g.vertex(0, -h * 0.5);
+      g.vertex(r, h * 0.3);
+      g.vertex(0, h * 0.3);
+      g.endShape(CLOSE);
+      
+      // Left side
+      g.fill(darkColor);
+      g.beginShape();
+      g.vertex(0, -h * 0.5);
+      g.vertex(-r, h * 0.3);
+      g.vertex(0, h * 0.3);
+      g.endShape(CLOSE);
+    }
+    
+    // Handle window resizing
+    function windowResized() {
+      const size = Math.min(windowWidth * 0.9, windowHeight * 0.85);
+      resizeCanvas(size, size);
+      
+      // Recalculate cell size and origin
+      cellSize = min(width, height) / (GRID_SIZE * 1.5);
+      originX = width / 2;
+      originY = height * 0.3;
+    }
+  </script>
+</body>
+</html>
