@@ -4,9 +4,3 @@
 * {
   cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23ff0000" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>') 12 12, auto !important;
 }
-
-/* Option 4: Text transformation */
-p, span, a, h1, h2, h3, h4, h5, h6 {
-  text-shadow: 2px 2px 0 #ff00ff, -2px -2px 0 #00ffff !important;
-  letter-spacing: 2px !important;
-}
