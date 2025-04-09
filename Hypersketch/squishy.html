@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Balloon-like Deformable Circles</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    button {
+      margin: 10px 0;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>Balloon-like Deformable Circles</h1>
+  <p>Click the button to create a new balloon, then drag them to see how they deform when touching.</p>
+  <button id="addCircleBtn">Add Balloon</button>
+  <div id="canvas-container"></div>
+
+  <script>
+    let circles = [];
+    let selectedCircle = null;
+    let canvasWidth = 600;
+    let canvasHeight = 400;
+    let nextColor = 0;
+    const colors = [
+      '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+      '#9966FF', '#FF9F40', '#C9CBCF', '#7BC043',
+      '#F37735', '#FFC425', '#D11141', '#00AEDB'
+    ];
+
+    class BalloonCircle {
+      constructor(x, y, radius, color) {
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.color = color;
+        this.numPoints = 180; // Increased from 120 to 180 for more detailed deformations
+        this.points = [];
+        this.originalPoints = [];
+        this.deformFactor = 1.2; // Increased from 0.9 to 1.2 for more pronounced deformation
+
+        // Physics properties
+        this.mass = radius * radius * 0.1; // Mass proportional to size
+        this.vx = 0;
+        this.vy = 0;
+        this.fx = 0;
+        this.fy = 0;
+        this.friction = 0.92; // Friction factor (0-1) - higher = more friction
+        this.restitution = 0.3; // Bounciness (0-1) - lower = less bouncy
+
+        // Memory of deformations for persistent squishiness
+        this.memory = [];
+        for (let i = 0; i < 180; i++) {
+          this.memory.push({ x: 0, y: 0 });
+        }
+        this.memoryFactor = 0.2; // How much deformation "memory" persists
+
+        // Initialize the points around the circle
+        this.initPoints();
+      }
+
+      initPoints() {
+        // Create evenly spaced points around the circle
+        for (let i = 0; i < this.numPoints; i++) {
+          let angle = map(i, 0, this.numPoints, 0, TWO_PI);
+          let px = this.radius * cos(angle);
+          let py = this.radius * sin(angle);
+
+          // Store both current and original points
+          this.points.push({ x: px, y: py });
+          this.originalPoints.push({ x: px, y: py });
+        }
+      }
+
+      resetShape() {
+        // Gradually reset points back toward their original circular positions
+        // but maintain some "memory" of previous deformations for organic feel
+        for (let i = 0; i < this.numPoints; i++) {
+          // Calculate difference between current and original position
+          let dx = this.points[i].x - this.originalPoints[i].x;
+          let dy = this.points[i].y - this.originalPoints[i].y;
+
+          // Store some of this deformation in memory
+          this.memory[i].x = dx * this.memoryFactor + this.memory[i].x * (1 - this.memoryFactor);
+          this.memory[i].y = dy * this.memoryFactor + this.memory[i].y * (1 - this.memoryFactor);
+
+          // Gradually reset to original shape but retain some memory of previous deformations
+          this.points[i].x = this.originalPoints[i].x + this.memory[i].x * 0.5;
+          this.points[i].y = this.originalPoints[i].y + this.memory[i].y * 0.5;
+        }
+
+        // Apply additional random subtle deformations for more organic feel
+        this.addRandomDeformations();
+
+        // Smooth out any sharp transitions
+        this.smoothPoints();
+      }
+
+      // Add subtle random deformations for more organic look
+      addRandomDeformations() {
+        // Only add random deformations occasionally
+        if (random() < 0.1) {
+          let angle = random(TWO_PI);
+          let strength = random(0.02, 0.06) * this.radius;
+          let spread = random(0.5, 1.5);
+
+          for (let i = 0; i < this.numPoints; i++) {
+            let pointAngle = atan2(this.originalPoints[i].y, this.originalPoints[i].x);
+            let angleDiff = abs(angle - pointAngle);
+            if (angleDiff > PI) angleDiff = TWO_PI - angleDiff;
+
+            // Apply deformation with falloff based on angle difference
+            if (angleDiff < spread) {
+              let deformStrength = strength * (1 - angleDiff/spread);
+              let deformAngle = pointAngle + PI/2; // Perpendicular to radius
+              this.points[i].x += cos(deformAngle) * deformStrength;
+              this.points[i].y += sin(deformAngle) * deformStrength;
+            }
+          }
+        }
+      }
+
+      display() {
+        push();
+        translate(this.x, this.y);
+        fill(this.color);
+        strokeWeight(1);
+        stroke(0, 40); // Slight outline
+
+        // Draw the balloon using the potentially deformed points
+        beginShape();
+        for (let i = 0; i < this.numPoints; i++) {
+          vertex(this.points[i].x, this.points[i].y);
+        }
+        endShape(CLOSE);
+        pop();
+      }
+
+      contains(px, py) {
+        // Check if a point is inside the circle (approximate using radius)
+        let d = dist(px, py, this.x, this.y);
+        return d < this.radius;
+      }
+
+      // Add a force to this circle
+      addForce(fx, fy) {
+        this.fx += fx;
+        this.fy += fy;
+      }
+
+      // Apply physics calculations
+      applyPhysics() {
+        // Calculate acceleration based on forces and mass
+        let ax = this.fx / this.mass;
+        let ay = this.fy / this.mass;
+
+        // Apply acceleration to velocity
+        this.vx += ax;
+        this.vy += ay;
+
+        // Apply friction
+        this.vx *= this.friction;
+        this.vy *= this.friction;
+
+        // Stop very small movements to prevent endless tiny vibrations
+        if (abs(this.vx) < 0.01) this.vx = 0;
+        if (abs(this.vy) < 0.01) this.vy = 0;
+
+        // Update position
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Handle canvas boundaries
+        if (this.x - this.radius < 0) {
+          this.x = this.radius;
+          this.vx *= -this.restitution;
+        } else if (this.x + this.radius > canvasWidth) {
+          this.x = canvasWidth - this.radius;
+          this.vx *= -this.restitution;
+        }
+
+        if (this.y - this.radius < 0) {
+          this.y = this.radius;
+          this.vy *= -this.restitution;
+        } else if (this.y + this.radius > canvasHeight) {
+          this.y = canvasHeight - this.radius;
+          this.vy *= -this.restitution;
+        }
+
+        // Reset forces for next frame
+        this.fx = 0;
+        this.fy = 0;
+      }
+
+      deform(touchX, touchY, nx, ny, overlap, otherCircle) {
+        // Convert touch point to local coordinates
+        let localTouchX = touchX - this.x;
+        let localTouchY = touchY - this.y;
+
+        // Calculate deformation for each point based on its proximity to the touch point
+        for (let i = 0; i < this.numPoints; i++) {
+          // Get the original position of this point (on the perfect circle)
+          let origX = this.originalPoints[i].x;
+          let origY = this.originalPoints[i].y;
+
+          // Check if this point is on the side of the circle facing the other circle
+          let dotProduct = (origX * nx + origY * ny) / this.radius;
+
+          // Only deform points that are on the side facing the other circle
+          if (dotProduct > 0) {
+            // Calculate the distance from this point to the touch point
+            let dx = origX - localTouchX;
+            let dy = origY - localTouchY;
+            let distance = sqrt(dx * dx + dy * dy);
+
+            // Calculate a falloff based on distance from the touch point
+            // Points closer to the touch point will deform more
+            let maxDeformDistance = this.radius * 1.2; // Extend the influence area for smoother transitions
+            let deformStrength = 0;
+
+            if (distance < maxDeformDistance) {
+              // Use a smoother falloff curve for more natural deformation
+              // This creates a more gradual transition between deformed and non-deformed areas
+              deformStrength = 0.5 * (1 + cos(min(distance / maxDeformDistance * PI, PI)));
+
+              // Adjust deformation based on the overlap amount
+              let deformAmount = overlap * this.deformFactor * deformStrength;
+
+              // Push the point inward along the direction to the other circle
+              this.points[i].x = origX - nx * deformAmount;
+              this.points[i].y = origY - ny * deformAmount;
+
+              // Add a slight perpendicular displacement to simulate volume preservation
+              let perpX = -ny;
+              let perpY = nx;
+
+              // Calculate how much to bulge perpendicular to the compression
+              // Use a smoother sine-based function for the bulge amount
+              let bulgeAmount = deformAmount * 0.4 * sin(map(deformStrength, 0, 1, 0, PI));
+
+              // Determine which direction to bulge based on the position relative to the center line
+              let sideCheck = (origX * perpX + origY * perpY);
+              let bulgeFactor = sideCheck > 0 ? bulgeAmount : -bulgeAmount;
+
+              // Apply the bulge
+              this.points[i].x += perpX * bulgeFactor;
+              this.points[i].y += perpY * bulgeFactor;
+            }
+          }
+        }
+
+        // Additional smoothing pass to eliminate sharp transitions
+        this.smoothPoints();
+      }
+
+      // Enhanced smoothing with variable strength for organic feel
+      smoothPoints() {
+        // Create a temporary array to store smoothed points
+        let smoothedPoints = [];
+
+        // Use a smoother, more variable averaging approach
+        for (let i = 0; i < this.numPoints; i++) {
+          // Create a wider range of influence with more neighbors
+          let weights = [0.04, 0.08, 0.12, 0.16, 0.2, 0.16, 0.12, 0.08, 0.04];
+          let smoothX = 0;
+          let smoothY = 0;
+
+          // Apply weighted average
+          for (let j = 0; j < weights.length; j++) {
+            let idx = (i + j - (weights.length - 1) / 2 + this.numPoints) % this.numPoints;
+            smoothX += this.points[idx].x * weights[j];
+            smoothY += this.points[idx].y * weights[j];
+          }
+
+          smoothedPoints.push({ x: smoothX, y: smoothY });
+        }
+
+        // Apply the smoothed points
+        for (let i = 0; i < this.numPoints; i++) {
+          this.points[i].x = smoothedPoints[i].x;
+          this.points[i].y = smoothedPoints[i].y;
+        }
+
+        // Apply a second smoothing pass but with variability for organic feel
+        smoothedPoints = [];
+        for (let i = 0; i < this.numPoints; i++) {
+          // Randomly vary the amount of smoothing at different points
+          // This creates more natural, less perfect edges
+          let selfWeight = 0.5 + random(-0.05, 0.05);
+          let neighborWeight = (1 - selfWeight) / 2;
+
+          let prev = (i - 1 + this.numPoints) % this.numPoints;
+          let next = (i + 1) % this.numPoints;
+
+          let smoothX = selfWeight * this.points[i].x +
+                        neighborWeight * this.points[prev].x +
+                        neighborWeight * this.points[next].x;
+
+          let smoothY = selfWeight * this.points[i].y +
+                        neighborWeight * this.points[prev].y +
+                        neighborWeight * this.points[next].y;
+
+          smoothedPoints.push({ x: smoothX, y: smoothY });
+        }
+
+        // Apply the second smoothing pass
+        for (let i = 0; i < this.numPoints; i++) {
+          this.points[i].x = smoothedPoints[i].x;
+          this.points[i].y = smoothedPoints[i].y;
+        }
+      }
+    }
+
+    function setup() {
+      const canvas = createCanvas(canvasWidth, canvasHeight);
+      canvas.parent('canvas-container');
+
+      // Add event listener to the button
+      document.getElementById('addCircleBtn').addEventListener('click', addCircle);
+    }
+
+    function draw() {
+      background(240);
+
+      // Process all circle interactions
+      updateCircleInteractions();
+
+      // Add some ambient motion
+      addAmbientMotion();
+
+      // Draw all circles
+      for (let i = 0; i < circles.length; i++) {
+        circles[i].display();
+      }
+    }
+
+    // Add subtle ambient motion to make balloons feel alive
+    function addAmbientMotion() {
+      // Occasionally add very subtle forces to random balloons
+      if (frameCount % 30 === 0) { // Every half second approximately
+        for (let i = 0; i < circles.length; i++) {
+          if (random() < 0.3) { // 30% chance each balloon gets a tiny push
+            let angle = random(TWO_PI);
+            let force = random(0.01, 0.05); // Very subtle force
+            circles[i].addForce(cos(angle) * force, sin(angle) * force);
+          }
+        }
+      }
+    }
+
+    function updateCircleInteractions() {
+      // First reset all circles to their original shape
+      for (let i = 0; i < circles.length; i++) {
+        circles[i].resetShape();
+      }
+
+      // Then process all potential interactions and physics
+      for (let i = 0; i < circles.length; i++) {
+        for (let j = i + 1; j < circles.length; j++) {
+          processCircleInteraction(circles[i], circles[j]);
+        }
+      }
+
+      // Apply any resulting movement from physics interactions
+      for (let i = 0; i < circles.length; i++) {
+        circles[i].applyPhysics();
+      }
+    }
+
+    function processCircleInteraction(circleA, circleB) {
+      // Calculate distance between centers
+      let dx = circleB.x - circleA.x;
+      let dy = circleB.y - circleA.y;
+      let distance = sqrt(dx * dx + dy * dy);
+
+      // If the circles are overlapping in space
+      if (distance < circleA.radius + circleB.radius) {
+        // Calculate unit vector from A to B
+        let nx = dx / distance;
+        let ny = dy / distance;
+
+        // Calculate the point along the line between the centers where the circles would touch
+        let touchPointX = circleA.x + nx * circleA.radius;
+        let touchPointY = circleA.y + ny * circleA.radius;
+
+        // Calculate how much the circles would overlap if they were rigid
+        let overlap = (circleA.radius + circleB.radius) - distance;
+
+        // Determine if we should apply physics forces or just deform
+        // Maximum deformation before they start pushing each other - increased for more squishiness
+        let maxDeformation = min(circleA.radius, circleB.radius) * 0.6; // Increased from 0.3 to 0.6
+
+        if (overlap > maxDeformation) {
+          // Calculate how much to push each circle
+          let pushAmount = (overlap - maxDeformation) * 0.3; // Reduced from 0.5 to 0.3 for more squishing
+          let massRatioA = circleB.mass / (circleA.mass + circleB.mass);
+          let massRatioB = circleA.mass / (circleA.mass + circleB.mass);
+
+          // Add pushing force based on mass ratio
+          circleA.addForce(-nx * pushAmount * massRatioA, -ny * pushAmount * massRatioA);
+          circleB.addForce(nx * pushAmount * massRatioB, ny * pushAmount * massRatioB);
+
+          // Limit the overlap for deformation to maxDeformation
+          overlap = maxDeformation;
+        }
+
+        // Deform both circles based on this information (but only up to the max deformation)
+        circleA.deform(touchPointX, touchPointY, nx, ny, overlap, circleB);
+        circleB.deform(touchPointX, touchPointY, -nx, -ny, overlap, circleA);
+      }
+    }
+
+    function addCircle() {
+      const randomX = random(50, canvasWidth - 50);
+      const randomY = random(50, canvasHeight - 50);
+      const randomRadius = random(30, 70); // Increased max size for more variety
+      const color = colors[nextColor % colors.length];
+      nextColor++;
+
+      // Add some initial random deformation to make balloons look more organic
+      let newCircle = new BalloonCircle(randomX, randomY, randomRadius, color);
+
+      // Apply some initial random deformations to make it look organic from the start
+      for (let i = 0; i < 3; i++) {
+        let angle = random(TWO_PI);
+        let strength = random(0.05, 0.15) * newCircle.radius;
+        let spread = random(0.7, 1.8);
+
+        for (let j = 0; j < newCircle.numPoints; j++) {
+          let pointAngle = atan2(newCircle.originalPoints[j].y, newCircle.originalPoints[j].x);
+          let angleDiff = abs(angle - pointAngle);
+          if (angleDiff > PI) angleDiff = TWO_PI - angleDiff;
+
+          if (angleDiff < spread) {
+            let deformStrength = strength * (1 - angleDiff/spread);
+            let deformDirection = random(TWO_PI); // Random direction for more organic feel
+
+            newCircle.memory[j].x += cos(deformDirection) * deformStrength;
+            newCircle.memory[j].y += sin(deformDirection) * deformStrength;
+          }
+        }
+      }
+
+      // Apply the memory deformations and smooth
+      newCircle.resetShape();
+      newCircle.smoothPoints();
+
+      circles.push(newCircle);
+    }
+
+    function mousePressed() {
+      // Check if we clicked on any circle
+      for (let i = circles.length - 1; i >= 0; i--) {
+        if (circles[i].contains(mouseX, mouseY)) {
+          selectedCircle = circles[i];
+          // Move the selected circle to the end of the array to draw it on top
+          circles.splice(i, 1);
+          circles.push(selectedCircle);
+          return;
+        }
+      }
+      selectedCircle = null;
+    }
+
+    function mouseDragged() {
+      if (selectedCircle) {
+        // Calculate desired position (where mouse is)
+        let targetX = mouseX;
+        let targetY = mouseY;
+
+        // Check if this movement would cause collision with other circles
+        let maxMoveX = targetX;
+        let maxMoveY = targetY;
+        let blocked = false;
+
+        // Check against all other circles
+        for (let i = 0; i < circles.length; i++) {
+          if (circles[i] !== selectedCircle) {
+            // Calculate current distance
+            let dx = circles[i].x - selectedCircle.x;
+            let dy = circles[i].y - selectedCircle.y;
+            let currentDist = sqrt(dx * dx + dy * dy);
+
+            // Calculate what distance would be if we moved to target
+            let newDx = circles[i].x - targetX;
+            let newDy = circles[i].y - targetY;
+            let newDist = sqrt(newDx * newDx + newDy * newDy);
+
+            // Minimum allowed distance (sum of radii with a buffer for squishiness)
+            let minDist = selectedCircle.radius + circles[i].radius -
+                          min(selectedCircle.radius, circles[i].radius) * 0.5; // Increased squishiness
+
+            // If the new position would cause excessive overlap
+            if (newDist < minDist) {
+              blocked = true;
+
+              // Calculate displacement vector from other circle to target position
+              let nx = newDx / newDist;
+              let ny = newDy / newDist;
+
+              // Calculate the maximum allowed position in this direction
+              let adjustedX = circles[i].x - nx * minDist;
+              let adjustedY = circles[i].y - ny * minDist;
+
+              // Update the maximum move position if this is more restrictive
+              // This creates a path of least resistance when multiple circles block
+              if (abs(adjustedX - selectedCircle.x) < abs(maxMoveX - selectedCircle.x)) {
+                maxMoveX = adjustedX;
+              }
+              if (abs(adjustedY - selectedCircle.y) < abs(maxMoveY - selectedCircle.y)) {
+                maxMoveY = adjustedY;
+              }
+            }
+          }
+        }
+
+        // Move to either the target or the max allowed position
+        if (blocked) {
+          selectedCircle.x = maxMoveX;
+          selectedCircle.y = maxMoveY;
+
+          // Add a more significant push to the blocked circle(s) for more interactivity
+          for (let i = 0; i < circles.length; i++) {
+            if (circles[i] !== selectedCircle) {
+              let dx = circles[i].x - selectedCircle.x;
+              let dy = circles[i].y - selectedCircle.y;
+              let dist = sqrt(dx * dx + dy * dy);
+
+              // Apply stronger push when we're close
+              if (dist < selectedCircle.radius + circles[i].radius) {
+                let nx = dx / dist;
+                let ny = dy / dist;
+                let pushForce = map(dist, 0, selectedCircle.radius + circles[i].radius, 0.8, 0.2);
+
+                circles[i].addForce(nx * pushForce, ny * pushForce);
+
+                // Add some lateral force for more interesting movements
+                let perpX = -ny;
+                let perpY = nx;
+                let lateralForce = pushForce * 0.3 * (random() < 0.5 ? 1 : -1);
+                circles[i].addForce(perpX * lateralForce, perpY * lateralForce);
+              }
+            }
+          }
+        } else {
+          // If not blocked, move freely to target
+          selectedCircle.x = targetX;
+          selectedCircle.y = targetY;
+        }
+
+        // Calculate velocity from the actual movement that occurred
+        let dx = selectedCircle.x - selectedCircle.x - selectedCircle.vx;
+        let dy = selectedCircle.y - selectedCircle.y - selectedCircle.vy;
+        selectedCircle.vx = dx * 0.3;
+        selectedCircle.vy = dy * 0.3;
+      }
+    }
+              }
+            }
+          }
+        }
+
+        // Move to either the target or the max allowed position
+        if (blocked) {
+          selectedCircle.x = maxMoveX;
+          selectedCircle.y = maxMoveY;
+
+          // Add a more significant push to the blocked circle(s) for more interactivity
+          for (let i = 0; i < circles.length; i++) {
+            if (circles[i] !== selectedCircle) {
+              let dx = circles[i].x - selectedCircle.x;
+              let dy = circles[i].y - selectedCircle.y;
+              let dist = sqrt(dx * dx + dy * dy);
+
+              // Apply stronger push when we're close
+              if (dist < selectedCircle.radius + circles[i].radius) {
+                let nx = dx / dist;
+                let ny = dy / dist;
+                let pushForce = map(dist, 0, selectedCircle.radius + circles[i].radius, 0.8, 0.2);
+
+                circles[i].addForce(nx * pushForce, ny * pushForce);
+
+                // Add some lateral force for more interesting movements
+                let perpX = -ny;
+                let perpY = nx;
+                let lateralForce = pushForce * 0.3 * (random() < 0.5 ? 1 : -1);
+                circles[i].addForce(perpX * lateralForce, perpY * lateralForce);
+              }
+            }
+          }
+        } else {
+          // If not blocked, move freely to target
+          selectedCircle.x = targetX;
+          selectedCircle.y = targetY;
+        }
+
+        // Calculate velocity from the actual movement that occurred
+        let dx = selectedCircle.x - selectedCircle.x - selectedCircle.vx;
+        let dy = selectedCircle.y - selectedCircle.y - selectedCircle.vy;
+        selectedCircle.vx = dx * 0.3;
+        selectedCircle.vy = dy * 0.3;
+      }
+    }
+
+    function mouseReleased() {
+      selectedCircle = null;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animated Brush Strokes</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+    }
+    canvas {
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    let currentStroke = [];
+    let finishedStrokes = [];
+    let animatingStrokes = [];
+    let isDrawing = false;
+    let colorPalette = [
+      [40, 40, 40],     // Black
+      [220, 50, 50],    // Red
+      [50, 120, 200],   // Blue
+      [80, 180, 80]     // Green
+    ];
+    let currentColor;
+    let colorIndex = 0;
+    let clearButton;
+
+    function setup() {
+      let canvas = createCanvas(800, 600);
+      background(250);
+
+      currentColor = colorPalette[colorIndex];
+
+      // Create button for clearing canvas
+      clearButton = createButton('Clear Canvas');
+      clearButton.position(10, 10);
+      clearButton.mousePressed(clearCanvas);
+
+      // Create button for changing color
+      let colorButton = createButton('Change Color');
+      colorButton.position(110, 10);
+      colorButton.mousePressed(function() {
+        colorIndex = (colorIndex + 1) % colorPalette.length;
+        currentColor = colorPalette[colorIndex];
+      });
+    }
+
+    function draw() {
+      // Always render the canvas - fixes disappearing strokes
+      background(250);
+
+      // Draw all finished strokes
+      for (let s of finishedStrokes) {
+        drawFinishedStroke(s);
+      }
+
+      // Draw current stroke while user is drawing
+      if (isDrawing && currentStroke.length > 1) {
+        stroke(currentColor[0], currentColor[1], currentColor[2], 200);
+        strokeWeight(2);
+        noFill();
+        beginShape();
+        for (let p of currentStroke) {
+          vertex(p.x, p.y);
+        }
+        endShape();
+      }
+
+      // Process and draw animating strokes
+      for (let i = animatingStrokes.length - 1; i >= 0; i--) {
+        let s = animatingStrokes[i];
+        s.progress += 0.025; // Animation speed
+
+        if (s.progress >= 1) {
+          // Animation complete, move to finished strokes
+          finishedStrokes.push({
+            points: s.points,
+            color: s.color
+          });
+          animatingStrokes.splice(i, 1);
+        } else {
+          // Draw the stroke in its current animation state
+          drawAnimatedStroke(s);
+        }
+      }
+    }
+
+    function mousePressed() {
+      // Start new stroke
+      if (mouseX > 0 && mouseX < width && mouseY > 0 && mouseY < height) {
+        isDrawing = true;
+        currentStroke = [{x: mouseX, y: mouseY}];
+        return false; // Prevent default behavior
+      }
+    }
+
+    function mouseDragged() {
+      // Add point to current stroke
+      if (isDrawing) {
+        currentStroke.push({x: mouseX, y: mouseY});
+        return false; // Prevent default behavior
+      }
+    }
+
+    function mouseReleased() {
+      // End stroke and start animation
+      if (isDrawing) {
+        isDrawing = false;
+
+        // Only animate if we have enough points
+        if (currentStroke.length > 3) {
+          // Start animation
+          animatingStrokes.push({
+            points: currentStroke,
+            color: currentColor.slice(), // Copy the current color
+            progress: 0
+          });
+        }
+
+        currentStroke = [];
+        return false; // Prevent default behavior
+      }
+    }
+
+    function drawAnimatedStroke(stroke) {
+      let points = stroke.points;
+      let progress = stroke.progress;
+      let color = stroke.color;
+
+      // Calculate how many points to include based on progress
+      let pointsToDraw = Math.ceil(points.length * progress);
+      pointsToDraw = constrain(pointsToDraw, 2, points.length);
+
+      let visiblePoints = points.slice(0, pointsToDraw);
+
+      // Draw the base stroke with varying thickness
+      for (let i = 0; i < visiblePoints.length - 1; i++) {
+        let p1 = visiblePoints[i];
+        let p2 = visiblePoints[i + 1];
+
+        // Calculate percentage along the stroke for thickness
+        let t = i / (visiblePoints.length - 1);
+
+        // Thickness is based on a bell curve (thicker in middle)
+        let thicknessFactor = sin(t * PI) * progress;
+        let thickness = map(thicknessFactor, 0, 1, 2, 15);
+
+        // Draw the main line segment
+        stroke(color[0], color[1], color[2], 180);
+        strokeWeight(thickness);
+        line(p1.x, p1.y, p2.x, p2.y);
+
+        // Add some organic edge variation (only after progress reaches a threshold)
+        if (progress > 0.3 && i % 3 === 0) {
+          // Calculate perpendicular direction to line
+          let dx = p2.x - p1.x;
+          let dy = p2.y - p1.y;
+          let len = sqrt(dx*dx + dy*dy);
+
+          if (len > 0) {
+            // Perpendicular vector
+            let perpX = -dy / len;
+            let perpY = dx / len;
+
+            // Draw small perpendicular lines for brush texture
+            let midX = (p1.x + p2.x) / 2;
+            let midY = (p1.y + p2.y) / 2;
+
+            // Randomize the brush edge details
+            let edgeLength = random(1, 5) * thickness * 0.4;
+            let randomDirection = random(-1, 1);
+
+            stroke(color[0], color[1], color[2], 120);
+            strokeWeight(1);
+            line(
+              midX,
+              midY,
+              midX + perpX * edgeLength * randomDirection,
+              midY + perpY * edgeLength * randomDirection
+            );
+          }
+        }
+      }
+
+      // Add splatter effects near the end of animation
+      if (progress > 0.7) {
+        let splatterAlpha = map(progress, 0.7, 1, 0, 100);
+
+        for (let i = 0; i < 3; i++) {
+          // Get a random point along the stroke
+          let randIndex = floor(random(points.length));
+          let randomPoint = points[randIndex];
+
+          // Draw a small splatter
+          noStroke();
+          fill(color[0], color[1], color[2], splatterAlpha);
+          ellipse(
+            randomPoint.x + random(-10, 10),
+            randomPoint.y + random(-10, 10),
+            random(1, 3)
+          );
+        }
+      }
+    }
+
+    function drawFinishedStroke(stroke) {
+      let points = stroke.points;
+      let color = stroke.color;
+
+      // Draw the base stroke with varying thickness
+      for (let i = 0; i < points.length - 1; i++) {
+        let p1 = points[i];
+        let p2 = points[i + 1];
+
+        // Calculate percentage along the stroke for thickness
+        let t = i / (points.length - 1);
+
+        // Thickness is based on a bell curve (thicker in middle)
+        let thicknessFactor = sin(t * PI);
+        let thickness = map(thicknessFactor, 0, 1, 3, 15);
+
+        // Draw the main line segment
+        stroke(color[0], color[1], color[2], 200);
+        strokeWeight(thickness);
+        line(p1.x, p1.y, p2.x, p2.y);
+
+        // Add brush texture (edge variations)
+        if (i % 3 === 0) {
+          // Calculate perpendicular direction to line
+          let dx = p2.x - p1.x;
+          let dy = p2.y - p1.y;
+          let len = sqrt(dx*dx + dy*dy);
+
+          if (len > 0) {
+            // Perpendicular vector
+            let perpX = -dy / len;
+            let perpY = dx / len;
+
+            // Draw small perpendicular lines for brush texture
+            let midX = (p1.x + p2.x) / 2;
+            let midY = (p1.y + p2.y) / 2;
+
+            // Randomize the brush edge details
+            let edgeLength = random(1, 5) * thickness * 0.4;
+            let randomDirection = random(-1, 1);
+
+            stroke(color[0], color[1], color[2], 120);
+            strokeWeight(1);
+            line(
+              midX,
+              midY,
+              midX + perpX * edgeLength * randomDirection,
+              midY + perpY * edgeLength * randomDirection
+            );
+          }
+        }
+      }
+
+      // Add splatter effects
+      for (let i = 0; i < 5; i++) {
+        // Get a random point along the stroke
+        let randIndex = floor(random(points.length));
+        let randomPoint = points[randIndex];
+
+        // Draw a small splatter
+        noStroke();
+        fill(color[0], color[1], color[2], 100);
+        ellipse(
+          randomPoint.x + random(-10, 10),
+          randomPoint.y + random(-10, 10),
+          random(1, 3)
+        );
+      }
+    }
+
+    function clearCanvas() {
+      background(250);
+      currentStroke = [];
+      finishedStrokes = [];
+      animatingStrokes = [];
+    }
+
+    // Touch support for mobile devices
+    function touchStarted() {
+      let touch = touches[0];
+      if (touch && touch.x > 0 && touch.x < width && touch.y > 0 && touch.y < height) {
+        isDrawing = true;
+        currentStroke = [{x: touch.x, y: touch.y}];
+        return false;
+      }
+    }
+
+    function touchMoved() {
+      let touch = touches[0];
+      if (isDrawing && touch) {
+        currentStroke.push({x: touch.x, y: touch.y});
+        return false;
+      }
+    }
+
+    function touchEnded() {
+      if (isDrawing) {
+        mouseReleased(); // Reuse the same logic
+        return false;
+      }
+    }
+  </script>
+</body>
+</html>

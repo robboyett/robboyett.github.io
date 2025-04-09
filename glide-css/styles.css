@@ -1,0 +1,46 @@
+/* Dramatic visual indicators that external CSS is working */
+
+/* Option 1: Bold background color on the body with a pattern */
+body {
+  background: linear-gradient(45deg, #ff00cc, #3333ff);
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+body::before {
+  content: "EXTERNAL CSS SUCCESSFULLY LOADED";
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  background: black;
+  color: lime;
+  padding: 10px;
+  font-size: 20px;
+  z-index: 9999;
+  font-family: monospace;
+  border: 3px solid lime;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Option 2: Custom cursor across the entire site */
+* {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23ff0000" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>') 12 12, auto !important;
+}
+
+/* Option 3: Distinctive border around all elements */
+div, p, h1, h2, h3, span, a, button, input {
+  border: 3px dashed #ff5500 !important;
+  border-radius: 8px !important;
+  padding: 5px !important;
+}
+
+/* Option 4: Text transformation */
+p, span, a, h1, h2, h3, h4, h5, h6 {
+  text-shadow: 2px 2px 0 #ff00ff, -2px -2px 0 #00ffff !important;
+  letter-spacing: 2px !important;
+}

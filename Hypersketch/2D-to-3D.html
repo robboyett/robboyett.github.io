@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2D to 3D Transformation Interface</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #f7f7f7;
+      font-family: Arial, sans-serif;
+    }
+    #canvas-container {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+    }
+    .ui-panel {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      z-index: 10;
+    }
+    .slider-container {
+      position: absolute;
+      top: 50%;
+      right: 20px;
+      transform: translateY(-50%);
+      min-height: 300px;
+      width: 30px;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 15px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      z-index: 10;
+      padding: 10px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .slider-label {
+      font-size: 12px;
+      font-weight: bold;
+      color: #555;
+    }
+    .color-picker {
+      margin-top: 10px;
+    }
+    button {
+      margin: 5px;
+      padding: 5px 10px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 200px;
+      height: 5px;
+      background: #d3d3d3;
+      outline: none;
+      -webkit-transition: .2s;
+      transition: opacity .2s;
+      border-radius: 5px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 15px;
+      height: 15px;
+      background: #4CAF50;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    input[type=range].vertical {
+      transform: rotate(-90deg);
+      width: 250px;
+      margin-top: 125px;
+    }
+    .height-control {
+      display: none;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+  <div class="ui-panel">
+    <button id="create-box">Create Box</button>
+    <button id="delete-box" disabled>Delete Selected</button>
+    <button id="duplicate-box" disabled>Duplicate</button>
+    <button id="export-scene" title="Export scene as JSON">Export</button>
+    <div class="color-picker">
+      <label for="box-color">Box Color:</label>
+      <input type="color" id="box-color" value="#3498db">
+    </div>
+    <div id="height-control" class="height-control">
+      <label for="cube-height">Cube Height:</label>
+      <input type="range" id="cube-height" min="10" max="200" value="50" step="1">
+      <span id="height-value">50</span>
+    </div>
+  </div>
+  <div class="slider-container">
+    <span class="slider-label">3D</span>
+    <input type="range" id="dimension-slider" class="vertical" min="0" max="100" value="0" step="1">
+    <span class="slider-label">2D</span>
+  </div>
+
+  <script>
+    let sketch = function(p) {
+      // Constants
+      const GRID_SIZE = 20;
+      const GRID_COLOR = [200, 200, 200];
+      const GRID_COLOR_3D = [180, 180, 200];
+      const SELECTION_COLOR = [255, 165, 0];
+      
+      // Variables
+      let boxes = [];
+      let selectedBoxIndex = -1;
+      let dimensionValue = 0; // 0 = 2D, 100 = 3D
+      let isDragging = false;
+      let isResizing = false;
+      let resizeHandle = '';
+      let dragStartX, dragStartY;
+      let dragBoxStartX, dragBoxStartY, dragBoxStartW, dragBoxStartH;
+      let boxColor = '#3498db';
+      let defaultCubeHeight = 50;
+      let cameraRotX = 0;
+      let cameraRotY = 0;
+      let isOrbiting = false;
+      let orbitStartX, orbitStartY;
+      let canvasWidth, canvasHeight;
+      
+      // Create a box object
+      function createBox(x, y, w, h) {
+        // If x and y are 0 (default case when creating new box), center it
+        if (x === 0 && y === 0) {
+          return {
+            x: canvasWidth/2 - w/2,  // Center horizontally
+            y: canvasHeight/2 - h/2,  // Center vertically
+            width: snapToGrid(w),
+            height: snapToGrid(h),
+            color: boxColor,
+            height3D: defaultCubeHeight
+          };
+        }
+        
+        // For other cases (like duplicating), use the provided coordinates
+        return {
+          x: snapToGrid(x),
+          y: snapToGrid(y),
+          width: snapToGrid(w),
+          height: snapToGrid(h),
+          color: boxColor,
+          height3D: defaultCubeHeight
+        };
+      }
+      
+      // Snap value to grid
+      function snapToGrid(value) {
+        return Math.round(value / GRID_SIZE) * GRID_SIZE;
+      }
+      
+      p.setup = function() {
+        canvasWidth = p.windowWidth;
+        canvasHeight = p.windowHeight;
+        p.createCanvas(canvasWidth, canvasHeight, p.WEBGL);
+        p.noStroke();
+        
+        // Initialize UI controls
+        document.getElementById('create-box').addEventListener('click', function() {
+          // Create a new box in the center of the screen
+          // No need to offset since 0,0 is the center in WEBGL mode
+          const newBox = createBox(0, 0, GRID_SIZE * 5, GRID_SIZE * 5);
+          boxes.push(newBox);
+          selectedBoxIndex = boxes.length - 1;
+          updateButtonStates();
+          showHeightControl();
+        });
+        
+        document.getElementById('delete-box').addEventListener('click', function() {
+          if (selectedBoxIndex >= 0) {
+            boxes.splice(selectedBoxIndex, 1);
+            selectedBoxIndex = -1;
+            updateButtonStates();
+            hideHeightControl();
+          }
+        });
+        
+        document.getElementById('duplicate-box').addEventListener('click', function() {
+          if (selectedBoxIndex >= 0) {
+            const selected = boxes[selectedBoxIndex];
+            const newBox = createBox(
+              selected.x + GRID_SIZE * 2,
+              selected.y + GRID_SIZE * 2,
+              selected.width,
+              selected.height
+            );
+            newBox.color = selected.color;
+            newBox.height3D = selected.height3D;
+            boxes.push(newBox);
+            selectedBoxIndex = boxes.length - 1;
+            updateButtonStates();
+          }
+        });
+        
+        document.getElementById('box-color').addEventListener('input', function(e) {
+          boxColor = e.target.value;
+          if (selectedBoxIndex >= 0) {
+            boxes[selectedBoxIndex].color = boxColor;
+          }
+        });
+        
+        document.getElementById('dimension-slider').addEventListener('input', function(e) {
+          dimensionValue = parseInt(e.target.value);
+          // Show/hide height control based on slider position
+          if (dimensionValue > 0 && selectedBoxIndex >= 0) {
+            showHeightControl();
+          } else if (dimensionValue === 0) {
+            hideHeightControl();
+          }
+        });
+        
+        document.getElementById('cube-height').addEventListener('input', function(e) {
+          const heightValue = parseInt(e.target.value);
+          document.getElementById('height-value').textContent = heightValue;
+          if (selectedBoxIndex >= 0) {
+            boxes[selectedBoxIndex].height3D = heightValue;
+          }
+        });
+        
+        document.getElementById('export-scene').addEventListener('click', function() {
+          exportScene();
+        });
+      };
+      
+      p.draw = function() {
+        p.background(247, 247, 247);
+        
+        // Set up camera based on dimension slider
+        setupCamera();
+        
+        // Draw grid first (so it's behind everything)
+        drawGrid();
+        
+        // Draw boxes last (so they're on top)
+        drawBoxes();
+      };
+      
+      function setupCamera() {
+        p.push();
+        
+        if (dimensionValue > 0) {
+          // 3D perspective adjustments
+          const perspectiveAmount = p.map(dimensionValue, 0, 100, 0, Math.PI / 5);
+          p.rotateX(perspectiveAmount + cameraRotX);
+          p.rotateY(cameraRotY);
+          
+          // Adjust scale based on perspective
+          const scaleAmount = p.map(dimensionValue, 0, 100, 1, 0.8);
+          p.scale(scaleAmount);
+        }
+        
+        // Center the scene
+        p.translate(-canvasWidth/2, -canvasHeight/2, 0);
+      }
+      
+      function drawGrid() {
+        const gridAlpha = p.map(dimensionValue, 0, 100, 100, 60);
+        
+        // Calculate grid extents
+        const startX = 0;
+        const startY = 0;
+        const endX = canvasWidth;
+        const endY = canvasHeight;
+        
+        // Draw grid lines
+        p.stroke(...GRID_COLOR, gridAlpha);
+        p.strokeWeight(1);
+        
+        // Vertical lines
+        for (let x = startX; x <= endX; x += GRID_SIZE) {
+          p.line(x, startY, 0, x, endY, 0);
+        }
+        
+        // Horizontal lines
+        for (let y = startY; y <= endY; y += GRID_SIZE) {
+          p.line(startX, y, 0, endX, y, 0);
+        }
+        
+        // Draw 3D grid if in 3D mode
+        if (dimensionValue > 0) {
+          const gridDepth = p.map(dimensionValue, 0, 100, 0, 200);
+          p.stroke(...GRID_COLOR_3D, gridAlpha * 0.7);
+          
+          // Vertical depth lines
+          for (let x = startX; x <= endX; x += GRID_SIZE * 5) {
+            p.line(x, startY, 0, x, startY, -gridDepth);
+            p.line(x, endY, 0, x, endY, -gridDepth);
+          }
+          
+          // Horizontal depth lines
+          for (let y = startY; y <= endY; y += GRID_SIZE * 5) {
+            p.line(startX, y, 0, startX, y, -gridDepth);
+            p.line(endX, y, 0, endX, y, -gridDepth);
+          }
+        }
+        
+        p.noStroke();
+      }
+      
+      function drawBoxes() {
+        boxes.forEach((box, index) => {
+          // Determine if this box is selected
+          const isSelected = index === selectedBoxIndex;
+          
+          // Draw the box based on dimension value
+          if (dimensionValue === 0) {
+            // 2D mode
+            draw2DBox(box, isSelected);
+          } else {
+            // 3D mode or transition
+            draw3DBox(box, isSelected);
+          }
+        });
+      }
+      
+      function draw2DBox(box, isSelected) {
+        p.push();
+        // Lift the 2D box slightly above the grid
+        p.translate(0, 0, 1); // Added z=1 to lift above grid
+        
+        // Set fill color
+        const boxRgb = p.color(box.color);
+        p.fill(boxRgb);
+        
+        // Draw rectangle
+        p.rect(box.x, box.y, box.width, box.height);
+        
+        // Draw selection highlight if selected
+        if (isSelected) {
+          p.noFill();
+          p.stroke(SELECTION_COLOR);
+          p.strokeWeight(2);
+          p.rect(box.x, box.y, box.width, box.height);
+          
+          // Draw resize handles
+          drawResizeHandles(box);
+          
+          p.noStroke();
+        }
+        p.pop();
+      }
+      
+      function draw3DBox(box, isSelected) {
+        // Calculate 3D height based on dimension slider
+        const height3D = p.map(dimensionValue, 0, 100, 0, box.height3D);
+        
+        // Set fill color
+        const boxRgb = p.color(box.color);
+        
+        // Draw the box as a 3D cube
+        p.push();
+        // Translate slightly up on z-axis to ensure box is above grid
+        p.translate(box.x + box.width / 2, box.y + box.height / 2, 1); // Added z=1 to lift above grid
+        
+        // Top face (original 2D rectangle)
+        p.fill(boxRgb);
+        p.push();
+        p.translate(0, 0, height3D / 2);
+        p.plane(box.width, box.height);
+        p.pop();
+        
+        // If we're in full 3D mode, draw all sides of the cube
+        if (height3D > 0) {
+          // Darken color for sides
+          const darkerColor = p.color(boxRgb);
+          darkerColor.setAlpha(220);
+          p.fill(darkerColor);
+          
+          // Front face
+          p.push();
+          p.translate(0, box.height / 2, 0);
+          p.rotateX(p.HALF_PI);
+          p.plane(box.width, height3D);
+          p.pop();
+          
+          // Back face
+          p.push();
+          p.translate(0, -box.height / 2, 0);
+          p.rotateX(-p.HALF_PI);
+          p.plane(box.width, height3D);
+          p.pop();
+          
+          // Left face
+          p.push();
+          p.translate(-box.width / 2, 0, 0);
+          p.rotateY(-p.HALF_PI);
+          p.plane(height3D, box.height);
+          p.pop();
+          
+          // Right face
+          p.push();
+          p.translate(box.width / 2, 0, 0);
+          p.rotateY(p.HALF_PI);
+          p.plane(height3D, box.height);
+          p.pop();
+          
+          // Bottom face (slightly darker)
+          const bottomColor = p.color(boxRgb);
+          bottomColor.setAlpha(200);
+          p.fill(bottomColor);
+          p.push();
+          p.translate(0, 0, -height3D / 2);
+          p.plane(box.width, box.height);
+          p.pop();
+        }
+        
+        // Draw selection highlight if selected
+        if (isSelected) {
+          p.noFill();
+          p.stroke(SELECTION_COLOR);
+          p.strokeWeight(2);
+          
+          // Top face outline
+          p.push();
+          p.translate(0, 0, height3D / 2 + 1);
+          outlineRect(box.width, box.height);
+          p.pop();
+          
+          // Bottom face outline
+          p.push();
+          p.translate(0, 0, -height3D / 2 - 1);
+          outlineRect(box.width, box.height);
+          p.pop();
+          
+          // Connect top to bottom
+          p.push();
+          p.translate(0, 0, 0);
+          drawCubeEdges(box.width, box.height, height3D);
+          p.pop();
+          
+          p.noStroke();
+        }
+        
+        p.pop();
+      }
+      
+      function outlineRect(width, height) {
+        const halfWidth = width / 2;
+        const halfHeight = height / 2;
+        p.beginShape();
+        p.vertex(-halfWidth, -halfHeight, 0);
+        p.vertex(halfWidth, -halfHeight, 0);
+        p.vertex(halfWidth, halfHeight, 0);
+        p.vertex(-halfWidth, halfHeight, 0);
+        p.vertex(-halfWidth, -halfHeight, 0);
+        p.endShape();
+      }
+      
+      function drawCubeEdges(width, height, depth) {
+        const halfWidth = width / 2;
+        const halfHeight = height / 2;
+        const halfDepth = depth / 2;
+        
+        // Vertical edges
+        p.line(-halfWidth, -halfHeight, halfDepth, -halfWidth, -halfHeight, -halfDepth);
+        p.line(halfWidth, -halfHeight, halfDepth, halfWidth, -halfHeight, -halfDepth);
+        p.line(halfWidth, halfHeight, halfDepth, halfWidth, halfHeight, -halfDepth);
+        p.line(-halfWidth, halfHeight, halfDepth, -halfWidth, halfHeight, -halfDepth);
+      }
+      
+      function drawResizeHandles(box) {
+        const handleSize = 8;
+        p.fill(255);
+        p.stroke(SELECTION_COLOR);
+        p.strokeWeight(1);
+        
+        // Corner handles
+        p.rect(box.x - handleSize / 2, box.y - handleSize / 2, handleSize, handleSize); // Top-left
+        p.rect(box.x + box.width - handleSize / 2, box.y - handleSize / 2, handleSize, handleSize); // Top-right
+        p.rect(box.x + box.width - handleSize / 2, box.y + box.height - handleSize / 2, handleSize, handleSize); // Bottom-right
+        p.rect(box.x - handleSize / 2, box.y + box.height - handleSize / 2, handleSize, handleSize); // Bottom-left
+        
+        // Edge handles
+        p.rect(box.x + box.width / 2 - handleSize / 2, box.y - handleSize / 2, handleSize, handleSize); // Top
+        p.rect(box.x + box.width - handleSize / 2, box.y + box.height / 2 - handleSize / 2, handleSize, handleSize); // Right
+        p.rect(box.x + box.width / 2 - handleSize / 2, box.y + box.height - handleSize / 2, handleSize, handleSize); // Bottom
+        p.rect(box.x - handleSize / 2, box.y + box.height / 2 - handleSize / 2, handleSize, handleSize); // Left
+      }
+      
+      p.mousePressed = function() {
+        // Get raw mouse coordinates
+        const mouseX = p.mouseX - canvasWidth/2;  // Adjust for WEBGL center origin
+        const mouseY = p.mouseY - canvasHeight/2; // Adjust for WEBGL center origin
+        
+        // Only handle mouse interactions in 2D mode
+        if (dimensionValue === 0) {
+          // Check if clicking on a box
+          for (let i = boxes.length - 1; i >= 0; i--) {
+            const box = boxes[i];
+            if (mouseX >= box.x && mouseX <= box.x + box.width &&
+                mouseY >= box.y && mouseY <= box.y + box.height) {
+              isDragging = true;
+              selectedBoxIndex = i;
+              dragStartX = mouseX;
+              dragStartY = mouseY;
+              dragBoxStartX = box.x;
+              dragBoxStartY = box.y;
+              
+              // Update UI
+              updateButtonStates();
+              document.getElementById('box-color').value = box.color;
+              return; // Exit after finding a hit
+            }
+          }
+          
+          // If we get here, no box was clicked
+          selectedBoxIndex = -1;
+          updateButtonStates();
+        } else if (dimensionValue >= 90) {
+          // In full 3D mode, allow orbiting the view
+          isOrbiting = true;
+          orbitStartX = mouseX;
+          orbitStartY = mouseY;
+        }
+      };
+      
+      p.mouseDragged = function() {
+        // Get raw mouse coordinates
+        const mouseX = p.mouseX - canvasWidth/2;  // Adjust for WEBGL center origin
+        const mouseY = p.mouseY - canvasHeight/2; // Adjust for WEBGL center origin
+        
+        if (isDragging && selectedBoxIndex >= 0 && dimensionValue === 0) {
+          // Calculate the delta from the drag start position
+          const dx = mouseX - dragStartX;
+          const dy = mouseY - dragStartY;
+          
+          // Update box position with snapping to grid
+          boxes[selectedBoxIndex].x = snapToGrid(dragBoxStartX + dx);
+          boxes[selectedBoxIndex].y = snapToGrid(dragBoxStartY + dy);
+        } else if (isOrbiting && dimensionValue >= 90) {
+          // Update camera rotation for orbit controls
+          const dx = mouseX - orbitStartX;
+          const dy = mouseY - orbitStartY;
+          
+          cameraRotY += dx * 0.01;
+          cameraRotX += dy * 0.01;
+          
+          // Limit rotation on X axis to prevent flipping
+          cameraRotX = p.constrain(cameraRotX, -Math.PI / 3, Math.PI / 3);
+          
+          orbitStartX = mouseX;
+          orbitStartY = mouseY;
+        }
+      };
+      
+      p.mouseReleased = function() {
+        isDragging = false;
+        isResizing = false;
+        isOrbiting = false;
+      };
+      
+      p.windowResized = function() {
+        canvasWidth = p.windowWidth;
+        canvasHeight = p.windowHeight;
+        p.resizeCanvas(canvasWidth, canvasHeight);
+      };
+      
+      // Helper function to check if point is over rectangle
+      function isOverRect(px, py, rx, ry, rw, rh) {
+        return px >= rx && px <= rx + rw && 
+               py >= ry && py <= ry + rh;
+      }
+      
+      // UI helper functions
+      function updateButtonStates() {
+        const deleteBtn = document.getElementById('delete-box');
+        const duplicateBtn = document.getElementById('duplicate-box');
+        
+        if (selectedBoxIndex >= 0) {
+          deleteBtn.disabled = false;
+          duplicateBtn.disabled = false;
+        } else {
+          deleteBtn.disabled = true;
+          duplicateBtn.disabled = true;
+        }
+      }
+      
+      function showHeightControl() {
+        if (dimensionValue > 0 && selectedBoxIndex >= 0) {
+          const heightControl = document.getElementById('height-control');
+          heightControl.style.display = 'block';
+          document.getElementById('cube-height').value = boxes[selectedBoxIndex].height3D;
+          document.getElementById('height-value').textContent = boxes[selectedBoxIndex].height3D;
+        }
+      }
+      
+      function hideHeightControl() {
+        const heightControl = document.getElementById('height-control');
+        heightControl.style.display = 'none';
+      }
+      
+      function exportScene() {
+        const sceneData = {
+          boxes: boxes,
+          perspective: dimensionValue
+        };
+        
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sceneData, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "scene.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+      }
+    };
+    
+    new p5(sketch, 'canvas-container');
+  </script>
+</body>
+</html>
