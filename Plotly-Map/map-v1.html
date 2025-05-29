@@ -414,9 +414,16 @@
         };
 
         const config = {
-            displayModeBar: false,
+            displayModeBar: true,
+            modeBarButtonsToRemove: [
+                'zoom2d', 'pan2d', 'select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d',
+                'autoScale2d', 'resetScale2d', 'hoverClosestGeo', 'hoverClosestGl2d',
+                'hoverClosestPie', 'toggleHover', 'toImage', 'sendDataToCloud',
+                'toggleSpikelines', 'resetViews', 'resetViewMapbox'
+            ],
+            displaylogo: false,
             responsive: false,
-            scrollZoom: false,   // disables mouse wheel zoom
+            scrollZoom: true,   // disables mouse wheel zoom
             staticPlot: false    // allows hover, disables zoom/pan
         };
 
