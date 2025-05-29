@@ -76,6 +76,7 @@
         .map-container{
             margin:12px 0 12px 0;
             background-color: #f4f4f6;
+            height: 700px; /* control the height of the map */
         }
 
         .legend {
@@ -367,7 +368,10 @@
                 coastlinecolor: 'rgba(204, 204, 204, 0.6)',
                 coastlinewidth: 0.5,
                 bgcolor: '#f4f4f6',
-                showframe: false
+                showframe: false,
+                lataxis: {
+                    range: [-60, 90] // set the range of the latitude axis to hide Antarctica
+                }
             },
             margin: { l: 0, r: 0, t: 0, b: 0 },
             paper_bgcolor: 'rgba(255, 255, 255, 0)', // BG colour
