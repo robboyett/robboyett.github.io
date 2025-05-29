@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Total Emissions - World Map</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #F9F8F6;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            gap:20px;
+            margin: 0 auto;
+            padding: 12px 12px 12px 12px;
+        }
+
+        .container-full{
+            width: 100%;
+            margin: 0 auto;
+            padding: 12px 12px 12px 12px;
+        }
+
+        .left-column {
+            width: 300px;
+            flex-shrink: 0;
+        }
+
+        .right-column {
+            flex-grow: 1;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-weight: 500;
+            font-size: 20px;
+            line-height: 28px;
+            letter-spacing: 0.01em;
+            color: rgba(0, 0, 0, 0.87);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            font-weight: 400;
+        }
+
+        .area-container {
+            padding: 24px;
+            background: #FFFFFF;
+            border: 1px solid #E7E6E4;
+            border-radius: 8px;
+            min-height:140px;
+        }
+
+        #plotly-map {
+            width: 100%;
+            height: 100%;
+        }
+        .map-container{
+            margin:12px 0 12px 0;
+            background-color: #f4f4f6;
+        }
+
+        .legend {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .legend-circle {
+            border-radius: 50%;
+            background-color: #a855f7;
+            opacity: 0.7;
+        }
+
+        .legend-small {
+            width: 12px;
+            height: 12px;
+        }
+
+        .legend-medium {
+            width: 18px;
+            height: 18px;
+        }
+
+        .legend-large {
+            width: 24px;
+            height: 24px;
+        }
+
+        .country-table-container {
+            margin-top: 32px;
+            background: white;
+
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+            overflow-x: auto;
+        }
+
+        .country-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1rem;
+            background: white;
+            border-radius: 12px;
+        }
+
+        .country-table th, .country-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #F9F8F6;
+        }
+
+        .country-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .country-table tr:last-child td {
+            /* border-bottom: none; */
+        }
+
+        .dummy-header {
+            width: 100%;
+        }
+        .l1{background-color: #410032; height: 48px;}
+        .l2{background-color: #A6288A; height: 174px;}
+        .l3{background-color: #410032; height: 86px;}
+        .l4{background-color: white; height: 99px; box-shadow: 0 10px 10px -5px rgba(0, 0, 0, 0.05); margin-bottom: 14px;}
+
+        h2{
+            font-size: 14px;
+            color: #83807C;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dummy-header">
+        <div class="l1"></div>
+        <div class="l2"></div>
+        <div class="l3"></div>
+        <div class="l4"></div>
+    </div>
+    <div class="container">
+        <div class="left-column">
+                <div class="area-container">
+                    <h2>Total CO₂ Emissions</h2>
+                    <h1>5.4 tonnes</h1>
+                </div>
+            </div>
+        <div class="right-column">
+                <div class="area-container">
+                    <h2>Baseline Comparison</h2>
+                </div>
+        </div>
+    </div>
+
+    <div class="container-full">
+            <div class="area-container">
+                <h1 class="title">Total Emissions</h1>
+                <p class="subtitle">Figures highlight emission sources design teams can reduce.</p>
+            
+                <div class="map-container">
+                    <div id="plotly-map"></div>
+                </div>
+            
+                <table class="country-table">
+                    <thead>
+                        <tr>
+                            <th>Region</th>
+                            <th>Country</th>
+                            <th>No. Patients</th>
+                            <th>CO2 Patient total</th>
+                            <th>CO2 Country total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>United States</td>
+                            <td>United States</td>
+                            <td>140</td>
+                            <td>1</td>
+                            <td>155.9</td>
+                        </tr>
+                        <tr>
+                            <td>China</td>
+                            <td>China</td>
+                            <td>98</td>
+                            <td>1</td>
+                            <td>98.4</td>
+                        </tr>
+                        <tr>
+                            <td>Japan</td>
+                            <td>Japan</td>
+                            <td>70</td>
+                            <td>1</td>
+                            <td>58.8</td>
+                        </tr>
+                        <tr>
+                            <td>Asia, Middle East, and Africa (AMEA)</td>
+                            <td>India</td>
+                            <td>13</td>
+                            <td>1</td>
+                            <td>15.7</td>
+                        </tr>
+                        <tr>
+                            <td>Americas</td>
+                            <td>Argentina</td>
+                            <td>15</td>
+                            <td>1</td>
+                            <td>13.7</td>
+                        </tr>
+                        <tr>
+                            <td>Eastern Europe</td>
+                            <td>Poland</td>
+                            <td>14</td>
+                            <td>1</td>
+                            <td>12.9</td>
+                        </tr>
+                        <tr>
+                            <td>Asia, Middle East, and Africa (AMEA)</td>
+                            <td>South Africa</td>
+                            <td>13</td>
+                            <td>1</td>
+                            <td>12.2</td>
+                        </tr>
+                        <tr>
+                            <td>Eastern Europe</td>
+                            <td>Russia Federation</td>
+                            <td>14</td>
+                            <td>1</td>
+                            <td>12</td>
+                        </tr>
+                        <tr>
+                            <td>Americas</td>
+                            <td>Brazil</td>
+                            <td>15</td>
+                            <td>1</td>
+                            <td>12</td>
+                        </tr>
+                        <tr>
+                            <td>Eastern Europe</td>
+                            <td>Czechia</td>
+                            <td>14</td>
+                            <td>1</td>
+                            <td>11.5</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+    </div>
+
+    <script>
+        // Sample CO2 emissions data based on the map layout
+        const emissionsData = [
+            // North America
+            { country: 'United States', lat: 39.8283, lon: -98.5795, emissions: 9000, size: 60 },
+            { country: 'Canada', lat: 56.1304, lon: -106.3468, emissions: 650, size: 25 },
+            { country: 'Mexico', lat: 23.6345, lon: -102.5528, emissions: 460, size: 20 },
+
+            // South America
+            { country: 'Brazil', lat: -14.2350, lon: -51.9253, emissions: 470, size: 22 },
+            { country: 'Argentina', lat: -38.4161, lon: -63.6167, emissions: 190, size: 15 },
+            { country: 'Colombia', lat: 4.5709, lon: -74.2973, emissions: 80, size: 12 },
+            { country: 'Chile', lat: -35.6751, lon: -71.5430, emissions: 85, size: 12 },
+            { country: 'Peru', lat: -9.19, lon: -75.0152, emissions: 55, size: 10 },
+            { country: 'Venezuela', lat: 6.4238, lon: -66.5897, emissions: 150, size: 14 },
+            { country: 'Ecuador', lat: -1.8312, lon: -78.1834, emissions: 35, size: 8 },
+
+            // Europe
+            { country: 'Germany', lat: 51.1657, lon: 10.4515, emissions: 750, size: 28 },
+            { country: 'United Kingdom', lat: 55.3781, lon: -3.4360, emissions: 350, size: 18 },
+            { country: 'Poland', lat: 51.9194, lon: 19.1451, emissions: 300, size: 16 },
+            { country: 'Netherlands', lat: 52.1326, lon: 5.2913, emissions: 160, size: 14 },
+
+            // Oceania
+            { country: 'Australia', lat: -25.2744, lon: 133.7751, emissions: 420, size: 19 }
+        ];
+
+        // Highlight all countries in emissionsData
+        const highlightCountries = emissionsData.map(d => d.country);
+        const highlightData = [{
+            type: 'choropleth',
+            locationmode: 'country names',
+            locations: highlightCountries,
+            z: highlightCountries.map(() => 1),
+            showscale: false,
+            colorscale: [[0, '#f4e2ff'], [1, '#fff']],
+            marker: {
+                line: {
+                    color: 'rgba(181, 179, 176, 1)',
+                    width: 1
+                }
+            },
+            hoverinfo: 'none',
+            zauto: false,
+            zmin: 0,
+            zmax: 1
+        }];
+
+        // The plot
+        const data = highlightData.concat([{
+            type: 'scattergeo',
+            mode: 'markers',
+            lat: emissionsData.map(d => d.lat),
+            lon: emissionsData.map(d => d.lon),
+            marker: {
+                size: emissionsData.map(d => d.size),
+                color: '#a855f7', // Purple color
+                opacity: 0.7,
+                line: {
+                    color: '#8b5cf6',
+                    width: 1
+                },
+                sizemode: 'diameter',
+                sizeref: 2
+            },
+            text: emissionsData.map(d => `${d.country}<br>Emissions: ${d.emissions} Mt CO₂`),
+            hovertemplate: '%{text}<extra></extra>',
+            showlegend: false
+        }]);
+
+        const layout = {
+            geo: {
+                projection: {
+                    type: 'natural earth'
+                },
+                showland: false,
+                // landcolor: '#f4f4f6',
+                showocean: false,
+                // oceancolor: 'rgba(255, 255, 255, 1)',
+                showcountries: true,
+                countrycolor: 'rgba(181, 179, 176, 1)',
+                showlakes: false,
+                // lakecolor: 'rgba(255, 255, 255, 1)',
+                showrivers: false,
+                coastlinecolor: 'rgba(204, 204, 204, 0.6)',
+                coastlinewidth: 0.5,
+                bgcolor: '#f4f4f6',
+                showframe: false
+            },
+            margin: { l: 0, r: 0, t: 0, b: 0 },
+            paper_bgcolor: 'rgba(255, 255, 255, 0)', // BG colour
+            plot_bgcolor: 'rgba(255, 255, 255, 0)',
+            font: {
+                family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif',
+                size: 12,
+                color: '#333'
+            },
+            hoverlabel: {
+                bgcolor: "#333333",
+                font: {
+                    color: "#fff",
+                    family: "inherit",
+                    size: 14
+                }
+            }
+        };
+
+        const config = {
+            displayModeBar: false,
+            responsive: false,
+            scrollZoom: false,   // disables mouse wheel zoom
+            staticPlot: false    // allows hover, disables zoom/pan
+        };
+
+        Plotly.newPlot('plotly-map', data, layout, config);
+
+        // Handle window resize
+        window.addEventListener('resize', function () {
+            Plotly.Plots.resize('plotly-map');
+        });
+    </script>
+</body>
+
+</html>
