@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scaling Blocks</title>
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+    body {
+        font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        font-feature-settings:
+        'liga' 1, /* Standard ligatures */
+        'dlig' 1, /* Discretionary ligatures */
+        'calt' 1, /* Contextual alternates */
+        'zero' 1, /* Slashed zero */
+        'kern' 1, /* Kerning */
+        'ss01' 1, /* Alternate digits */
+        'ss02' 0, /* Disambiguate between similar-looking characters */
+        'ss03' 1, /* Round quotes & commas */
+        'cv01' 1, /* Alternate 1 */ 
+        'cv03' 1, /* Open six */
+        'cv04' 1, /* Open nine */
+        'cv06' 1, /* Simplified u */
+        'cv07' 1, /* Alternate 6 */
+        'cv09' 1, /* Alternate 8 */
+        'cv10' 0, /* Capital G with spur */
+        'cv11' 1, /* Single-story a */
+        'tnum' 1; /* Tabular figures */
+        letter-spacing: -0.02em;
+        background-color: #f0f0f0;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        margin: 0 auto;
+        font-size: clamp(16px, 2vw + 1rem, 32px);
+        font-weight: 300;
+        line-height: 1.2;
+    }
+    @supports (font-variation-settings: normal) {
+      :root {
+        font-family: 'Inter var', sans-serif;
+      }
+    }
+        h1,h2,h3 {
+            font-size: 1em;
+            font-weight: 300;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 2000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .footer {
+            height: 100vh;
+            max-width: 2000px;
+            margin: 0 auto;
+            display: flex;
+            align-items: flex-end;
+            justify-content: bottom;
+            align-items: bottom;
+        }
+
+        .block {
+            width: 100%;
+            height: 80px;
+            margin-bottom: 4px;
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: left;
+            justify-content: left;
+            color: white;
+            transition: transform 0.1s ease;
+            overflow: hidden;
+        }
+
+        /* Color variations for the blocks */
+        .block:nth-child(1) {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .block:nth-child(2) {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .block:nth-child(3) {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .block:nth-child(4) {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .block:nth-child(5) {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .block:nth-child(6) {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+
+        .block:nth-child(7) {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        }
+
+        .block:nth-child(8) {
+            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+        }
+
+        .block:nth-child(9) {
+            background: linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%);
+        }
+
+        .block:nth-child(10) {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
+
+        .block:nth-child(11) {
+            background: linear-gradient(135deg, #ff8a80 0%, #ea6100 100%);
+        }
+
+        .block:nth-child(12) {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+        }
+
+        .block:nth-child(13) {
+            background: linear-gradient(135deg, #a6c1ee 0%, #fbc2eb 100%);
+        }
+
+        .block:nth-child(14) {
+            background: linear-gradient(135deg, #fdcbf1 0%, #fdcbf1 100%);
+        }
+
+        .block:nth-child(15) {
+            background: linear-gradient(135deg, #e0c3fc 0%, #9bb5ff 100%);
+        }
+
+        .block:nth-child(16) {
+            background: linear-gradient(135deg, #fccb90 0%, #d57eeb 100%);
+        }
+
+        .block:nth-child(17) {
+            background: linear-gradient(135deg, #f8ff00 0%, #3ad59f 100%);
+        }
+
+        .block:nth-child(18) {
+            background: linear-gradient(135deg, #ff4b1f 0%, #ff9068 100%);
+        }
+
+        .block:nth-child(19) {
+            background: linear-gradient(135deg, #667db6 0%, #0082c8 100%);
+        }
+
+        .block:nth-child(20) {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+        }
+    </style>
+</head>
+
+<body>
+    
+    <div class="container" style="min-height: 400px; padding: 20px; padding-bottom: 200px;">
+        <h1>Rob Boyett</h1>
+        <h1 style="width:30ch;">
+        I take products and experiences from simple ideas to market-proved concepts. By prototyping solutions based on insights
+        and user needs, verifying them through research, and crafting visual stories to explain them internally and externally.
+        </h1>
+        <h2>What I do</h2>
+        <p>I have spent the last 22 years working with talented multi-disciplinary teams of designers, engineers, product experts
+        and business developers. Delivering engaging customer experiences, fostering innovation and increasing revenue.</p>
+        <p>Previously Product Design Director with Adaptive Lab, Idean. Founder of Mentally Friendly LDN</p>
+    </div>
+
+    <div class="container">
+        <div class="block">
+        <h3>Title</h3>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        <a href="#">Link</a>
+            <div class="images">
+                <img src="https://picsum.photos/200/300" alt="Image 1">
+            </div>
+        </div>
+        <div class="block">Block 2</div>
+        <div class="block">Block 3</div>
+        <div class="block">Block 4</div>
+        <div class="block">Block 5</div>
+        <div class="block">Block 6</div>
+        <div class="block">Block 7</div>
+        <div class="block">Block 8</div>
+        <div class="block">Block 9</div>
+        <div class="block">Block 10</div>
+        <div class="block">Block 11</div>
+        <div class="block">Block 12</div>
+        <div class="block">Block 13</div>
+        <div class="block">Block 14</div>
+        <div class="block">Block 15</div>
+        <div class="block">Block 16</div>
+        <div class="block">Block 17</div>
+        <div class="block">Block 18</div>
+        <div class="block">Block 19</div>
+        <div class="block">Block 20</div>
+    </div>
+
+
+    <div class="footer">
+        <div>
+            © 2025 Commercially sensitive content. Please do not reproduce or share without consent.
+        </div>
+    </div>
+    
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Get all blocks
+        const blocks = document.querySelectorAll('.block');
+
+        blocks.forEach((block, index) => {
+            // Set initial state
+            gsap.set(block, {
+                height: "80px"
+            });
+
+            // Create animation for each block
+            gsap.to(block, {
+                height: "300px",
+                duration: 0.6,
+                ease: "power3.inOut",
+                transformOrigin: "center center",
+                scrollTrigger: {
+                    trigger: block,
+                    start: "top 30%",    // When top of block hits middle of viewport
+                    end: "bottom 20%",   // When bottom of block hits 20% down
+                    toggleActions: "play reverse play reverse",
+                    markers: true, // Shows trigger points
+                    onEnter: () => {
+                        console.log(`Block ${index + 1} entered center band from below`);
+                    },
+                    onLeave: () => {
+                        console.log(`Block ${index + 1} left center band at top`);
+                    },
+                    onEnterBack: () => {
+                        console.log(`Block ${index + 1} re-entered center band from above`);
+                    },
+                    onLeaveBack: () => {
+                        console.log(`Block ${index + 1} left center band at bottom`);
+                    }
+                }
+            });
+        });
+
+        // Optional: Add initial stagger animation
+        gsap.from(blocks, {
+            y: 50,
+            opacity: 0,
+            duration: 0.6,
+            stagger: 0.05,
+            ease: "power3.inOut"
+        });
+    </script>
+</body>
+
+</html>

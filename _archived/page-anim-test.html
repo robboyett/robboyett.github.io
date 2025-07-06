@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scaling Blocks</title>
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="font-inter bg-gray-100 text-gray-800 m-0 p-0 text-[clamp(16px,2vw+1rem,32px)] font-light leading-tight">
+    <div class="max-w-[2000px] mx-auto px-5 py-5 pb-[200px] min-h-[400px]">
+        <h1 class="text-[1em] font-light m-0 p-0">Rob Boyett</h1>
+        <h1 class="text-[1em] font-light m-0 p-0 w-[30ch]">
+            I take products and experiences from simple ideas to market-proved concepts. By prototyping solutions based on insights
+            and user needs, verifying them through research, and crafting visual stories to explain them internally and externally.
+        </h1>
+        <h2 class="text-[1em] font-light m-0 p-0">What I do</h2>
+        <p>I have spent the last 22 years working with talented multi-disciplinary teams of designers, engineers, product experts
+        and business developers. Delivering engaging customer experiences, fostering innovation and increasing revenue.</p>
+        <p>Previously Product Design Director with Adaptive Lab, Idean. Founder of Mentally Friendly LDN</p>
+    </div>
+
+    <div class="max-w-[2000px] mx-auto px-5">
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex text-white overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600">
+            <div>
+                <h3 class="text-[1em] font-light m-0 p-0">Title</h3>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                <a href="#" class="text-white">Link</a>
+            </div>
+            <div class="flex gap-2 w-[200px] h-[200px]">
+                <img src="https://picsum.photos/200/300" alt="Image 1" class="w-[200px] h-[200px] object-cover rounded-lg">
+                <img src="https://picsum.photos/200/300" alt="Image 1" class="w-[200px] h-[200px] object-cover rounded-lg">
+            </div>
+        </div>
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex flex-col items-start justify-start text-white overflow-hidden bg-gradient-to-br from-pink-400 to-red-500">Block 2</div>
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex flex-col items-start justify-start text-white overflow-hidden bg-gradient-to-br from-blue-400 to-cyan-400">Block 3</div>
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex flex-col items-start justify-start text-white overflow-hidden bg-gradient-to-br from-green-400 to-teal-400">Block 4</div>
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex flex-col items-start justify-start text-white overflow-hidden bg-gradient-to-br from-pink-500 to-yellow-400">Block 5</div>
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex flex-col items-start justify-start text-white overflow-hidden bg-gradient-to-br from-cyan-200 to-pink-200">Block 6</div>
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex flex-col items-start justify-start text-white overflow-hidden bg-gradient-to-br from-red-300 to-pink-200">Block 7</div>
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex flex-col items-start justify-start text-white overflow-hidden bg-gradient-to-br from-purple-400 to-pink-300">Block 8</div>
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex flex-col items-start justify-start text-white overflow-hidden bg-gradient-to-br from-orange-200 to-pink-200">Block 9</div>
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex flex-col items-start justify-start text-white overflow-hidden bg-gradient-to-br from-yellow-100 to-orange-300">Block 10</div>
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex flex-col items-start justify-start text-white overflow-hidden bg-gradient-to-br from-red-500 to-orange-600">Block 11</div>
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex flex-col items-start justify-start text-white overflow-hidden bg-gradient-to-br from-green-300 to-blue-300">Block 12</div>
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex flex-col items-start justify-start text-white overflow-hidden bg-gradient-to-br from-blue-300 to-pink-300">Block 13</div>
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex flex-col items-start justify-start text-white overflow-hidden bg-gradient-to-br from-pink-300 to-pink-300">Block 14</div>
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex flex-col items-start justify-start text-white overflow-hidden bg-gradient-to-br from-purple-300 to-blue-400">Block 15</div>
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex flex-col items-start justify-start text-white overflow-hidden bg-gradient-to-br from-orange-300 to-purple-500">Block 16</div>
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex flex-col items-start justify-start text-white overflow-hidden bg-gradient-to-br from-yellow-400 to-green-400">Block 17</div>
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex flex-col items-start justify-start text-white overflow-hidden bg-gradient-to-br from-red-600 to-orange-400">Block 18</div>
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex flex-col items-start justify-start text-white overflow-hidden bg-gradient-to-br from-blue-600 to-blue-500">Block 19</div>
+        <div class="block w-full h-20 mb-1 p-5 rounded-lg flex flex-col items-start justify-start text-white overflow-hidden bg-gradient-to-br from-blue-400 to-blue-600">Block 20</div>
+    </div>
+
+    <div class="px-5 py-5 h-screen flex items-end">
+        <div>© 2025 Commercially sensitive content. Please do not reproduce or share without consent.</div>
+    </div>
+    
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Get all blocks
+        const blocks = document.querySelectorAll('.block');
+
+        blocks.forEach((block, index) => {
+            // Set initial state
+            gsap.set(block, {
+                height: "80px"
+            });
+
+            // Create animation for each block
+            gsap.to(block, {
+                height: "300px",
+                duration: 0.6,
+                ease: "power3.inOut",
+                transformOrigin: "center center",
+                scrollTrigger: {
+                    trigger: block,
+                    start: "top 30%",    // When top of block hits middle of viewport
+                    end: "bottom 20%",   // When bottom of block hits 20% down
+                    toggleActions: "play reverse play reverse",
+                    markers: true, // Shows trigger points
+                    onEnter: () => {
+                        console.log(`Block ${index + 1} entered center band from below`);
+                    },
+                    onLeave: () => {
+                        console.log(`Block ${index + 1} left center band at top`);
+                    },
+                    onEnterBack: () => {
+                        console.log(`Block ${index + 1} re-entered center band from above`);
+                    },
+                    onLeaveBack: () => {
+                        console.log(`Block ${index + 1} left center band at bottom`);
+                    }
+                }
+            });
+        });
+
+        // Optional: Add initial stagger animation
+        gsap.from(blocks, {
+            y: 50,
+            opacity: 0,
+            duration: 0.6,
+            stagger: 0.05,
+            ease: "power3.inOut"
+        });
+    </script>
+</body>
+
+</html>

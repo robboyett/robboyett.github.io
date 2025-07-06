@@ -1,150 +1,165 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-  <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
-  <script src="https://unpkg.com/@barba/core"></script>
-  <meta charset="UTF-8" />
-  <title>Home</title>
-  <style>
-    body {
-        font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-        font-feature-settings:
-        'liga' 1, /* Standard ligatures */
-        'dlig' 1, /* Discretionary ligatures */
-        'calt' 1, /* Contextual alternates */
-        'zero' 1, /* Slashed zero */
-        'kern' 1, /* Kerning */
-        'ss01' 1, /* Alternate digits */
-        'ss02' 0, /* Disambiguate between similar-looking characters */
-        'ss03' 1, /* Round quotes & commas */
-        'cv01' 1, /* Alternate 1 */ 
-        'cv03' 1, /* Open six */
-        'cv04' 1, /* Open nine */
-        'cv06' 1, /* Simplified u */
-        'cv07' 1, /* Alternate 6 */
-        'cv09' 1, /* Alternate 8 */
-        'cv10' 0, /* Capital G with spur */
-        'cv11' 1, /* Single-story a */
-        'tnum' 1; /* Tabular figures */
-        letter-spacing: -0.04em;
-        background-color: #fafafa;
-        color: #333;
-        margin: 0;
-        padding: 2rem;
-        margin: 0 auto;
-        font-size: clamp(16px, 2vw + 1rem, 32px);
-        font-weight: 300;
-        line-height: 1.1;
-    }
-    @supports (font-variation-settings: normal) {
-      :root {
-        font-family: 'Inter var', sans-serif;
-      }
-    }
-    .barba-container {
-      transition: opacity 0.5s ease-in-out;
-      opacity: 1;
-    }
-    h1 {
-      font-size: 1em;
-      line-height: 1.1;
-      margin-bottom: 2rem;
-      font-weight: normal;
-    }
-    .section {
-      margin-bottom: 4rem;
-    }
-    .drop-alpha {
-      color: #666;
-    }
-    .list-fake {
-      line-height: 2;
-    }
-    @media (max-width: 768px) {
-      body {
-        padding: 1rem;
-      }
-      h1 {
-        font-size: clamp(2rem, 4vw, 2.5rem);
-      }
-    }
-
-    .border {
-      border: 1px solid red;
-    }
-  </style>
-</head>
-<body data-barba="wrapper">
-  <main data-barba="container" data-barba-namespace="home">
-    <div class="section border">
-      <h1>Rob Boyett</h1>
-      <h1>
-        I take products and experiences from simple ideas to market-proved concepts. 
-        By prototyping solutions based on insights and user needs, verifying them through research, and crafting visual stories to explain them internally and externally.
-      </h1>
-    </div>
-
-    <div class="section border">
-      <p class="drop-alpha">What I do</p>
-      <p>
-        I have spent the last 22 years working with talented multi-disciplinary teams
-        of designers, engineers, product experts and business developers. Delivering engaging customer experiences,
-        fostering innovation and increasing revenue.<br><br>
-        Previously Product Design Director with Adaptive Lab, Idean. Founder of Mentally Friendly LDN
-      </p>
-    </div>
-
-    <div class="section border">
-      <p class="drop-alpha">Creative Thinking & Side Projects</p>
-      <p>Beyond client work, I explore creative ideas through side projects that allow me to experiment with new approaches and technologies.</p>
-    </div>
-                
-    <div class="section">
-      <p class="drop-alpha">Selected current &amp; past clients</p>
-      <p class="list-fake">
-        Barclays<br>
-        British Museum<br>
-        Department for Work and Pensions<br>
-        HSBC<br>
-        Lloyd's of London<br>
-        NatWest<br>
-        Natural History Museum<br>
-        Netflix<br>
-        Nike<br>
-        Nile<br>
-        Santander<br>
-        Scottish Water<br>
-        Tate<br>
-        Ustwo
-      </p>
-    </div>
-                
-    <div class="section">
-      <p class="drop-alpha">Services</p>
-      <p class="list-fake">
-        Strategic design<br>
-        Product design<br>
-        Prototyping<br>
-        User research<br>
-        Design leadership
-      </p>
-    </div>
-  </main>
-
-  <script>
-    barba.init({
-      transitions: [
-        {
-          name: 'opacity-transition',
-          leave(data) {
-            return gsap.to(data.current.container, { opacity: 0, duration: 0.2 });
-          },
-          enter(data) {
-            return gsap.from(data.next.container, { opacity: 0, duration: 0.5 });
-          }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scaling Blocks</title>
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    },
+                }
+            }
         }
-      ]
-    });
-  </script>
+    </script>
+</head>
+
+<body class="font-inter bg-[#F9F5F2] text-[#46423F] m-0 p-0 text-[clamp(16px,2vw+1rem,32px)] font-light leading-tight">
+
+    <!-- INTRO -->
+    <div class="max-w-[2000px] mx-auto px-5 py-5 pb-[200px] min-h-[400px]">
+        <h1 class="text-[1em] font-light m-0 p-0 w-[30ch]">
+            Hello, i'm Rob Boyett, a designer. I take products and experiences from simple ideas to market-proved concepts.
+        </h1>
+        <p class="w-[30ch]">By prototyping based off insights and user needs, verifying them through research, and crafting visual stories to
+        explain them both internally and externally.</p>
+    </div>
+
+    <!-- LIST ITEMS -->
+    <div class="max-w-[2000px] mx-auto px-5">
+        
+        <!-- ITEM -->
+        <article-card
+            emoji="📘"
+            title="Making use of GenAI as a UX Designer working in Pharma"
+            paragraph="Article for design managers that are evaluating GenAI tools."
+            link="https://example.com"
+            linktext="Read Here"
+            date="2025"
+            images='["https://picsum.photos/200/300","https://picsum.photos/200/300","https://picsum.photos/200/300"]'>
+        </article-card>
+
+        <!-- ITEM -->
+        <article-card emoji="🧑‍💻" title="Git Repo: Becoming an AI enabled designer"
+            paragraph="Article for design managers that are evaluating GenAI tools." link="https://example.com"
+            linktext="Read Here"
+            date="2025"
+            images='["https://picsum.photos/200/300","https://picsum.photos/200/300"]'>
+        </article-card>
+
+        <!-- ITEM -->
+        <article-card emoji="🔬" title="Making use of GenAI as a UX Designer working in Pharma"
+            paragraph="Article for design managers that are evaluating GenAI tools." link="https://example.com"
+            linktext="Read Here"
+            date="2025"
+            images='["https://picsum.photos/200/300","https://picsum.photos/200/300","https://picsum.photos/200/300"]'>
+        </article-card>
+
+        <!-- ITEM -->
+        <article-card emoji="📒" title="Making use of GenAI as a UX Designer working in Pharma"
+            paragraph="Article for design managers that are evaluating GenAI tools." link="https://example.com"
+            linktext="Read Here"
+            date="2025"
+            images='["https://picsum.photos/200/300"]'>
+        </article-card>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="max-w-[2000px] mx-auto px-5 py-5 h-screen flex items-end">
+        <div>© 2025 Commercially sensitive content. Please do not reproduce or share without consent.</div>
+    </div>
+
+    <script>
+        function setupBlockAnimations() {
+            // Get all .block elements inside article-card components
+            const blocks = document.querySelectorAll('article-card .block');
+
+            // Set initial state for all blocks
+            gsap.set(blocks, {
+                height: "80px"
+            });
+
+            // Function to expand block dynamically to fit content
+            const expandBlock = (block) => {
+                const fullHeight = block.scrollHeight;
+                block.style.height = block.offsetHeight + 'px';
+                gsap.to(block, {
+                    height: fullHeight + 'px',
+                    duration: 0.4,
+                    ease: "power2.inOut",
+                    onComplete: () => {
+                        block.style.height = 'auto';
+                    }
+                });
+            };
+
+            // Function to contract block to collapsed height
+            const contractBlock = (block) => {
+                if (getComputedStyle(block).height === 'auto' || block.style.height === 'auto') {
+                    block.style.height = block.offsetHeight + 'px';
+                }
+                gsap.to(block, {
+                    height: "80px",
+                    duration: 0.4,
+                    ease: "power2.inOut"
+                });
+            };
+
+            blocks.forEach((block) => {
+                let isExpanded = false;
+
+                block.addEventListener('mouseenter', () => {
+                    if (window.matchMedia('(hover: hover)').matches) {
+                        expandBlock(block);
+                    }
+                });
+
+                block.addEventListener('mouseleave', () => {
+                    if (window.matchMedia('(hover: hover)').matches) {
+                        contractBlock(block);
+                    }
+                });
+
+                block.addEventListener('click', () => {
+                    if (!window.matchMedia('(hover: hover)').matches) {
+                        if (isExpanded) {
+                            contractBlock(block);
+                        } else {
+                            blocks.forEach(otherBlock => {
+                                if (otherBlock !== block) {
+                                    contractBlock(otherBlock);
+                                }
+                            });
+                            expandBlock(block);
+                        }
+                        isExpanded = !isExpanded;
+                    }
+                });
+            });
+
+            gsap.from(blocks, {
+                y: 50,
+                opacity: 0,
+                duration: 0.6,
+                stagger: 0.05,
+                ease: "power3.inOut"
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', setupBlockAnimations);
+    </script>
+
+    <!-- Include the component definition -->
+    <script src="article-card.js"></script>
 </body>
+
 </html>
