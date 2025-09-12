@@ -202,29 +202,46 @@
             padding: 80px 0;
             background: white;
         }
+        
+        .copilot-grid {
+            display: grid;
+            gap: 40px 30px; /* 40px horizontal gap, 30px vertical gap */
+        }
 
-        .copilot-content {
-            display: flex;
-            align-items: center;
+        .copilot-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 60px;
+            align-items: center;
+        }
+
+        .copilot-item:nth-child(even) {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .copilot-item:nth-child(even) .copilot-visual {
+            order: -1;
         }
 
         .copilot-text {
-            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
-        .copilot h2 {
-            font-size: 36px;
+        .copilot-text h3 {
+            font-size: 28px;
             margin-bottom: 20px;
+            color: #333;
         }
 
-        .copilot p {
+        .copilot-text p {
             font-size: 18px;
             color: #666;
+            line-height: 1.6;
         }
 
         .copilot-visual {
-            flex: 1;
             height: 300px;
             border-radius: 12px;
             display: flex;
@@ -233,6 +250,8 @@
             color: white;
             font-size: 18px;
             font-weight: bold;
+            text-align: center;
+            padding: 20px;
         }
         .red{
             background: linear-gradient(135deg, #ff6b35, #dc3545);
@@ -512,8 +531,21 @@
                 gap: 40px;
             }
 
-            .copilot-content {
-                flex-direction: column;
+            .copilot-item {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .copilot-item .copilot-text {
+                order: 1 !important;
+            }
+
+            .copilot-item .copilot-visual {
+                order: 2 !important;
+            }
+
+            .copilot-item:nth-child(even) .copilot-visual {
+                order: 2 !important;
             }
 
             .builder-cards {
@@ -607,47 +639,42 @@
         <div class="container">
 
             <div class="copilot-header" style="text-align: center; margin-bottom: 60px;">
-                    <h2>Meet your design copilot, Hawaii 😉</h2>
-                    <p>Your packaging design partner with always-on expert intelligence. Never work in the dark again.</p>
+                <h2>Meet your design copilot, Hawaii 😉</h2>
+                <p>Your packaging design partner with always-on expert intelligence. Never work in the dark again.</p>
             </div>
 
-            <div class="copilot-content">
-                <div class="copilot-text">
-                    <h3>Make your product irresistible</h3>
-                    <p>Find out exactly what makes your customers reach for your product instead of the competition. We apply proven science,
-                    psychology, and demographic research to boost your product's shelf appeal and make it impossible to ignore.</p>
+            <div class="copilot-grid">
+                
+                <div class="copilot-item">
+                    <div class="copilot-text">
+                        <h3>Make your product irresistible</h3>
+                        <p>Find out exactly what makes your customers reach for your product instead of the competition. We apply proven science, psychology, and demographic research to boost your product's shelf appeal and make it impossible to ignore.</p>
+                    </div>
+                    <div class="copilot-visual red">
+                        Product Package Analysis
+                    </div>
                 </div>
-                <div class="copilot-visual red">
-                    Product Package Analysis
-                </div>
-            </div>
 
-            <div class="copilot-content">
-                <div class="copilot-visual green">
-                    Avoid regulatory disasters
+                <div class="copilot-item">
+                    <div class="copilot-text">
+                        <h3>Avoid regulatory disasters</h3>
+                        <p>Automatically check everything from nutrition labels to organic claims before you go to print. This safety net prevents the crippling fines and recalls that can destroy a startup overnight.</p>
+                    </div>
+                    <div class="copilot-visual green">
+                        Avoid regulatory disasters
+                    </div>
                 </div>
-                <div class="copilot-text">
-                    <h3>Avoid regulatory disasters</h3>
-                    <p>Automatically check everything from
-                    nutrition labels to organic claims before you
-                    go to print. This safety net prevents the
-                    crippling fines and recalls that can destroy a
-                    startup overnight.</p>
-                </div>
-            </div>
 
-            <div class="copilot-content">
-                <div class="copilot-text">
-                    <h3>Get answers, not just scores</h3>
-                    <p>FHawaii doesn't just tell you if a design works—it explains why in plain English.
-                    Understand the psychology behind every
-                    recommendation so you can make smarter
-                    decisions.
-                    </p>
+                <div class="copilot-item">
+                    <div class="copilot-text">
+                        <h3>Get answers, not just scores</h3>
+                        <p>Hawaii doesn't just tell you if a design works—it explains why in plain English. Understand the psychology behind every recommendation so you can make smarter decisions.</p>
+                    </div>
+                    <div class="copilot-visual blue">
+                        Feedback
+                    </div>
                 </div>
-                <div class="copilot-visual blue">
-                    Feedback
-                </div>
+
             </div>
 
         </div>
