@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI in design timeline 2022–2025</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #fafafa;
+            color: #333;
+            line-height: 1.4;
+            padding-bottom: 100px;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .timeline {
+            width: 2px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 30px;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background-color: #ddd;
+        }
+
+        .year-section {
+            margin-bottom: 80px;
+        }
+
+        .year {
+            position: relative;
+            margin-bottom: 20px;
+            font-size: 11px;
+            font-weight: 500;
+            color: #999;
+            text-align: left;
+            padding-left: 40px;
+        }
+
+        .year::before {
+            content: '';
+            position: absolute;
+            left: 26px;
+            top: 8px;
+            width: 6px;
+            height: 6px;
+            background-color: #999;
+            border-radius: 50%;
+            transform: translateY(-50%);
+        }
+
+        .content {
+            flex: 1;
+            padding-left: 0px;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: flex-start;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .timeline-marker {
+            width: 60px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .timeline-marker::before {
+            content: '';
+            position: absolute;
+            left: 26px;
+            top: 8px;
+            width: 6px;
+            height: 6px;
+            background-color: #666;
+            border-radius: 50%;
+        }
+
+        .timeline-marker::after {
+            content: '';
+            position: absolute;
+            left: 32px;
+            top: 11px;
+            width: 20px;
+            height: 1px;
+            background-color: #ddd;
+        }
+
+        .item-content {
+            flex: 1;
+            padding-left: 20px;
+            margin-bottom: 30px;
+        }
+
+        .item-title {
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 2px;
+        }
+
+        .item-date {
+            font-size: 10px;
+            color: #999;
+            margin-bottom: 6px;
+            font-style: italic;
+        }
+
+        .item-description {
+            font-size: 11px;
+            color: #666;
+            line-height: 1.5;
+            max-width: 500px;
+        }
+
+        .item-category {
+            font-size: 10px;
+            color: #888;
+            background-color: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* Timeline uses normal document flow for better alignment */
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="timeline">
+        </div>
+
+        <div class="content">
+            <!-- 2022 -->
+            <div class="year">2022</div>
+
+            <div class="year-section">
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Foundation model</div>
+                        <div class="item-title">OpenAI DALL·E 2</div>
+                        <div class="item-date">April 2022</div>
+                        <div class="item-description">Breakthrough text-to-image generation with much higher realism and
+                            resolution. Catalysed the AI art wave and demonstrated creative potential to a broad audience,
+                            inspiring competitors and prompting incumbents to invest in generative imaging.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Development tool</div>
+                        <div class="item-title">GitHub Copilot</div>
+                        <div class="item-date">June 2022</div>
+                        <div class="item-description">AI code assistant powered by OpenAI Codex. Auto-completes code and
+                            suggests functions from natural-language comments, lowering the barrier for designers to build
+                            interactive prototypes and handle repetitive code tasks.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Image generation</div>
+                        <div class="item-title">Midjourney</div>
+                        <div class="item-date">July 2022</div>
+                        <div class="item-description">High-quality AI art generator launched via Discord with vibrant
+                            community. Known for signature illustrative style and detail, becoming the go-to tool for
+                            designers seeking concept visuals and creative inspiration.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Foundation model</div>
+                        <div class="item-title">Stable Diffusion 1.0</div>
+                        <div class="item-date">August 2022</div>
+                        <div class="item-description">First open-source image AI model at commercial quality. Enabled a wave
+                            of custom models, plugins, and indie design apps due to its open availability, essentially
+                            commoditising image generation for every designer and app.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Foundation model</div>
+                        <div class="item-title">OpenAI Whisper</div>
+                        <div class="item-date">September 2022</div>
+                        <div class="item-description">High-accuracy speech-to-text transcription, open-sourced.
+                            Revolutionised audio and video design by making instant transcripts of meetings, interviews, and
+                            videos trivial to generate across multiple languages.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Foundation model</div>
+                        <div class="item-title">OpenAI GPT-3.5 (ChatGPT)</div>
+                        <div class="item-date">November 2022</div>
+                        <div class="item-description">Conversational AI with unprecedented fluency. Reached 100 million
+                            users in 2 months and mainstreamed generative AI, directly enabling AI copilots and design
+                            assistants across productivity software.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Design platform</div>
+                        <div class="item-title">Canva “Magic Write”</div>
+                        <div class="item-date">December 2022</div>
+                        <div class="item-description">GPT-powered writing inside Canva Docs; the first “Magic” feature that primed the
+                            broader Magic suite launch in March 2023.</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 2023 -->
+            <div class="year">2023</div>
+
+            <div class="year-section">
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Foundation model</div>
+                        <div class="item-title">Meta LLaMA 1</div>
+                        <div class="item-date">February 2023</div>
+                        <div class="item-description">Open-access large language model that spawned an ecosystem of custom
+                            local chatbots and AI features. Enabled specialized design advisors and AI features embedded in
+                            software that could run privately.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Foundation model</div>
+                        <div class="item-title">Adobe Firefly</div>
+                        <div class="item-date">March 2023</div>
+                        <div class="item-description">Commercial-safe image generation trained on licensed content. Users
+                            generated over 100 million assets in the first six weeks, addressing legal concerns whilst
+                            enabling commercial use across Creative Cloud applications.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Foundation model</div>
+                        <div class="item-title">OpenAI GPT-4</div>
+                        <div class="item-date">March 2023</div>
+                        <div class="item-description">Multimodal AI accepting images with significantly improved reasoning
+                            and coding abilities. Enabled advanced AI design assistants and visual assistants that could
+                            analyze UI screenshots or generate HTML from hand-drawn mockups.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Foundation model</div>
+                        <div class="item-title">Baidu ERNIE Bot</div>
+                        <div class="item-date">March 2023</div>
+                        <div class="item-description">Chinese large language model optimised for Mandarin and Chinese
+                            cultural context. Spurred widespread AI integration in Chinese apps and design platforms,
+                            enabling native-language creative assistance for Chinese designers.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Video generation</div>
+                        <div class="item-title">Runway Gen-2</div>
+                        <div class="item-date">March 2023</div>
+                        <div class="item-description">First publicly available text-to-video generator capable of creating
+                            4-second video clips from text prompts. Also enabled video-to-video transformation, used by
+                            creators for prototyping visuals.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Design platform</div>
+                        <div class="item-title">Canva Magic Suite</div>
+                        <div class="item-date">March 2023</div>
+                        <div class="item-description">Comprehensive AI features including Magic Write, Magic Design, and
+                            Magic Edit. Reached Canva's massive user base with millions embracing these tools for quick
+                            content creation and template generation.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Foundation model</div>
+                        <div class="item-title">Anthropic Claude</div>
+                        <div class="item-date">March 2023</div>
+                        <div class="item-description">Large-context conversational AI emphasising safety and reliability.
+                            Claude's huge context window enabled document analysis and design knowledge bases, becoming the
+                            brain behind many professional productivity tools.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Computer vision</div>
+                        <div class="item-title">Meta Segment Anything Model (SAM)</div>
+                        <div class="item-date">April 2023</div>
+                        <div class="item-description">Universal image segmentation model able to select any object in an
+                            image with a prompt or click. Quickly found its way into design pipelines through Figma plugins
+                            and Photoshop scripts for instant cutouts.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Design platform</div>
+                        <div class="item-title">Adobe Generative Fill</div>
+                        <div class="item-date">May 2023</div>
+                        <div class="item-description">Brought text-prompt image edits directly into Photoshop. Over 100
+                            million generative edits made in months, hailed as a "magic" productivity boost enabling
+                            designers to create and ideate faster within familiar tools.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Collaboration tool</div>
+                        <div class="item-title">Miro AI</div>
+                        <div class="item-date">May 2023</div>
+                        <div class="item-description">12-feature suite including sticky-note clustering, summarising, image
+                            generation, and mind-map expansion. Enterprise users found it helpful for speeding up workshops
+                            and auto-summarising research notes.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Web design</div>
+                        <div class="item-title">Framer "Start with AI"</div>
+                        <div class="item-date">June 2023</div>
+                        <div class="item-description">AI feature generating multi-page websites from text prompts. Initially
+                            generated buzz for rapid prototyping, though outputs were template-like. Later deprioritised as
+                            Framer refocused on core design capabilities.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Foundation model</div>
+                        <div class="item-title">Meta LLaMA 2</div>
+                        <div class="item-date">July 2023</div>
+                        <div class="item-description">Open-source chat LLM with commercial-friendly license. Enabled
+                            startups and incumbents to embed capable AI directly into apps without API costs, accelerating
+                            AI features in design software.</div>
+                    </div>
+                </div>
+
+<div class="timeline-item">
+    <div class="timeline-marker"></div>
+    <div class="item-content">
+        <div class="item-category">Foundation model</div>
+        <div class="item-title">Anthropic Claude 2</div>
+        <div class="item-date">July 2023</div>
+        <div class="item-description">Expanded context (~100k+ tokens) and reliability improvements, enabling long-form
+            spec and research analysis in design workflows.</div>
+    </div>
+</div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Development tool</div>
+                        <div class="item-title">Cursor AI IDE</div>
+                        <div class="item-date">October 2023</div>
+                        <div class="item-description">VS Code fork augmented with AI offering code autocompletion,
+                            natural-language edits, and "agent" mode. Tailored for developers to build software faster with
+                            comprehensive AI support throughout the coding process.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">UI generation</div>
+                        <div class="item-title">v0 by Vercel</div>
+                        <div class="item-date">October 2023</div>
+                        <div class="item-description">"Describe and deploy" website builder allowing designers and
+                            non-coders to create full-stack applications from prompts. Unique for combining frontend,
+                            backend, and deployment in one AI tool.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">UI generation</div>
+                        <div class="item-title">Galileo AI</div>
+                        <div class="item-date">October 2023</div>
+                        <div class="item-description">"ChatGPT for interface design" generating editable UI mockups from
+                            text in seconds. Pioneered text-to-multiscreen UI generation, accelerating product design
+                            workflows before being acquired by Google.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Foundation model</div>
+                        <div class="item-title">Google Gemini</div>
+                        <div class="item-date">December 2023</div>
+                        <div class="item-description">Multimodal foundation model handling text, images, and more. Became
+                            the engine behind Google's design-related products and paved the way for unified design
+                            assistants that can chat about drawings or generate UI code from sketches.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2024 -->
+            <div class="year">2024</div>
+
+            <div class="year-section">
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">UI generation</div>
+                        <div class="item-title">Galileo AI public beta</div>
+                        <div class="item-date">February 2024</div>
+                        <div class="item-description">Public beta launch following $4.4M seed funding. Gained widespread
+                            attention through viral demo posts showcasing rapid UI generation capabilities before eventual
+                            acquisition by Google.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Design platform</div>
+                        <div class="item-title">Figma AI features</div>
+                        <div class="item-date">June 2024</div>
+                        <div class="item-description">Suite of AI tools including visual/asset search, auto layout
+                            suggestions, and interface generation from prompts. Cautious waitlist-based rollout with
+                            positive reception in beta, helping designers work faster.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">App builder</div>
+                        <div class="item-title">Lovable AI launch</div>
+                        <div class="item-date">November 2024</div>
+                        <div class="item-description">#1 Product Hunt launch. AI "full-stack engineer" enabling users to
+                            chat and build web apps with UI, code, and database. GPT-based "AI teammate" can plan, code, and
+                            deploy apps from natural language.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2025 -->
+            <div class="year">2025</div>
+            
+            <div class="year-section">
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Investment</div>
+                        <div class="item-title">Cursor Series B</div>
+                        <div class="item-date">January 2025</div>
+                        <div class="item-description">Raised $105M Series B at $2.5B valuation. Continuing rapid expansion
+                            as standalone product with growing user base, demonstrating strong market demand for AI-enhanced
+                            development environments.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Investment</div>
+                        <div class="item-title">Lovable AI Series A</div>
+                        <div class="item-date">February 2025</div>
+                        <div class="item-description">Raised $15M following rapid growth to 500,000 users. Continuing as
+                            independent platform with high ARR growth, validating the no-code AI development approach for
+                            mainstream users.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="item-content">
+                        <div class="item-category">Acquisition</div>
+                        <div class="item-title">Google acquires Galileo AI</div>
+                        <div class="item-date">May 2025</div>
+                        <div class="item-description">Google acquired Galileo, rebranding it as "Stitch" and integrating
+                            with Gemini models. Signals major tech companies' commitment to dominating the AI-powered design
+                            tool landscape.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
