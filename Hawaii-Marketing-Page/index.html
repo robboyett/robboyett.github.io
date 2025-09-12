@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hawaii - Design Intelligence Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: white;
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .logo-icon {
+            width: 30px;
+            height: 30px;
+            background: #ff6b35;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .cta-button {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 80px 0;
+            text-align: center;
+            background: white;
+        }
+
+        .hero h1 {
+            font-size: 78px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 .highlight {
+            color: #28a745;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-block;
+        }
+
+        .animated-word {
+            display: inline-block;
+            transition: opacity 0.8s ease-in-out;
+        }
+
+        .animated-word.fade-out {
+            opacity: 0;
+        }
+
+        .animated-word.fade-in {
+            opacity: 1;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: #666;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero .cta-button {
+            background: #6c757d;
+            font-size: 18px;
+            padding: 15px 30px;
+        }
+
+        /* Unfair Fight Section */
+        .unfair-fight {
+            padding: 80px 0;
+            background: #f8f9fa;
+        }
+
+        .unfair-fight h2 {
+            font-size: 36px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .unfair-fight p {
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 50px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .comparison {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            margin-bottom: 40px;
+        }
+
+        .comparison-side {
+            text-align: center;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .comparison-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .giants .comparison-icon {
+            background: #dc3545;
+        }
+
+        .startups .comparison-icon {
+            background: #28a745;
+        }
+
+        .comparison-side h3 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .comparison-side ul {
+            list-style: none;
+            text-align: left;
+        }
+
+        .comparison-side li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .conclusion {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* Design Copilot Section */
+        .copilot {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .copilot-content {
+            display: flex;
+            align-items: center;
+            gap: 60px;
+        }
+
+        .copilot-text {
+            flex: 1;
+        }
+
+        .copilot h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .copilot p {
+            font-size: 18px;
+            color: #666;
+        }
+
+        .copilot-visual {
+            flex: 1;
+            height: 300px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .red{
+            background: linear-gradient(135deg, #ff6b35, #dc3545);
+        }
+        .green{
+            background: linear-gradient(135deg, #28a745, #218838);
+        }
+        .blue{
+            background: linear-gradient(135deg, #007bff, #0056b3);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 0;
+            background: #f8f9fa;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 60px;
+        }
+
+        .builder-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 40px;
+        }
+
+        .builder-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-top: 4px solid #dc3545;
+        }
+
+        .builder-card.designers {
+            border-top-color: #28a745;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .card-icon {
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+
+        .card-title h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .card-title .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin: 0;
+        }
+
+        .reality-box {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-style: italic;
+            border-left: 4px solid #ffc107;
+        }
+
+        .benefits {
+            margin: 30px 0;
+        }
+
+        .benefits h4 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .benefit-item {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .benefit-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .benefit-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .benefit-content {
+            flex: 1;
+        }
+
+        .benefit-content strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .testimonial {
+            background: #d4edda;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+            font-style: italic;
+            border-left: 4px solid #28a745;
+        }
+
+
+        /* How Brands Use Section */
+        .brand-usage {
+            padding: 80px 0;
+            background: #f8f9fa;
+        }
+
+        .brand-usage h2 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 60px;
+        }
+
+        .usage-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .usage-card {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .usage-icon {
+            width: 60px;
+            height: 60px;
+           
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .usage-card h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        .usage-card p {
+            color: #666;
+        }
+
+        /* Footer */
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 60px 0 20px;
+            margin-top: 80px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 60px;
+            margin-bottom: 40px;
+        }
+
+        .footer-brand .logo {
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .footer-tagline {
+            color: #bdc3c7;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 300px;
+        }
+
+        .footer-links {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+        }
+
+        .footer-column h4 {
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .footer-column ul {
+            list-style: none;
+        }
+
+        .footer-column li {
+            margin-bottom: 12px;
+        }
+
+        .footer-column a {
+            color: #bdc3c7;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .footer-column a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #34495e;
+            padding-top: 30px;
+        }
+
+        .footer-bottom-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-bottom p {
+            color: #bdc3c7;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .social-link {
+            color: #bdc3c7;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .social-link:hover {
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .comparison {
+                flex-direction: column;
+                gap: 40px;
+            }
+
+            .copilot-content {
+                flex-direction: column;
+            }
+
+            .builder-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .footer-links {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 30px;
+            }
+
+            .footer-bottom-content {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .footer-links {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon"></div>
+                    Hawaii
+                </div>
+
+                <a href="#" class="cta-button">Start for free</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1><span class="animated-word" id="animatedWord">Launch</span> <span class="highlight">Confidently</span></h1>
+            <p>Get the design intelligence that big brands use to win. Make your packaging decisions with confidence, not guesswork.</p>
+            <a href="#" class="cta-button">Try Hawaii</a>
+        </div>
+    </section>
+
+    <!-- Unfair Fight Section -->
+    <section class="unfair-fight">
+        <div class="container">
+            <h2>It's an unfair fight out there.</h2>
+            <p>Thousands of scrappy D2C startups are forced to compete against consumer goods giants with vastly superior resources. One design mistake can mean the difference between runaway success and catastrophic failure.</p>
+            
+            <div class="comparison">
+                <div class="comparison-side giants">
+                    <div class="comparison-icon">G</div>
+                    <h3>The Giants</h3>
+                    <ul>
+                        <li>R&D labs</li>
+                        <li>Huge testing budgets</li>
+                        <li>Armies of data scientists</li>
+                        <li>Safety net for mistakes</li>
+                    </ul>
+                </div>
+                <div class="comparison-side startups">
+                    <div class="comparison-icon">S</div>
+                    <h3>Startups</h3>
+                    <ul>
+                        <li>Gut feelings</li>
+                        <li>Limited budgets</li>
+                        <li>Every penny counts</li>
+                        <li>Can't afford mistakes</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <p class="conclusion">Hawaii levels the playing field. Finally, design intelligence for everyone.</p>
+        </div>
+    </section>
+
+    <!-- Design Copilot Section -->
+    <section class="copilot">
+        <div class="container">
+
+            <div class="copilot-header" style="text-align: center; margin-bottom: 60px;">
+                    <h2>Meet your design copilot, Hawaii 😉</h2>
+                    <p>Your packaging design partner with always-on expert intelligence. Never work in the dark again.</p>
+            </div>
+
+            <div class="copilot-content">
+                <div class="copilot-text">
+                    <h3>Make your product irresistible</h3>
+                    <p>Find out exactly what makes your customers reach for your product instead of the competition. We apply proven science,
+                    psychology, and demographic research to boost your product's shelf appeal and make it impossible to ignore.</p>
+                </div>
+                <div class="copilot-visual red">
+                    Product Package Analysis
+                </div>
+            </div>
+
+            <div class="copilot-content">
+                <div class="copilot-visual green">
+                    Avoid regulatory disasters
+                </div>
+                <div class="copilot-text">
+                    <h3>Avoid regulatory disasters</h3>
+                    <p>Automatically check everything from
+                    nutrition labels to organic claims before you
+                    go to print. This safety net prevents the
+                    crippling fines and recalls that can destroy a
+                    startup overnight.</p>
+                </div>
+            </div>
+
+            <div class="copilot-content">
+                <div class="copilot-text">
+                    <h3>Get answers, not just scores</h3>
+                    <p>FHawaii doesn't just tell you if a design works—it explains why in plain English.
+                    Understand the psychology behind every
+                    recommendation so you can make smarter
+                    decisions.
+                    </p>
+                </div>
+                <div class="copilot-visual blue">
+                    Feedback
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2>Built for the builders</h2>
+            <div class="builder-cards">
+                <div class="builder-card founders">
+                    <div class="card-header">
+                        <div class="card-icon">🚀</div>
+                        <div class="card-title">
+                            <h3>D2C founders & entrepreneurs</h3>
+                            <p class="subtitle">The brave builders who've poured their life into making something amazing.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="reality-box">
+                        <strong>Your reality:</strong><br>
+                        "I've invested everything into this product. One packaging mistake could cost me a whole print run and maybe even my spot on the shelf. I just can't afford to get this wrong."
+                    </div>
+                    
+                    <div class="benefits">
+                        <h4>What Hawaii gives you:</h4>
+                        <div class="benefit-item">
+                            <div class="benefit-icon">🎯</div>
+                            <div class="benefit-content">
+                                <strong>Get it right the first time</strong><br>
+                                Turn high-risk guesswork into predictable science. Make decisions backed by data, not just hope.
+                            </div>
+                        </div>
+                        <div class="benefit-item">
+                            <div class="benefit-icon">🛡️</div>
+                            <div class="benefit-content">
+                                <strong>Avoid catastrophic mistakes</strong><br>
+                                Catch compliance issues and design problems before they cost you thousands in reprints or fines.
+                            </div>
+                        </div>
+                        <div class="benefit-item">
+                            <div class="benefit-icon">⚡</div>
+                            <div class="benefit-content">
+                                <strong>Compete with the giants</strong><br>
+                                Access the same design intelligence that big CPG companies use, without the big CPG budget.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="testimonial">
+                        "Finally, I can make packaging decisions with confidence instead of crossing my fingers and hoping for the best. It's like having a team of experts I could never afford to hire."
+                    </div>
+                </div>
+
+                <div class="builder-card designers">
+                    <div class="card-header">
+                        <div class="card-icon">🎨</div>
+                        <div class="card-title">
+                            <h3>Designers & creative teams</h3>
+                            <p class="subtitle">The creatives who want to make beautiful work that actually works.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="reality-box">
+                        <strong>Your challenge:</strong><br>
+                        "I create beautiful designs, but I'm often flying blind about whether they'll actually grab attention on shelf or meet compliance requirements. I only find out what doesn't work after it's too late."
+                    </div>
+                    
+                    <div class="benefits">
+                        <h4>What Hawaii gives you:</h4>
+                        <div class="benefit-item">
+                            <div class="benefit-icon">📊</div>
+                            <div class="benefit-content">
+                                <strong>Design with data, not just intuition</strong><br>
+                                See exactly how your designs will perform. Make creative choices backed by consumer psychology and eye-tracking data.
+                            </div>
+                        </div>
+                        <div class="benefit-item">
+                            <div class="benefit-icon">🔍</div>
+                            <div class="benefit-content">
+                                <strong>Spot problems before they're problems</strong><br>
+                                Get instant feedback on hierarchy, compliance, and shelf impact. Fix issues in design, not in expensive reprints.
+                            </div>
+                        </div>
+                        <div class="benefit-item">
+                            <div class="benefit-icon">🎨</div>
+                            <div class="benefit-content">
+                                <strong>Create work that works</strong><br>
+                                Balance creativity with commercial effectiveness. Make designs that are both beautiful and successful.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="testimonial">
+                        "Now I can create designs that I know will work, not just hope they will. It's creativity informed by intelligence, and that makes all the difference."
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- How Brands Use Section -->
+    <section class="brand-usage">
+        <div class="container">
+            <h2>How brands are using Hawaii</h2>
+            <div class="usage-grid">
+                <div class="usage-card">
+                    <div class="usage-icon">🎯</div>
+                    <h3>Test before you print</h3>
+                    <p>Upload your design concepts and get instant intelligence on attention-grabbing power, hierarchy effectiveness, and compliance issues. Fix problems in pixels, not in print runs.</p>
+                </div>
+                
+                <div class="usage-card">
+                    <div class="usage-icon">⚡</div>
+                    <h3>Speed up decision making</h3>
+                    <p>Stop endless internal debates about design choices. Get objective, data-driven feedback that helps teams align quickly and move forward with confidence.</p>
+                </div>
+                
+                <div class="usage-card">
+                    <div class="usage-icon">⚠️</div>
+                    <h3>Avoid expensive mistakes</h3>
+                    <p>Catch regulatory compliance issues, shelf visibility problems, and attention flow mistakes before they cost you thousands in reprints, fines, or lost sales.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <div class="logo-icon"></div>
+                        Hawaii
+                    </div>
+                    <p class="footer-tagline">Design intelligence for everyone. Make packaging decisions with confidence, not guesswork.</p>
+                </div>
+                
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Product</h4>
+                        <ul>
+                            <li><a href="#features">Features</a></li>
+                            <li><a href="#pricing">Pricing</a></li>
+                            <li><a href="#integrations">Integrations</a></li>
+                            <li><a href="#api">API</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="footer-column">
+                        <h4>Resources</h4>
+                        <ul>
+                            <li><a href="#blog">Blog</a></li>
+                            <li><a href="#help">Help Center</a></li>
+                            <li><a href="#templates">Templates</a></li>
+                            <li><a href="#case-studies">Case Studies</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="footer-column">
+                        <h4>Company</h4>
+                        <ul>
+                            <li><a href="#about">About</a></li>
+                            <li><a href="#careers">Careers</a></li>
+                            <li><a href="#contact">Contact</a></li>
+                            <li><a href="#press">Press</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="footer-column">
+                        <h4>Legal</h4>
+                        <ul>
+                            <li><a href="#privacy">Privacy Policy</a></li>
+                            <li><a href="#terms">Terms of Service</a></li>
+                            <li><a href="#cookies">Cookie Policy</a></li>
+                            <li><a href="#gdpr">GDPR</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div class="footer-bottom-content">
+                    <p>&copy; 2024 Hawaii. All rights reserved.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link">Twitter</a>
+                        <a href="#" class="social-link">LinkedIn</a>
+                        <a href="#" class="social-link">GitHub</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Word animation for hero section
+        const words = ['Launch', 'Design', 'Progress', 'Win'];
+        const animatedWord = document.getElementById('animatedWord');
+        const highlightWord = document.querySelector('.highlight');
+        let currentIndex = 0;
+
+        function animateWord() {
+            // Fade out current word
+            animatedWord.classList.add('fade-out');
+            
+            setTimeout(() => {
+                // Change to next word
+                currentIndex = (currentIndex + 1) % words.length;
+                animatedWord.textContent = words[currentIndex];
+                
+                // Fade in new word
+                animatedWord.classList.remove('fade-out');
+                animatedWord.classList.add('fade-in');
+                
+                // Remove fade-in class after animation completes
+                setTimeout(() => {
+                    animatedWord.classList.remove('fade-in');
+                }, 800);
+            }, 400); // Reduced wait time for smoother transition
+        }
+
+        // Start animation after page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initial delay before starting animation
+            setTimeout(() => {
+                // Start the animation cycle
+                setInterval(animateWord, 3000); // Change word every 3 seconds
+            }, 0); // Wait 2 seconds before starting
+        });
+    </script>
+</body>
+</html>
