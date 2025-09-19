@@ -1,0 +1,28 @@
+AI in design timeline – structure notes
+
+The timeline should be split into three parallel columns so that developments can be read in context rather than as a single linear list.
+	
+1.	Model launches (foundational + key releases)
+	•	Major LLMs (GPT, Claude, Gemini, LLaMA, etc.)
+	•	Image models (DALL·E, MidJourney, Stable Diffusion, etc.)
+	•	Multimodal or specialised models (Gemini, Sora, MusicLM, etc.)
+	
+2.	Tools & platforms (applied layer)
+	•	Breakthrough or influential tools: e.g. MidJourney, Runway, Figma Make, Cursor.
+	•	Could also fold in the “flurry of tools” (smaller SaaS launches, wrappers, one-shot experiments) as context around these larger ones.
+	
+3.	Epochs / shifts (narrative layer)
+	•	Broader phases in the AI design story. Examples:
+	•	Prompting era → people learning prompt craft.
+	•	Image generation boom → design community adoption of MidJourney / SD.
+	•	Toolchain integration → AI embedded into mainstream design platforms (Adobe Firefly, Figma AI).
+	•	Agentic systems → LLMs start coordinating tasks, running tools, planning (LangChain, AutoGPT).
+	•	Reasoning focus → models with “thinking” traces, long-context memory, chain-of-thought support.
+
+⸻
+
+Data source idea
+
+Keep the raw data in a simple, editable structure so updates are quick:
+	•	Google Sheet: 3 tabs (Models, Tools, Epochs), each row = event with date, description, link. Easy to export CSV/JSON.
+	•	Supabase: If you want more programmatic querying (and versioning later), schema could mirror the above (tables for models, tools, epochs).

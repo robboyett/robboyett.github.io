@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Design Atlas: Epochs, Models, and Tools 2022–2025</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #fafafa;
+      color: #333;
+      margin: 0;
+      padding: 40px;
+    }
+    h1 {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 40px;
+      text-align: center;
+      color: #111;
+    }
+    .timeline {
+      position: relative;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Epoch bands */
+    .epoch {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 80px;
+      opacity: 0.15;
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      padding-left: 10px;
+    }
+    .epoch.foundation { background: cyan; top: 0; }
+    .epoch.multimodal { background: magenta; top: 120px; }
+    .epoch.agent { background: lime; top: 240px; }
+
+    /* Model releases */
+    .model {
+      position: relative;
+      margin: 40px 0;
+      padding-left: 120px;
+    }
+    .model::before {
+      content: '';
+      position: absolute;
+      left: 60px;
+      top: 8px;
+      width: 2px;
+      height: 100%;
+      background: #ddd;
+    }
+    .model-title {
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+    .model-date {
+      font-size: 10px;
+      color: #777;
+      margin-bottom: 6px;
+    }
+    .model-desc {
+      font-size: 11px;
+      color: #555;
+      max-width: 400px;
+    }
+
+    /* Tool lifespans */
+    .tools {
+      margin-top: 60px;
+      border-top: 1px solid #eee;
+      padding-top: 20px;
+    }
+    .tool {
+      font-size: 11px;
+      color: #444;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+    }
+    .tool-bar {
+      flex: 1;
+      height: 6px;
+      margin-left: 10px;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #ff9800, #f44336);
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+  <h1>AI Design Atlas: Epochs, Models, and Tools 2022–2025</h1>
+  <div class="timeline">
+
+    <div class="epoch foundation">Foundation model wave (2022–2023)</div>
+    <div class="epoch multimodal">Multimodal shift (2023–2024)</div>
+    <div class="epoch agent">Agentic systems era (2024– )</div>
+
+    <div class="model">
+      <div class="model-title">DALL·E 2</div>
+      <div class="model-date">Apr 2022</div>
+      <div class="model-desc">Breakthrough text-to-image generation, catalysing AI art wave.</div>
+    </div>
+    <div class="model">
+      <div class="model-title">GPT-4</div>
+      <div class="model-date">Mar 2023</div>
+      <div class="model-desc">Multimodal AI, stronger reasoning and coding abilities.</div>
+    </div>
+    <div class="model">
+      <div class="model-title">Claude 3</div>
+      <div class="model-date">Mar 2024</div>
+      <div class="model-desc">Large-context AI emphasising reliability and safety.</div>
+    </div>
+
+    <div class="tools">
+      <div class="tool">MidJourney <div class="tool-bar" style="background: linear-gradient(90deg,#673ab7,#9c27b0);"></div></div>
+      <div class="tool">Runway <div class="tool-bar" style="background: linear-gradient(90deg,#2196f3,#03a9f4);"></div></div>
+      <div class="tool">Cursor <div class="tool-bar" style="background: linear-gradient(90deg,#4caf50,#8bc34a);"></div></div>
+      <div class="tool">Galileo AI <div class="tool-bar" style="background: linear-gradient(90deg,#ff5722,#ffc107);"></div></div>
+    </div>
+
+  </div>
+</body>
+</html>

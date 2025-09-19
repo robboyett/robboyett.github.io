@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Design Atlas: epochs, models, and tools 2022–2025 — vertical</title>
+  <style>
+    :root{
+      --bg:#fbfbfb;
+      --ink:#141414;
+      --muted:#6f6f6f;
+      --line:#e8e8e8;
+      --epoch1: rgba(0, 199, 190, 0.12);   /* aqua */
+      --epoch2: rgba(255, 0, 200, 0.12);   /* magenta */
+      --epoch3: rgba(114, 255, 40, 0.14);  /* lime */
+    }
+    *{ box-sizing: border-box; }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--ink);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      -webkit-font-smoothing:antialiased;
+      line-height:1.45;
+      padding:28px 16px 80px;
+    }
+    .page{ max-width:1160px; margin:0 auto; }
+
+    h1{
+      font-size:14px;
+      font-weight:600;
+      text-align:center;
+      margin:4px 0 6px;
+      color:#111;
+    }
+    .sub{ text-align:center; font-size:10px; color:var(--muted); margin-bottom:22px; }
+
+    /* Vertical month grid: 48 rows = Jan 2022 → Dec 2025 */
+    .grid{
+      position:relative;
+      display:grid;
+      grid-template-columns: 120px 1fr 260px; /* axis | models | tools */
+      column-gap:18px;
+      grid-template-rows: repeat(48, 22px);
+      row-gap:4px;
+      align-items:start;
+    }
+
+    /* Year/axis (left) */
+    .axis .tick{
+      grid-column:1;
+      font-size:10px;
+      color:#7a7a7a;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      position:relative;
+    }
+    .axis .tick:after{
+      content:"";
+      height:1px; background:var(--line);
+      position:absolute; left:54px; right:-18px; top:50%;
+      transform:translateY(-50%);
+    }
+    .axis .label{ width:54px; text-align:right; letter-spacing:.8px; text-transform:uppercase; }
+
+    /* Epoch bands across whole width */
+    .epoch{
+      grid-column: 1 / -1;
+      border:1px solid var(--line);
+      border-left:0; border-right:0;
+      display:flex; align-items:flex-end;
+      padding:0 8px 6px;
+      font-size:10px; letter-spacing:1px; text-transform:uppercase;
+      color:#7a7a7a;
+    }
+    .e1{ background:var(--epoch1); }
+    .e2{ background:var(--epoch2); }
+    .e3{ background:var(--epoch3); }
+
+    /* Models (middle column) */
+    .model{
+      grid-column:2;
+      position:relative;
+      padding-left:14px;
+    }
+    .model:before{
+      content:"";
+      position:absolute; left:0; top:10px;
+      width:8px; height:1px; background:#cfcfcf;
+    }
+    .dot{
+      position:absolute; left:-2px; top:8px;
+      width:5px; height:5px; background:#000; border-radius:50%;
+    }
+    .m-title{ font-size:12px; font-weight:600; margin:0 0 2px; }
+    .m-date{ font-size:10px; color:#888; font-style:italic; margin-bottom:4px; }
+    .m-desc{ font-size:11px; color:#535353; max-width:520px; }
+
+    /* Tools (right column) */
+    .tool-track{
+      grid-column:3;
+      position:relative;
+      display:flex; align-items:center; gap:10px;
+    }
+    .tool-name{ font-size:11px; width:90px; color:#2f2f2f; white-space:nowrap; }
+    .bar-wrap{
+      position:relative; flex:1; height:100%;
+    }
+    .bar{
+      position:absolute; left:0; right:0;
+      width:6px; border-radius:10px;
+      background:linear-gradient(180deg, rgba(0,0,0,.75), rgba(0,0,0,.45));
+      margin-left:6px;
+    }
+    .bar.warm{ background:linear-gradient(180deg,#7c4dff,#ab47bc); }
+    .bar.cool{ background:linear-gradient(180deg,#2196f3,#26c6da); }
+    .bar.green{ background:linear-gradient(180deg,#43a047,#8bc34a); }
+    .bar.sun{ background:linear-gradient(180deg,#ef6c00,#fbc02d); }
+    .bar .cap{ /* active circle at end */
+      content:""; position:absolute; left:50%; transform:translateX(-50%);
+      width:6px; height:6px; border-radius:50%; background:#000;
+      bottom:-3px;
+    }
+
+    /* Legend */
+    .legend{ margin-top:10px; display:flex; justify-content:flex-end; gap:18px; font-size:10px; color:#7a7a7a; }
+    .chip{ width:10px; height:10px; border-radius:999px; display:inline-block; margin-right:6px; }
+    .c1{ background:var(--epoch1); border:1px solid var(--line); }
+    .c2{ background:var(--epoch2); border:1px solid var(--line); }
+    .c3{ background:var(--epoch3); border:1px solid var(--line); }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>AI Design Atlas: epochs, models, and tools 2022–2025</h1>
+    <div class="sub">Vertical mock-up · shared month grid (Jan 2022 → Dec 2025) · minimal editorial style</div>
+
+    <div class="grid">
+
+      <!-- Year ticks -->
+      <div class="axis tick" style="grid-row: 1 / span 1;"><div class="label">Jan 2022</div></div>
+      <div class="axis tick" style="grid-row: 12 / span 1;"><div class="label">Dec 2022</div></div>
+      <div class="axis tick" style="grid-row: 13 / span 1;"><div class="label">Jan 2023</div></div>
+      <div class="axis tick" style="grid-row: 24 / span 1;"><div class="label">Dec 2023</div></div>
+      <div class="axis tick" style="grid-row: 25 / span 1;"><div class="label">Jan 2024</div></div>
+      <div class="axis tick" style="grid-row: 36 / span 1;"><div class="label">Dec 2024</div></div>
+      <div class="axis tick" style="grid-row: 37 / span 1;"><div class="label">Jan 2025</div></div>
+      <div class="axis tick" style="grid-row: 48 / span 1;"><div class="label">Dec 2025</div></div>
+
+      <!-- Epoch bands (spanning rows) -->
+      <div class="epoch e1" style="grid-row: 1 / 18;">foundation model wave</div>
+      <div class="epoch e2" style="grid-row: 15 / 28;">multimodal shift</div>
+      <div class="epoch e3" style="grid-row: 28 / 49;">agentic systems era</div>
+
+      <!-- Models (row positions by month number) -->
+      <!-- DALL·E 2 — Apr 2022 => row 4 -->
+      <div class="model" style="grid-row: 4;"><span class="dot"></span>
+        <div class="m-title">DALL·E 2</div>
+        <div class="m-date">Apr 2022</div>
+        <div class="m-desc">Breakthrough text‑to‑image generation; catalysed the AI art wave.</div>
+      </div>
+
+      <!-- GPT-4 — Mar 2023 => row 15 -->
+      <div class="model" style="grid-row: 15;"><span class="dot"></span>
+        <div class="m-title">GPT‑4</div>
+        <div class="m-date">Mar 2023</div>
+        <div class="m-desc">Multimodal with stronger reasoning and coding abilities.</div>
+      </div>
+
+      <!-- Claude 3 — Mar 2024 => row 27 -->
+      <div class="model" style="grid-row: 27;"><span class="dot"></span>
+        <div class="m-title">Claude 3</div>
+        <div class="m-date">Mar 2024</div>
+        <div class="m-desc">Large‑context assistant emphasising reliability and safety.</div>
+      </div>
+
+      <!-- Tools with vertical lifespans (start/end rows) -->
+      <!-- Midjourney — Jul 2022 (row 7) → ongoing (row 48) -->
+      <div class="tool-track" style="grid-row: 7 / 48;">
+        <div class="tool-name">Midjourney</div>
+        <div class="bar-wrap">
+          <div class="bar warm" style="top:0; bottom:0;"><span class="cap"></span></div>
+        </div>
+      </div>
+
+      <!-- Runway — Mar 2023 (row 15) → ongoing -->
+      <div class="tool-track" style="grid-row: 15 / 48;">
+        <div class="tool-name">Runway</div>
+        <div class="bar-wrap">
+          <div class="bar cool" style="top:0; bottom:0;"><span class="cap"></span></div>
+        </div>
+      </div>
+
+      <!-- Cursor — Oct 2023 (row 22) → ongoing -->
+      <div class="tool-track" style="grid-row: 22 / 48;">
+        <div class="tool-name">Cursor</div>
+        <div class="bar-wrap">
+          <div class="bar green" style="top:0; bottom:0;"><span class="cap"></span></div>
+        </div>
+      </div>
+
+      <!-- Galileo — Oct 2023 (row 22) → May 2025 (row 41) -->
+      <div class="tool-track" style="grid-row: 22 / 41;">
+        <div class="tool-name">Galileo AI</div>
+        <div class="bar-wrap">
+          <div class="bar sun" style="top:0; bottom:0;"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="legend">
+      <span><span class="chip c1"></span>foundation</span>
+      <span><span class="chip c2"></span>multimodal</span>
+      <span><span class="chip c3"></span>agentic</span>
+    </div>
+  </div>
+</body>
+</html>
