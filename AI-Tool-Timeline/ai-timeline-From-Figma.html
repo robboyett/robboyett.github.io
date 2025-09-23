@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Design Atlas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.4;
+        }
+
+        .container {
+            padding: 68px;
+            max-width: 100%;
+        }
+
+        .header {
+            margin-bottom: 68px;
+        }
+
+        .header h1 {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333333;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #959595;
+            font-weight: 400;
+        }
+
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .year-section {
+            display: flex;
+            gap: 27px;
+            padding: 8px 0;
+            position: relative;
+        }
+
+        .epoch-holder {
+            flex-shrink: 0;
+            width: 206px;
+            position: relative;
+        }
+
+        .epoch-badge {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: #f5f5f5;
+            border-radius: 6px;
+            padding: 3px 6px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            width: 47px;
+        }
+
+        .epoch-badge span {
+            font-size: 10px;
+            color: #888888;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .epoch-title {
+            position: absolute;
+            top: 22px;
+            left: 0;
+            font-size: 12px;
+            font-weight: 500;
+            color: #333333;
+            width: 179px;
+        }
+
+        .epoch-date {
+            position: absolute;
+            top: 58px;
+            left: 0;
+            font-size: 10px;
+            color: #999999;
+            font-style: italic;
+        }
+
+        .epoch-description {
+            position: absolute;
+            top: 81px;
+            left: 0;
+            font-size: 11px;
+            color: #666666;
+            line-height: 16.5px;
+            width: 179px;
+        }
+
+        .year-content {
+            flex: 1;
+            position: relative;
+        }
+
+        .year-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 17px;
+            position: relative;
+        }
+
+        .year-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #999999;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .year-label {
+            font-size: 11px;
+            color: #999999;
+            font-weight: 500;
+        }
+
+        .vertical-line {
+            position: absolute;
+            left: 2px;
+            top: 6.5px;
+            width: 1px;
+            height: 100%;
+            background-color: #dddddd;
+            z-index: -1;
+        }
+
+        .moments {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .moment {
+            position: relative;
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+
+        .moment-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #666666;
+            border-radius: 3px;
+            margin-top: 4px;
+            flex-shrink: 0;
+        }
+
+        .moment-line {
+            width: 20px;
+            height: 1px;
+            background-color: #dddddd;
+            margin-top: 3px;
+            margin-left: -2px;
+        }
+
+        .moment-content {
+            flex: 1;
+            margin-left: 20px;
+        }
+
+        .model-badge {
+            background-color: #f5f5f5;
+            border-radius: 6px;
+            padding: 3px 6px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .model-badge span {
+            font-size: 10px;
+            color: #888888;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .model-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: #333333;
+            margin-bottom: 6px;
+        }
+
+        .model-date {
+            font-size: 10px;
+            color: #999999;
+            font-style: italic;
+            margin-bottom: 12px;
+        }
+
+        .model-description {
+            font-size: 11px;
+            color: #666666;
+            line-height: 16.5px;
+            margin-bottom: 12px;
+        }
+
+        .model-impact {
+            font-size: 11px;
+            color: #959595;
+            line-height: 16.5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI Design Atlas</h1>
+            <p>Tool and model release timeline 2022–2025</p>
+        </div>
+
+        <div class="timeline">
+            <!-- 2021 Section -->
+            <div class="year-section">
+                <div class="epoch-holder">
+                    <div class="epoch-badge">
+                        <span>epoch</span>
+                    </div>
+                    <div class="epoch-title">Foundation model breakthroughs</div>
+                    <div class="epoch-date">2021–2022</div>
+                    <div class="epoch-description">
+                        The era of breakthrough models like GPT-3, DALL·E 2, and Stable Diffusion that demonstrated unprecedented creative capabilities and sparked mainstream AI adoption.
+                    </div>
+                </div>
+                
+                <div class="year-content">
+                    <div class="vertical-line"></div>
+                    <div class="year-header">
+                        <div class="year-dot"></div>
+                        <div class="year-label">2021</div>
+                    </div>
+                    
+                    <div class="moments">
+                        <div class="moment">
+                            <div class="moment-dot"></div>
+                            <div class="moment-line"></div>
+                            <div class="moment-content">
+                                <div class="model-badge">
+                                    <span>foundation model</span>
+                                </div>
+                                <div class="model-name">OpenAI DALL·E 2</div>
+                                <div class="model-date">April 2022</div>
+                                <div class="model-description">
+                                    Breakthrough text-to-image generation with much higher realism and resolution. Catalysed the AI art wave and demonstrated creative potential to a broad audience, inspiring competitors and prompting incumbents to invest in generative imaging.
+                                </div>
+                                <div class="model-impact">
+                                    Catalyzed the AI art wave: Demonstrated the creative potential of AI to a broad audience. Sparked numerous image-gen tools (many early private betas used DALL·E 2 API). Inspired competitors (Imagen, Stable Diffusion) and prompted incumbents (Adobe) to invest in generative imaging. Though access was limited at first, by late 2022 its capabilities influenced design workflows (designers began using AI for moodboards, concept art).
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="moment">
+                            <div class="moment-dot"></div>
+                            <div class="moment-line"></div>
+                            <div class="moment-content">
+                                <div class="model-badge">
+                                    <span>foundation model</span>
+                                </div>
+                                <div class="model-name">OpenAI DALL·E 2</div>
+                                <div class="model-date">April 2022</div>
+                                <div class="model-description">
+                                    Breakthrough text-to-image generation with much higher realism and resolution. Catalysed the AI art wave and demonstrated creative potential to a broad audience, inspiring competitors and prompting incumbents to invest in generative imaging.
+                                </div>
+                                <div class="model-impact">
+                                    Catalyzed the AI art wave: Demonstrated the creative potential of AI to a broad audience. Sparked numerous image-gen tools (many early private betas used DALL·E 2 API). Inspired competitors (Imagen, Stable Diffusion) and prompted incumbents (Adobe) to invest in generative imaging. Though access was limited at first, by late 2022 its capabilities influenced design workflows (designers began using AI for moodboards, concept art).
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="moment">
+                            <div class="moment-dot"></div>
+                            <div class="moment-line"></div>
+                            <div class="moment-content">
+                                <div class="model-badge">
+                                    <span>foundation model</span>
+                                </div>
+                                <div class="model-name">OpenAI DALL·E 2</div>
+                                <div class="model-date">April 2022</div>
+                                <div class="model-description">
+                                    Breakthrough text-to-image generation with much higher realism and resolution. Catalysed the AI art wave and demonstrated creative potential to a broad audience, inspiring competitors and prompting incumbents to invest in generative imaging.
+                                </div>
+                                <div class="model-impact">
+                                    Catalyzed the AI art wave: Demonstrated the creative potential of AI to a broad audience. Sparked numerous image-gen tools (many early private betas used DALL·E 2 API). Inspired competitors (Imagen, Stable Diffusion) and prompted incumbents (Adobe) to invest in generative imaging. Though access was limited at first, by late 2022 its capabilities influenced design workflows (designers began using AI for moodboards, concept art).
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2022 Section -->
+            <div class="year-section">
+                <div class="epoch-holder">
+                    <div class="epoch-badge">
+                        <span>epoch</span>
+                    </div>
+                    <div class="epoch-title">Foundation model breakthroughs</div>
+                    <div class="epoch-date">2021–2022</div>
+                    <div class="epoch-description">
+                        The era of breakthrough models like GPT-3, DALL·E 2, and Stable Diffusion that demonstrated unprecedented creative capabilities and sparked mainstream AI adoption.
+                    </div>
+                </div>
+                
+                <div class="year-content">
+                    <div class="year-header">
+                        <div class="year-dot"></div>
+                        <div class="year-label">2022</div>
+                    </div>
+                    
+                    <div class="moments">
+                        <div class="moment">
+                            <div class="moment-dot"></div>
+                            <div class="moment-line"></div>
+                            <div class="moment-content">
+                                <div class="model-badge">
+                                    <span>foundation model</span>
+                                </div>
+                                <div class="model-name">OpenAI DALL·E 2</div>
+                                <div class="model-date">April 2022</div>
+                                <div class="model-description">
+                                    Breakthrough text-to-image generation with much higher realism and resolution. Catalysed the AI art wave and demonstrated creative potential to a broad audience, inspiring competitors and prompting incumbents to invest in generative imaging.
+                                </div>
+                                <div class="model-impact">
+                                    Catalyzed the AI art wave: Demonstrated the creative potential of AI to a broad audience. Sparked numerous image-gen tools (many early private betas used DALL·E 2 API). Inspired competitors (Imagen, Stable Diffusion) and prompted incumbents (Adobe) to invest in generative imaging. Though access was limited at first, by late 2022 its capabilities influenced design workflows (designers began using AI for moodboards, concept art).
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2023 Section -->
+            <div class="year-section">
+                <div class="epoch-holder">
+                    <div class="epoch-badge">
+                        <span>epoch</span>
+                    </div>
+                    <div class="epoch-title">Foundation model breakthroughs</div>
+                    <div class="epoch-date">2021–2022</div>
+                    <div class="epoch-description">
+                        The era of breakthrough models like GPT-3, DALL·E 2, and Stable Diffusion that demonstrated unprecedented creative capabilities and sparked mainstream AI adoption.
+                    </div>
+                </div>
+                
+                <div class="year-content">
+                    <div class="year-header">
+                        <div class="year-dot"></div>
+                        <div class="year-label">2023</div>
+                    </div>
+                    
+                    <div class="moments">
+                        <div class="moment">
+                            <div class="moment-dot"></div>
+                            <div class="moment-line"></div>
+                            <div class="moment-content">
+                                <div class="model-badge">
+                                    <span>foundation model</span>
+                                </div>
+                                <div class="model-name">OpenAI DALL·E 2</div>
+                                <div class="model-date">April 2022</div>
+                                <div class="model-description">
+                                    Breakthrough text-to-image generation with much higher realism and resolution. Catalysed the AI art wave and demonstrated creative potential to a broad audience, inspiring competitors and prompting incumbents to invest in generative imaging.
+                                </div>
+                                <div class="model-impact">
+                                    Catalyzed the AI art wave: Demonstrated the creative potential of AI to a broad audience. Sparked numerous image-gen tools (many early private betas used DALL·E 2 API). Inspired competitors (Imagen, Stable Diffusion) and prompted incumbents (Adobe) to invest in generative imaging. Though access was limited at first, by late 2022 its capabilities influenced design workflows (designers began using AI for moodboards, concept art).
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
