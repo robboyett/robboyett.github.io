@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibration test</title>
+</head>
+<body>
+    <button id="vibrateBtn">Tap to vibrate</button>
+    
+    <script>
+        document.getElementById('vibrateBtn').addEventListener('click', () => {
+            if ('vibrate' in navigator) {
+                // Single vibration
+                navigator.vibrate(200);
+            } else {
+                alert('Vibration not supported');
+            }
+        });
+    </script>
+</body>
+</html>
