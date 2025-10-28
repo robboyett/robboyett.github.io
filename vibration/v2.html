@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS haptic feedback test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .haptic-button {
+            position: relative;
+            display: inline-block;
+            padding: 15px 30px;
+            background: #007AFF;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            user-select: none;
+            margin: 10px 0;
+        }
+        
+        /* Hide the actual checkbox */
+        input[type="checkbox"][switch] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>iOS haptic feedback test</h1>
+    
+    <div class="info">
+        <strong>Requirements:</strong>
+        <ul>
+            <li>iOS 18 or later</li>
+            <li>Safari browser</li>
+            <li>Tap the buttons below to feel haptic feedback</li>
+        </ul>
+    </div>
+
+    <!-- Hidden checkbox that enables haptics -->
+    <input type="checkbox" switch id="haptic1">
+    <label for="haptic1" class="haptic-button">Tap for haptic feedback</label>
+
+    <br>
+
+    <input type="checkbox" switch id="haptic2">
+    <label for="haptic2" class="haptic-button">Another haptic button</label>
+
+    <br>
+
+    <!-- Custom button that triggers haptics programmatically -->
+    <div class="haptic-button" id="customButton">Custom haptic trigger</div>
+    <input type="checkbox" switch id="hiddenHaptic">
+    <label for="hiddenHaptic" id="hiddenLabel" style="display: none;"></label>
+
+    <script>
+        // Trigger haptic feedback programmatically
+        const customButton = document.getElementById('customButton');
+        const hiddenLabel = document.getElementById('hiddenLabel');
+        
+        customButton.addEventListener('click', () => {
+            // Programmatically click the hidden label to trigger haptics
+            hiddenLabel.click();
+        });
+    </script>
+</body>
+</html>
