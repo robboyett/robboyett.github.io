@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pinch to group list</title>
+<style>
+  :root {
+    --bg: #0b0c0d;
+    --panel: #121416;
+    --ink: #e7e9ec;
+    --muted: #aab1ba;
+    --accent: #5da7ff;
+    --border: #22262b;
+  }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 500 14px/1.4 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    display: grid;
+    place-items: center;
+  }
+
+  .wrap {
+    width: min(1000px, 92vw);
+  }
+
+  .hud {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    color: var(--muted);
+    margin: 8px 2px 10px;
+    font-size: 13px;
+  }
+  .hud .badge {
+    background: #192028;
+    color: var(--ink);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px 8px;
+    font-weight: 600;
+  }
+  .hud .hint { margin-left: auto; }
+
+  /* Interaction area owns the gesture and renders the groups */
+  #pinch-area {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    min-height: 60vh;
+    padding: 14px;
+    /* Own the gesture here only */
+    touch-action: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .groups {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 10px;
+    transition: grid-template-columns .25s ease, gap .25s ease, transform .2s ease;
+    will-change: transform;
+  }
+
+  /* Card for each group (week/pair/day bucket) */
+  .group {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.00));
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: background .2s ease, border-color .2s ease;
+  }
+  .group:hover { border-color: #2a323a; }
+
+  .group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .group-sub {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .items {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .item {
+    border: 1px dashed #2a323a;
+    border-radius: 8px;
+    padding: 6px 8px;
+    text-align: center;
+    color: var(--ink);
+    background: #131a21;
+    font-size: 12px;
+  }
+
+  /* Layout presets per level */
+  .level-0 .groups { grid-template-columns: repeat(4, 1fr); } /* 20 day groups (each group = 1 item shown as its own) */
+  .level-1 .groups { grid-template-columns: repeat(5, 1fr); } /* 10 pairs */
+  .level-2 .groups { grid-template-columns: repeat(4, 1fr); } /* 4 weeks */
+
+  /* Smooth fade for item lists when regrouping */
+  .fade-enter { animation: fadein .16s ease both; }
+  @keyframes fadein { from { opacity: .0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .footer {
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .legend {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    margin-left: 8px;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: var(--accent); opacity: .8; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hud">
+      <span>zoom level:</span>
+      <span id="level-badge" class="badge">days (20)</span>
+      <span id="scale-badge" class="badge">scale 1.00</span>
+      <span class="hint">pinch inside the panel; `+`/`-` to test; double-tap to reset</span>
+    </div>
+
+    <div id="pinch-area" aria-label="Pinch to change grouping">
+      <div id="groups" class="groups level-0" role="list"></div>
+    </div>
+
+    <div class="footer">
+      Grouping model:
+      <span class="legend"><span class="dot"></span> days → pairs (2) → weeks (5)</span>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // ----- data: 20 sequential days -----
+  const days = Array.from({ length: 20 }, (_, i) => ({
+    id: i + 1,
+    label: `Day ${i + 1}`
+  }));
+
+  // Grouping functions:
+  // level 0: 20 items (no grouping; each "group" shows a single day)
+  // level 1: 10 groups of 2 (pairs)
+  // level 2: 4 groups of 5 (weeks)
+  const makeGroups = (level) => {
+    if (level === 0) {
+      return days.map(d => ({ title: d.label, subtitle: 'single day', items: [d] }));
+    }
+    if (level === 1) {
+      const size = 2;
+      const out = [];
+      for (let i = 0; i < days.length; i += size) {
+        const chunk = days.slice(i, i + size);
+        out.push({
+          title: `Pair ${Math.floor(i / size) + 1}`,
+          subtitle: `${chunk[0].label}–${chunk[chunk.length - 1].label}`,
+          items: chunk
+        });
+      }
+      return out;
+    }
+    // level 2
+    const size = 5;
+    const out = [];
+    for (let i = 0; i < days.length; i += size) {
+      const chunk = days.slice(i, i + size);
+      out.push({
+        title: `Week ${Math.floor(i / size) + 1}`,
+        subtitle: `${chunk[0].label}–${chunk[chunk.length - 1].label}`,
+        items: chunk
+      });
+    }
+    return out;
+  };
+
+  // ----- render -----
+  const area = document.getElementById('pinch-area');
+  const host = document.getElementById('groups');
+  const levelBadge = document.getElementById('level-badge');
+  const scaleBadge = document.getElementById('scale-badge');
+
+  const levelNames = [
+    ['days', 20],
+    ['pairs', 10],
+    ['weeks', 4]
+  ];
+
+  function render(level) {
+    host.classList.toggle('level-0', level === 0);
+    host.classList.toggle('level-1', level === 1);
+    host.classList.toggle('level-2', level === 2);
+
+    const groups = makeGroups(level);
+
+    host.innerHTML = '';
+    const frag = document.createDocumentFragment();
+
+    groups.forEach(g => {
+      const groupEl = document.createElement('section');
+      groupEl.className = 'group fade-enter';
+      groupEl.setAttribute('role', 'listitem');
+
+      const header = document.createElement('div');
+      header.className = 'group-header';
+      header.innerHTML = `<span>${g.title}</span><span class="group-sub">${g.subtitle}</span>`;
+      groupEl.appendChild(header);
+
+      const items = document.createElement('div');
+      items.className = 'items';
+      g.items.forEach(it => {
+        const el = document.createElement('div');
+        el.className = 'item';
+        el.textContent = it.label;
+        items.appendChild(el);
+      });
+      groupEl.appendChild(items);
+
+      frag.appendChild(groupEl);
+    });
+
+    host.appendChild(frag);
+
+    const [name, count] = levelNames[level];
+    levelBadge.textContent = `${name} (${count})`;
+  }
+
+  // ----- gesture handling (pinch) -----
+  const pointers = new Map();
+  let baseScale = 1;
+  let liveScale = 1;
+  let startDistance = 0;
+
+  // Hysteresis thresholds to avoid flicker around boundaries
+  const thresholds = { toPairs: 0.78, toWeeks: 0.55 };
+  const thresholdsBack = { toDays: 0.82, toPairs: 0.58 };
+
+  let level = 0; // start at days
+  render(level);
+
+  function setScaleDisplay() {
+    scaleBadge.textContent = `scale ${liveScale.toFixed(2)}`;
+  }
+  setScaleDisplay();
+
+  function distance([p1, p2]) {
+    const dx = p2.clientX - p1.clientX;
+    const dy = p2.clientY - p1.clientY;
+    return Math.hypot(dx, dy);
+  }
+
+  function maybeChangeLevel() {
+    // Zooming OUT reduces scale; map scale to grouping level with hysteresis
+    if (level === 0 && liveScale <= thresholds.toPairs) {
+      level = 1; render(level);
+    } else if (level === 1 && liveScale <= thresholds.toWeeks) {
+      level = 2; render(level);
+    } else if (level === 2 && liveScale >= thresholdsBack.toPairs) {
+      level = 1; render(level);
+    } else if (level === 1 && liveScale >= thresholdsBack.toDays) {
+      level = 0; render(level);
+    }
+  }
+
+  area.addEventListener('pointerdown', (e) => {
+    area.setPointerCapture?.(e.pointerId);
+    pointers.set(e.pointerId, e);
+  }, { passive: true });
+
+  area.addEventListener('pointermove', (e) => {
+    if (!pointers.has(e.pointerId)) return;
+    e.preventDefault(); // own the gesture in this area
+    pointers.set(e.pointerId, e);
+
+    if (pointers.size === 2) {
+      const pts = Array.from(pointers.values());
+      const currentDist = distance(pts);
+      if (startDistance === 0) startDistance = currentDist;
+
+      const pinchFactor = currentDist / startDistance;
+      liveScale = Math.max(0.4, Math.min(1.4, baseScale * pinchFactor)); // clamp a bit
+      setScaleDisplay();
+      maybeChangeLevel();
+    }
+  }, { passive: false });
+
+  const end = (e) => {
+    if (pointers.has(e.pointerId)) pointers.delete(e.pointerId);
+    if (pointers.size < 2) {
+      baseScale = liveScale;
+      startDistance = 0;
+    }
+  };
+  area.addEventListener('pointerup', end, { passive: true });
+  area.addEventListener('pointercancel', end, { passive: true });
+  area.addEventListener('pointerleave', (e) => { if (pointers.has(e.pointerId)) end(e); }, { passive: true });
+
+  // ----- keyboard and wheel shortcuts for desktop testing -----
+  window.addEventListener('keydown', (e) => {
+    if (e.key === '+' || e.key === '=') { liveScale = Math.min(1.4, liveScale + 0.05); baseScale = liveScale; setScaleDisplay(); maybeChangeLevel(); }
+    if (e.key === '-' || e.key === '_') { liveScale = Math.max(0.4, liveScale - 0.05); baseScale = liveScale; setScaleDisplay(); maybeChangeLevel(); }
+    if (e.key === '0') { liveScale = baseScale = 1; setScaleDisplay(); level = 0; render(level); }
+  });
+
+  area.addEventListener('wheel', (e) => {
+    if (!(e.ctrlKey || e.metaKey)) return; // zoom intent
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.06 : 0.06;
+    liveScale = Math.max(0.4, Math.min(1.4, liveScale + delta));
+    baseScale = liveScale;
+    setScaleDisplay();
+    maybeChangeLevel();
+  }, { passive: false });
+
+  // Double-tap / double-click to reset
+  let lastTap = 0;
+  area.addEventListener('pointerdown', () => {
+    const now = Date.now();
+    if (now - lastTap < 300) {
+      liveScale = baseScale = 1; setScaleDisplay();
+      level = 0; render(level);
+    }
+    lastTap = now;
+  }, { passive: true });
+})();
+</script>
+</body>
+</html>
