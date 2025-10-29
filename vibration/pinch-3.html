@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pinch-to-step list (4 levels + size scaling)</title>
+<style>
+  :root{
+    --bg:#0b0c0d; --panel:#121416; --ink:#e7e9ec; --muted:#aab1ba; --border:#22262b;
+    --rowScale:1; /* will be set dynamically per level */
+  }
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:500 14px/1.4 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    display:grid; place-items:center;
+  }
+  .wrap{ width:min(800px,94vw); }
+
+  .hud{
+    display:flex; gap:.75rem; align-items:center; margin:10px 4px;
+    color:var(--muted); font-size:13px;
+  }
+  .badge{ padding:4px 8px; border:1px solid var(--border); border-radius:10px; background:#192028; color:var(--ink); font-weight:600; }
+  .hint{ margin-left:auto }
+
+  /* Interaction surface: one finger scrolls; we'll intercept only two-finger pinches */
+  #pinch-area{
+    border:1px solid var(--border); border-radius:14px; background:var(--panel);
+    height:60vh; overflow:auto; padding:8px 0;
+    touch-action: pan-y; /* keep vertical scrolling */
+    -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;
+  }
+
+  .list{ 
+    display:flex; flex-direction:column; 
+    gap: calc(8px * (0.6 + 0.4 * var(--rowScale))); 
+    padding:0 10px 10px; 
+  }
+  .row{
+    border:1px solid var(--border); border-radius:12px; background:#14191f;
+    padding: calc(10px * var(--rowScale)) calc(12px * var(--rowScale));
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .title{ font-weight:800; font-size: calc(14px * var(--rowScale)); }
+  .sub{ color:var(--muted); font-size: calc(12px * (0.85 + 0.15 * var(--rowScale))); }
+  .pill{ 
+    font-size: calc(12px * var(--rowScale)); 
+    border:1px solid var(--border); border-radius:999px; 
+    padding: calc(2px * var(--rowScale)) calc(8px * var(--rowScale)); 
+    background:#10161c; color:var(--ink);
+  }
+
+  /* Light motion */
+  .fade{ animation:fade .16s ease both }
+  @keyframes fade{ from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none} }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hud">
+      <span>level:</span><span id="level-badge" class="badge">days (20)</span>
+      <span class="badge" id="size-badge">row ×1.0</span>
+      <span class="hint">two-finger pinch to change level; double-tap to reset</span>
+    </div>
+
+    <div id="pinch-area" aria-label="Two-finger pinch to change grouping">
+      <div id="list" class="list"></div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // ===== Config you’ll likely tweak =====
+  // Demo data: 20 sequential "days"
+  const days = Array.from({length:20}, (_,i)=>({ id:i+1, label:`Day ${i+1}` }));
+
+  // Four levels: days -> pairs -> weeks -> month
+  // Size multipliers: weeks is exactly 2× days as requested.
+  const LEVELS = [
+    { name:'days',   countLabel:(n)=>`${n}`, scale:1.0, group: () => days.map(d => ({ title:d.label, sub:'single day', items:[d] })) },
+    { name:'pairs',  countLabel:(n)=>`${n}`, scale:1.4, group: () => chunk(days,2).map((c,i)=>({ title:`Pair ${i+1}`, sub:rangeLabel(c), items:c })) },
+    { name:'weeks',  countLabel:(n)=>`${n}`, scale:2.0, group: () => chunk(days,5).map((c,i)=>({ title:`Week ${i+1}`, sub:rangeLabel(c), items:c })) },
+    { name:'month',  countLabel:(n)=>`${n}`, scale:2.5, group: () => [{ title:'Month 1', sub:rangeLabel(days), items:[...days] }] }
+  ];
+
+  // Pinch step sensitivity (ratio of currentDistance / startDistance)
+  const STEP_IN  = 1.12; // fingers move apart => go up a level (more detail)
+  const STEP_OUT = 0.88; // fingers move together => go down a level (more aggregate)
+
+  // ===== Helpers =====
+  function chunk(arr,n){ const out=[]; for(let i=0;i<arr.length;i+=n) out.push(arr.slice(i,i+n)); return out; }
+  function rangeLabel(items){ return `${items[0].label}–${items[items.length-1].label}`; }
+  function distance([p1,p2]){ const dx=p2.clientX-p1.clientX, dy=p2.clientY-p1.clientY; return Math.hypot(dx,dy); }
+
+  // ===== DOM refs =====
+  const area = document.getElementById('pinch-area');
+  const listEl = document.getElementById('list');
+  const levelBadge = document.getElementById('level-badge');
+  const sizeBadge  = document.getElementById('size-badge');
+
+  // ===== State =====
+  let level = 0; // start at most detailed
+  const pointers = new Map();
+  let startDistance = 0;
+  let decided = false; // one step per gesture
+
+  // ===== Render =====
+  function render(){
+    const groups = LEVELS[level].group();
+    listEl.innerHTML = '';
+    groups.forEach(g=>{
+      const row = document.createElement('div');
+      row.className = 'row fade';
+      row.innerHTML = `
+        <div>
+          <div class="title">${g.title}</div>
+          <div class="sub">${g.sub}</div>
+        </div>
+        <span class="pill">${LEVELS[level].countLabel(g.items.length)}</span>
+      `;
+      listEl.appendChild(row);
+    });
+
+    // Update badges
+    const name = LEVELS[level].name;
+    const totalGroups = groups.length;
+    levelBadge.textContent = `${name} (${totalGroups})`;
+
+    // Apply size multiplier
+    const s = LEVELS[level].scale;
+    document.documentElement.style.setProperty('--rowScale', String(s));
+    sizeBadge.textContent = `row ×${s.toFixed(1)}`;
+  }
+  render();
+
+  // ===== Gesture handling (two-finger pinch, discrete step) =====
+  area.addEventListener('pointerdown', (e)=>{
+    pointers.set(e.pointerId, e);
+    if (pointers.size === 2) {
+      area.setPointerCapture?.(e.pointerId);
+      startDistance = distance(Array.from(pointers.values()));
+      decided = false;
+    }
+  }, {passive:true});
+
+  area.addEventListener('pointermove', (e)=>{
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, e);
+
+    if (pointers.size === 2) {
+      e.preventDefault(); // own the gesture inside this surface
+      const pts = Array.from(pointers.values());
+      const current = distance(pts);
+      if (!startDistance) startDistance = current;
+      const ratio = current / startDistance;
+
+      if (!decided) {
+        if (ratio >= STEP_IN) {
+          // pinch-in: more detail (up a level)
+          if (level > 0) { level--; render(); }
+          decided = true;
+        } else if (ratio <= STEP_OUT) {
+          // pinch-out: less detail (down a level)
+          if (level < LEVELS.length - 1) { level++; render(); }
+          decided = true;
+        }
+      }
+    }
+  }, {passive:false});
+
+  function end(e){
+    if (pointers.has(e.pointerId)) pointers.delete(e.pointerId);
+    if (pointers.size < 2) {
+      startDistance = 0;
+      decided = false;
+    }
+  }
+  area.addEventListener('pointerup', end, {passive:true});
+  area.addEventListener('pointercancel', end, {passive:true});
+  area.addEventListener('pointerleave', (e)=>{ if (pointers.has(e.pointerId)) end(e); }, {passive:true});
+
+  // Double-tap anywhere in the surface to reset to level 0
+  let lastTap = 0;
+  area.addEventListener('pointerdown', ()=>{
+    const now = Date.now();
+    if (now - lastTap < 300) { level = 0; render(); }
+    lastTap = now;
+  }, {passive:true});
+})();
+</script>
+</body>
+</html>
