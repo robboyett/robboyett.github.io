@@ -54,6 +54,30 @@
   /* Light motion */
   .fade{ animation:fade .16s ease both }
   @keyframes fade{ from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none} }
+
+  /* Desktop simulation buttons */
+  .sim-controls{
+    position:fixed; bottom:20px; left:20px;
+    display:flex; gap:8px; align-items:center;
+    opacity:0.85; transition:opacity 0.2s;
+  }
+  .sim-controls:hover{ opacity:1; }
+  @media (hover:none){
+    .sim-controls{ display:none; } /* Hide on touch devices */
+  }
+  .sim-btn{
+    width:44px; height:44px;
+    border:1px solid var(--border); border-radius:12px;
+    background:var(--panel); color:var(--ink);
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px; font-weight:600;
+    cursor:pointer; user-select:none;
+    transition:background 0.15s, transform 0.1s;
+  }
+  .sim-btn:active{ transform:scale(0.95); background:#1a2028; }
+  .sim-btn:disabled{
+    opacity:0.4; cursor:not-allowed;
+  }
 </style>
 </head>
 <body>
@@ -69,6 +93,16 @@
     </div>
   </div>
 
+  <!-- Desktop simulation buttons -->
+  <div class="sim-controls" aria-label="Desktop pinch simulation">
+    <button id="zoom-out-btn" class="sim-btn" aria-label="Zoom out (pinch in)" title="Pinch in (↓ level)">
+      <span>−</span>
+    </button>
+    <button id="zoom-in-btn" class="sim-btn" aria-label="Zoom in (pinch out)" title="Pinch out (↑ level)">
+      <span>+</span>
+    </button>
+  </div>
+
 <script>
 (() => {
   // ===== Demo data: 20 sequential "days" =====
@@ -80,7 +114,7 @@
     { name:'days',   scale:1.0, group: () => days.map(d => ({ title:d.label, sub:'single day', items:[d] })) },
     { name:'pairs',  scale:1.4, group: () => chunk(days,2).map((c,i)=>({ title:`Pair ${i+1}`,  sub:rangeLabel(c), items:c })) },
     { name:'weeks',  scale:2.0, group: () => chunk(days,5).map((c,i)=>({ title:`Week ${i+1}`,  sub:rangeLabel(c), items:c })) },
-    { name:'month',  scale:2.5, group: () => [{ title:'Month 1', sub:rangeLabel(days), items:[...days] }] }
+    { name:'month',  scale:4, group: () => [{ title:'Month 1', sub:rangeLabel(days), items:[...days] }] }
   ];
 
   // ===== Thresholds =====
@@ -101,6 +135,8 @@
   const listEl = document.getElementById('list');
   const levelBadge = document.getElementById('level-badge');
   const sizeBadge  = document.getElementById('size-badge');
+  const zoomInBtn = document.getElementById('zoom-in-btn');
+  const zoomOutBtn = document.getElementById('zoom-out-btn');
 
   // ===== State =====
   let level = 0; // start at most detailed
@@ -129,7 +165,17 @@
     const s = LEVELS[level].scale;
     document.documentElement.style.setProperty('--rowScale', String(s));
     sizeBadge.textContent = `row ×${s.toFixed(1)}`;
+    updateButtonStates();
   }
+  
+  // ===== Update button states =====
+  function updateButtonStates(){
+    // Zoom in (pinch out) = move up (more detail) - disabled at top (level 0)
+    zoomInBtn.disabled = level === 0;
+    // Zoom out (pinch in) = move down (more aggregate) - disabled at bottom (max level)
+    zoomOutBtn.disabled = level === LEVELS.length - 1;
+  }
+  
   render();
 
   // ===== Gesture handling (two-finger pinch, single step per gesture) =====
@@ -198,6 +244,20 @@
     if (now - lastTap < 300) { level = 0; render(); }
     lastTap = now;
   }, {passive:true});
+
+  // ===== Desktop simulation buttons =====
+  zoomInBtn.addEventListener('click', ()=>{
+    if (level > 0) {
+      level--;
+      render();
+    }
+  });
+  zoomOutBtn.addEventListener('click', ()=>{
+    if (level < LEVELS.length - 1) {
+      level++;
+      render();
+    }
+  });
 })();
 </script>
 </body>

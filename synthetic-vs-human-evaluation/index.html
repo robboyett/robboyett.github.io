@@ -1,0 +1,1061 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthetic vs Human Research Evaluation</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --human-color: #3b82f6;
+            --synthetic-color: #dc2626;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --border-color: #e5e7eb;
+            --success: #059669;
+            --warning: #d97706;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            line-height: 1.5;
+            font-size: 14px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+        
+        header {
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        header p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        section {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+        
+        section h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        section h3 {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            margin: 1.25rem 0 0.5rem;
+            color: var(--text-primary);
+        }
+        
+        section h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin: 1rem 0 0.5rem;
+        }
+        
+        .fidelity-hero {
+            text-align: center;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        
+        .fidelity-score {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .fidelity-label {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .chart-row {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .chart-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .chart-container > div {
+            width: 100% !important;
+            max-width: 1100px;
+        }
+        
+        .plotly-graph-div {
+            width: 100% !important;
+            max-width: 1100px !important;
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.75rem;
+            margin: 0.75rem 0;
+        }
+        
+        .stat-card {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .stat-value.human {
+            color: var(--human-color);
+        }
+        
+        .stat-value.synthetic {
+            color: var(--synthetic-color);
+        }
+        
+        .stat-label {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin: 0.75rem 0;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.8125rem;
+        }
+        
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .legend-dot.human {
+            background: var(--human-color);
+        }
+        
+        .legend-dot.synthetic {
+            background: var(--synthetic-color);
+        }
+        
+        .interpretation-box {
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            margin: 0.75rem 0;
+        }
+        
+        .interpretation-box.warning {
+            border-left-color: var(--warning);
+        }
+        
+        .interpretation-box p {
+            margin: 0;
+            font-size: 0.875rem;
+        }
+        
+        .executive-summary {
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+        
+        .executive-summary p {
+            margin-bottom: 0.75rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.75rem 0;
+            font-size: 0.8125rem;
+        }
+        
+        th, td {
+            padding: 0.5rem 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.125rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .badge.human {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .badge.synthetic {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .badge.both {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            header h1 {
+                font-size: 1.125rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Synthetic vs Human Research Evaluation</h1>
+            <p>Comparative analysis of qualitative research transcripts</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Hero Introduction -->
+        <section style="background:#f1f5f9; border: none;">
+            <h2>How valuble are AI-Generated inteviews for Research? Can they be reliedupon to supliment human interviews?</h2>
+            
+            <p style="font-size: 0.9375rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.6;">
+                Below are the finding from an experiment to find out. 10 real user interviews from a qualitative research study on financial management, compared against 10 synthetic interviews, created using AI personas (based on existing research). This report compares them head-to-head.
+            </p>
+            
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin: 0; line-height: 1.6;">
+                The question: If you're conducting early-stage research, can synthetic interviews give you useful insights—or will they lead you astray? We measured thematic coverage, emotional tone, specificity, and linguistic authenticity to find out.
+            </p>
+        </section>
+        
+        <!-- Introduction & Goals -->
+        <section>
+            <h2>About This Evaluation</h2>
+            <div class="executive-summary">
+                <p><strong>Goal:</strong> This evaluation seeks to add insight to a fundamental question for modern research practice: <em>Can synthetic (AI-generated) qualitative research reliably represent real human perspectives?</em> We compared 10 synthetic interview transcripts, generated from detailed personas using an LLM, against 10 genuine human interview transcripts from the same research study on financial management behaviours.</p>
+            </div>
+            
+            <h3>What We Evaluated</h3>
+            <div class="stat-grid" style="margin-bottom: 1rem;">
+                <div class="stat-card" style="text-align: left;">
+                    <div class="stat-label" style="font-weight: 600; color: var(--text-primary);">Thematic Coverage</div>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.25rem;">Do synthetic responses discuss the same topics and themes that emerge naturally in human interviews?</p>
+                </div>
+                <div class="stat-card" style="text-align: left;">
+                    <div class="stat-label" style="font-weight: 600; color: var(--text-primary);">Sentiment & Emotion</div>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.25rem;">Do synthetic responses exhibit realistic emotional tones and variance, or do they trend towards neutrality?</p>
+                </div>
+                <div class="stat-card" style="text-align: left;">
+                    <div class="stat-label" style="font-weight: 600; color: var(--text-primary);">Specificity & Detail</div>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.25rem;">Do synthetic responses include concrete examples, named entities, and specific details like humans do?</p>
+                </div>
+                <div class="stat-card" style="text-align: left;">
+                    <div class="stat-label" style="font-weight: 600; color: var(--text-primary);">Linguistic Authenticity</div>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.25rem;">Do synthetic responses sound natural, with hesitations, varied vocabulary, and conversational patterns?</p>
+                </div>
+            </div>
+            
+            <h3>Why This Matters</h3>
+            <p style="font-size: 0.8125rem; color: var(--text-secondary);">Qualitative research is resource-intensive—recruiting participants, conducting interviews, and analysing transcripts takes significant time and budget. If synthetic research can reliably capture human perspectives, it could accelerate early-stage research, enable rapid hypothesis testing, and supplement smaller human samples. However, if synthetic responses systematically differ from human ones, using them could lead to flawed insights and misguided product decisions. This evaluation provides an evidence-based assessment of where synthetic research excels and where it falls short.</p>
+        </section>
+        
+        <!-- Key Outcomes -->
+        <section>
+            <h2>Key Outcomes</h2>
+            
+            <!-- Overall Score -->
+            <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                <div class="fidelity-hero" style="margin: 0; padding: 1rem 1.5rem; flex: 0 0 auto;">
+                    <div class="fidelity-label">Fidelity Score</div>
+                    <div class="fidelity-score">85.1<span style="font-size: 1rem; color: var(--text-secondary);">/100</span></div>
+                </div>
+                <div style="flex: 1; min-width: 250px;">
+                    <p style="font-weight: 600; color: var(--success); margin-bottom: 0.25rem;">Excellent Fidelity</p>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0;">In this evaluattion the synthetic research closely mirrors human patterns. The overall quality is high enough to be useful for certain research applications.</p>
+                </div>
+            </div>
+            
+            <!-- Outcomes Table -->
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">Dimension</th>
+                            <th style="text-align: center; width: 12%; color: var(--human-color);">Human</th>
+                            <th style="text-align: center; width: 12%; color: var(--synthetic-color);">Synthetic</th>
+                            <th style="text-align: center; width: 12%;">Verdict</th>
+                            <th>Interpretation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 600;">Thematic Coverage</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">Theme correlation (r)</div>
+                            </td>
+                            <td style="text-align: center;" colspan="2">
+                                <span style="font-size: 1.25rem; font-weight: 600;">0.80</span>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">16/18 themes shared</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="badge" style="background: #d1fae5; color: #065f46;">Strong</span>
+                            </td>
+                            <td style="color: var(--text-secondary);">
+                                Synthetic reliably identifies the same core topics. <strong style="color: var(--text-primary);">Trust it for initial theme exploration.</strong>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 600;">Sentiment & Emotion</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">Average sentiment (-1 to +1)</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-size: 1.25rem; font-weight: 600; color: var(--human-color);">0.15</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-size: 1.25rem; font-weight: 600; color: var(--synthetic-color);">0.14</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="badge" style="background: #d1fae5; color: #065f46;">Match</span>
+                            </td>
+                            <td style="color: var(--text-secondary);">
+                                Nearly identical emotional tone. <strong style="color: var(--text-primary);">Neither overly positive nor artificially neutral.</strong>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 600;">Specificity & Detail</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">Specificity score (0-10)</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-size: 1.25rem; font-weight: 600; color: var(--human-color);">9.5</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-size: 1.25rem; font-weight: 600; color: var(--synthetic-color);">9.3</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="badge" style="background: #d1fae5; color: #065f46;">Match</span>
+                            </td>
+                            <td style="color: var(--text-secondary);">
+                                Both highly specific. <strong style="color: var(--text-primary);">Synthetic provides concrete answers, not vague generalisations.</strong>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 600;">Linguistic Authenticity</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">Hesitation markers (avg)</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-size: 1.25rem; font-weight: 600; color: var(--human-color);">168</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-size: 1.25rem; font-weight: 600; color: var(--synthetic-color);">40</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="badge" style="background: #fef3c7; color: #92400e;">Gap</span>
+                            </td>
+                            <td style="color: var(--text-secondary);">
+                                Synthetic is 4× more polished. <strong style="color: var(--text-primary);">Lacks natural "ums" and conversational hesitations.</strong>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Key Gaps Table -->
+            <h3 style="margin-top: 1.5rem;">Where The Synthetic Research Falls Short</h3>
+            <div style="overflow-x: auto; margin-top: 0.75rem;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Gap Type</th>
+                            <th style="text-align: center; color: var(--human-color);">Human</th>
+                            <th style="text-align: center; color: var(--synthetic-color);">Synthetic</th>
+                            <th>Impact</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 500;">Generational Perspectives</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">Financial model shifts across generations</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 600; color: var(--human-color);">20%</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 600; color: var(--synthetic-color);">0%</span>
+                            </td>
+                            <td style="color: var(--text-secondary);">
+                                Completely missing intergenerational comparisons
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 500;">Cash Flow Urgency</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">Timing and cash flow pressures</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 600; color: var(--human-color);">70%</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 600; color: var(--synthetic-color);">30%</span>
+                            </td>
+                            <td style="color: var(--text-secondary);">
+                                Underrepresents real-world financial stress
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 500;">Theme Intensity</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">Coverage depth per theme</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 600; color: var(--human-color);">1×</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 600; color: var(--synthetic-color);">2-4×</span>
+                            </td>
+                            <td style="color: var(--text-secondary);">
+                                Over-covers themes vs natural human depth
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Bottom Line -->
+            <div class="interpretation-box" style="margin-top: 1rem;">
+                <p style="margin: 0;"><strong>Bottom Line:</strong> In this case, it appears that synthetic research is a strong complement for theme exploration and hypothesis generation, but human research remains essential for capturing generational perspectives, real-world urgency, and authentic conversational nuance.</p>
+            </div>
+        </section>
+        
+        <!-- Key Metrics Comparison -->
+        <section>
+            <h2>Key Metrics at a Glance</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.8125rem;">Side-by-side comparison of human and synthetic research metrics</p>
+            
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th style="text-align: center; color: var(--human-color);">Human</th>
+                            <th style="text-align: center; color: var(--synthetic-color);">Synthetic</th>
+                            <th style="text-align: center;">Difference</th>
+                            <th style="text-align: center;">Verdict</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 500;">Theme Correlation</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">Pearson r coefficient</div>
+                            </td>
+                            <td style="text-align: center;" colspan="2">
+                                <span style="font-weight: 600;">0.80</span>
+                            </td>
+                            <td style="text-align: center;">—</td>
+                            <td style="text-align: center;">
+                                <span class="badge" style="background: #d1fae5; color: #065f46;">Strong</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 500;">Average Sentiment</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">-1 (negative) to +1 (positive)</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 600; color: var(--human-color);">0.15</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 600; color: var(--synthetic-color);">0.14</span>
+                            </td>
+                            <td style="text-align: center; color: var(--text-secondary);">−0.01</td>
+                            <td style="text-align: center;">
+                                <span class="badge" style="background: #d1fae5; color: #065f46;">Match</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 500;">Specificity Score</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">0-10 scale</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 600; color: var(--human-color);">9.5</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 600; color: var(--synthetic-color);">9.3</span>
+                            </td>
+                            <td style="text-align: center; color: var(--text-secondary);">−0.2</td>
+                            <td style="text-align: center;">
+                                <span class="badge" style="background: #d1fae5; color: #065f46;">Match</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 500;">Named Entities</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">Avg count per transcript</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 600; color: var(--human-color);">8.8</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 600; color: var(--synthetic-color);">7.1</span>
+                            </td>
+                            <td style="text-align: center; color: var(--text-secondary);">−1.7</td>
+                            <td style="text-align: center;">
+                                <span class="badge" style="background: #fef3c7; color: #92400e;">Minor gap</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 500;">Hesitation Markers</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">um, uh, you know, like...</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 600; color: var(--human-color);">168</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 600; color: var(--synthetic-color);">40</span>
+                            </td>
+                            <td style="text-align: center; color: var(--warning); font-weight: 600;">−76%</td>
+                            <td style="text-align: center;">
+                                <span class="badge" style="background: #fef3c7; color: #92400e;">Large gap</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 500;">Vocabulary Diversity</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">Type-token ratio</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 600; color: var(--human-color);">0.22</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 600; color: var(--synthetic-color);">0.29</span>
+                            </td>
+                            <td style="text-align: center; color: var(--text-secondary);">+32%</td>
+                            <td style="text-align: center;">
+                                <span class="badge" style="background: #f3f4f6; color: #374151;">Synthetic higher</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 500;">Avg Sentence Length</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">Words per sentence</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 600; color: var(--human-color);">17.7</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <span style="font-weight: 600; color: var(--synthetic-color);">14.3</span>
+                            </td>
+                            <td style="text-align: center; color: var(--text-secondary);">−19%</td>
+                            <td style="text-align: center;">
+                                <span class="badge" style="background: #f3f4f6; color: #374151;">Synthetic concise</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        
+        <!-- Thematic Analysis -->
+        <section>
+            <h2>Thematic Analysis</h2>
+            
+            <!-- Chart 1: Radar Chart -->
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.75rem;"><strong style="color: var(--text-primary);">Thematic Coverage Comparison:</strong> This radar chart shows the prevalence of each theme across human and synthetic transcripts. Areas where the shapes overlap indicate strong thematic alignment; divergent areas highlight where synthetic research may over- or under-represent topics.</p>
+            
+            <div class="chart-row">
+                <div class="chart-container">
+                    <div style="width: 100%;">
+                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+                        <script src="https://cdn.plot.ly/plotly-2.12.1.min.js"></script>                
+                        <div id="d214cf82-ad20-4ee3-8cb6-a0802bdc9edf" class="plotly-graph-div" style="height:650px; width:100%; min-width: 700px;"></div>            <script type="text/javascript">                                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("d214cf82-ad20-4ee3-8cb6-a0802bdc9edf")) {                    Plotly.newPlot(                        "d214cf82-ad20-4ee3-8cb6-a0802bdc9edf",                        [{"fill":"toself","fillcolor":"rgba(59, 130, 246, 0.3)","line":{"color":"#3b82f6","width":2},"marker":{"size":8},"name":"Human","r":[100.0,100.0,90.0,90.0,80.0,70.0,70.0,60.0,60.0,60.0,100.0],"theta":["Multi-Account Organisation","Mobile Banking Dependency","Customisation Need","Time Horizon Thinking","Purpose-Based Organisation","Cash Flow Management","Detailed Control","Rate Chasing","Visual Money Models","Psychological Comfort","Multi-Account Organisation"],"type":"scatterpolar"},{"fill":"toself","fillcolor":"rgba(239, 68, 68, 0.3)","line":{"color":"#ef4444","width":2},"marker":{"size":8},"name":"Synthetic","r":[100.0,80.0,100.0,90.0,100.0,30.0,70.0,40.0,80.0,100.0,100.0],"theta":["Multi-Account Organisation","Mobile Banking Dependency","Customisation Need","Time Horizon Thinking","Purpose-Based Organisation","Cash Flow Management","Detailed Control","Rate Chasing","Visual Money Models","Psychological Comfort","Multi-Account Organisation"],"type":"scatterpolar"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmapgl":[{"type":"heatmapgl","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"polar":{"radialaxis":{"visible":true,"range":[0,100],"ticksuffix":"%","gridcolor":"#e5e7eb","linecolor":"#e5e7eb"},"angularaxis":{"gridcolor":"#e5e7eb","linecolor":"#e5e7eb"},"bgcolor":"white"},"showlegend":true,"width":700,"height":600,"font":{"family":"Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif","color":"#1f2937"},"title":{"font":{"size":20,"color":"#1f2937"},"text":"Thematic Coverage Comparison","x":0.5,"xanchor":"center"},"margin":{"t":80,"b":60,"l":60,"r":40},"legend":{"orientation":"h","yanchor":"bottom","y":1.02,"xanchor":"center","x":0.5,"bgcolor":"rgba(255,255,255,0.8)"},"paper_bgcolor":"white","plot_bgcolor":"white"},                        {"responsive": true}                    )                };                            </script>        </div>
+                </div>
+            </div>
+            
+            <!-- Chart 2: Correlation Scatter -->
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.75rem; margin-top: 1.5rem;"><strong style="color: var(--text-primary);">Theme Prevalence Correlation:</strong> Each point represents a theme—its position shows how often it appeared in human (x-axis) vs synthetic (y-axis) transcripts. Points near the diagonal line indicate strong correlation. Points far from the line show themes where synthetic research diverges from human patterns.</p>
+            
+            <div class="chart-row">
+                <div class="chart-container">
+                    <div style="width: 100%;">                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script src="https://cdn.plot.ly/plotly-2.12.1.min.js"></script>                <div id="16a22408-c8d9-46cc-86e9-803a5f9fd643" class="plotly-graph-div" style="height:600px; width:100%; min-width: 700px;"></div>            <script type="text/javascript">                                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("16a22408-c8d9-46cc-86e9-803a5f9fd643")) {                    Plotly.newPlot(                        "16a22408-c8d9-46cc-86e9-803a5f9fd643",                        [{"hovertemplate":"<b>%{text}</b><br>Human: %{x:.1f}%<br>Synthetic: %{y:.1f}%<extra></extra>","marker":{"color":"#3b82f6","line":{"color":"white","width":2},"size":12},"mode":"markers+text","showlegend":false,"text":["Purpose-Based Organisation","Rate Chasing","Multi-Account Organisation","Economic Uncertainty","Cash Flow Management","Visual Money Models","Joint/Separate Accounts","Mobile Banking Dependency","Spending Insights","Detailed Control","Financial Stress","Generational Shifts","Psychological Comfort","Customisation Need","Flexible Credit","Inflation Concerns","Time Horizon Thinking","Automation Balance"],"textfont":{"size":9},"textposition":"top center","x":[80.0,60.0,100.0,30.0,70.0,60.0,10.0,100.0,50.0,70.0,50.0,20.0,60.0,90.0,40.0,0.0,90.0,30.0],"y":[100.0,40.0,100.0,10.0,30.0,80.0,20.0,80.0,20.0,70.0,50.0,0.0,100.0,100.0,20.0,20.0,90.0,50.0],"type":"scatter"},{"line":{"color":"#6b7280","dash":"dash","width":1},"mode":"lines","name":"Perfect Correlation","showlegend":true,"x":[0,100.0],"y":[0,100.0],"type":"scatter"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmapgl":[{"type":"heatmapgl","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"annotations":[{"bgcolor":"white","bordercolor":"#e5e7eb","borderwidth":1,"font":{"color":"#1f2937","size":16},"showarrow":false,"text":"r = 0.80","x":0.95,"xref":"paper","y":0.05,"yref":"paper"}],"xaxis":{"title":{"text":"Human Prevalence (%)"},"gridcolor":"#e5e7eb","zerolinecolor":"#e5e7eb","range":[0,110.00000000000001]},"yaxis":{"title":{"text":"Synthetic Prevalence (%)"},"gridcolor":"#e5e7eb","zerolinecolor":"#e5e7eb","range":[0,110.00000000000001]},"width":650,"height":550,"font":{"family":"Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif","color":"#1f2937"},"title":{"font":{"size":20,"color":"#1f2937"},"text":"Theme Prevalence Correlation","x":0.5,"xanchor":"center"},"margin":{"t":80,"b":60,"l":60,"r":40},"legend":{"orientation":"h","yanchor":"bottom","y":1.02,"xanchor":"center","x":0.5,"bgcolor":"rgba(255,255,255,0.8)"},"paper_bgcolor":"white","plot_bgcolor":"white"},                        {"responsive": true}                    )                };                            </script>        </div>
+                </div>
+            </div>
+            
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.5rem;"><strong>Interpretation:</strong> Strong positive correlation - synthetic themes closely match human distribution</p>
+            
+            <h3>Theme Breakdown</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Theme</th>
+                        <th>Source</th>
+                        <th>Human %</th>
+                        <th>Synthetic %</th>
+                        <th>Difference</th>
+                    </tr>
+                </thead>
+                <tbody>
+  
+                    <tr>
+                        <td>Purpose-Based Money Organisation</td>
+                        <td><span class="badge both">both</span></td>
+                        <td>80.0%</td>
+                        <td>100.0%</td>
+                        <td>-20.0%</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>Interest Rate Chasing and Account Switching</td>
+                        <td><span class="badge both">both</span></td>
+                        <td>60.0%</td>
+                        <td>40.0%</td>
+                        <td>20.0%</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>Multi-Account Financial Organisation</td>
+                        <td><span class="badge both">both</span></td>
+                        <td>100.0%</td>
+                        <td>100.0%</td>
+                        <td>0.0%</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>Economic Uncertainty and Financial Anxiety</td>
+                        <td><span class="badge both">both</span></td>
+                        <td>30.0%</td>
+                        <td>10.0%</td>
+                        <td>20.0%</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>Timing and Cash Flow Management</td>
+                        <td><span class="badge both">both</span></td>
+                        <td>70.0%</td>
+                        <td>30.0%</td>
+                        <td>40.0%</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>Visual and Spatial Money Management Models</td>
+                        <td><span class="badge both">both</span></td>
+                        <td>60.0%</td>
+                        <td>80.0%</td>
+                        <td>-20.0%</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>Joint and Separate Account Management</td>
+                        <td><span class="badge both">both</span></td>
+                        <td>10.0%</td>
+                        <td>20.0%</td>
+                        <td>-10.0%</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>Mobile Banking App Dependency</td>
+                        <td><span class="badge both">both</span></td>
+                        <td>100.0%</td>
+                        <td>80.0%</td>
+                        <td>20.0%</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>Automated Spending Insights and Analytics</td>
+                        <td><span class="badge both">both</span></td>
+                        <td>50.0%</td>
+                        <td>20.0%</td>
+                        <td>30.0%</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>Preference for Detailed Control and Tracking</td>
+                        <td><span class="badge both">both</span></td>
+                        <td>70.0%</td>
+                        <td>70.0%</td>
+                        <td>0.0%</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>Financial Stress and Constant Mental Load</td>
+                        <td><span class="badge both">both</span></td>
+                        <td>50.0%</td>
+                        <td>50.0%</td>
+                        <td>0.0%</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>Generational Financial Model Shifts</td>
+                        <td><span class="badge human">human</span></td>
+                        <td>20.0%</td>
+                        <td>0.0%</td>
+                        <td>20.0%</td>
+                    </tr>
+                    
+                </tbody>
+            </table>
+        </section>
+        
+        <!-- Sentiment Analysis -->
+        <section>
+            <h2>Sentiment Analysis</h2>
+            
+            <!-- Chart 3: Sentiment Box Plot -->
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.75rem;"><strong style="color: var(--text-primary);">Sentiment Distribution:</strong> Box plots showing the range of emotional tones across all transcripts. The left chart compares overall sentiment scores (-1 = negative, +1 = positive). The right chart shows within-transcript variance—high variance indicates the respondent expressed a mix of positive and negative sentiments.</p>
+            
+            <div class="chart-container">
+                <div style="width: 100%;">                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script src="https://cdn.plot.ly/plotly-2.12.1.min.js"></script>                <div id="e4a38a9e-366f-4f76-9b67-6a24a790b003" class="plotly-graph-div" style="height:500px; width:100%; min-width: 800px;"></div>            <script type="text/javascript">                                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("e4a38a9e-366f-4f76-9b67-6a24a790b003")) {                    Plotly.newPlot(                        "e4a38a9e-366f-4f76-9b67-6a24a790b003",                        [{"boxmean":"sd","marker":{"color":"#3b82f6"},"name":"Human","showlegend":true,"y":[0.1,-0.1,0.4,0.1,0.1,0.1,-0.2,0.3,0.3,0.4],"type":"box","xaxis":"x","yaxis":"y"},{"boxmean":"sd","marker":{"color":"#ef4444"},"name":"Synthetic","showlegend":true,"y":[0.3,-0.3,0.3,0.4,-0.1,-0.4,0.4,0.4,0.1,0.3],"type":"box","xaxis":"x","yaxis":"y"},{"boxmean":"sd","marker":{"color":"#3b82f6"},"name":"Human","showlegend":false,"y":[0.028,0.027,0.037,0.042,0.016,0.141,0.089,0.047,0.077,0.024],"type":"box","xaxis":"x2","yaxis":"y2"},{"boxmean":"sd","marker":{"color":"#ef4444"},"name":"Synthetic","showlegend":false,"y":[0.015,0.212,0.038,0.031,0.069,0.198,0.026,0.04,0.046,0.024],"type":"box","xaxis":"x2","yaxis":"y2"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmapgl":[{"type":"heatmapgl","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,0.44]},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"Sentiment (-1 to +1)"},"gridcolor":"#e5e7eb"},"xaxis2":{"anchor":"y2","domain":[0.56,1.0]},"yaxis2":{"anchor":"x2","domain":[0.0,1.0],"title":{"text":"Variance"},"gridcolor":"#e5e7eb"},"annotations":[{"font":{"size":16},"showarrow":false,"text":"Overall Sentiment Score","x":0.22,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"Within-Transcript Variance","x":0.78,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"}],"width":800,"height":450,"showlegend":true,"font":{"family":"Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif","color":"#1f2937"},"title":{"font":{"size":20,"color":"#1f2937"},"text":"Sentiment Distribution Comparison","x":0.5,"xanchor":"center"},"margin":{"t":80,"b":60,"l":60,"r":40},"legend":{"orientation":"h","yanchor":"bottom","y":1.02,"xanchor":"center","x":0.5,"bgcolor":"rgba(255,255,255,0.8)"},"paper_bgcolor":"white","plot_bgcolor":"white"},                        {"responsive": true}                    )                };                            </script>        </div>
+            </div>
+            
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.5rem;"><strong>Interpretation:</strong> Overall sentiment levels are similar. Synthetic shows more emotional variation than human</p>
+        </section>
+        
+        <!-- Specificity Analysis -->
+        <section>
+            <h2>Specificity & Concreteness</h2>
+            
+            <!-- Chart 4: Specificity Bar Chart -->
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.75rem;"><strong style="color: var(--text-primary);">Specificity Comparison:</strong> Measures how concrete and detailed the responses are. Specificity score (0-10) assesses whether responses include specific examples vs vague generalisations. Named entities count tracks mentions of specific brands, products, people, or places.</p>
+            
+            <div class="chart-row">
+                <div class="chart-container">
+                    <div style="width: 100%;">                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script src="https://cdn.plot.ly/plotly-2.12.1.min.js"></script>                <div id="f374b370-450a-4ce2-978a-80f6d01bc857" class="plotly-graph-div" style="height:450px; width:100%; min-width: 600px;"></div>            <script type="text/javascript">                                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("f374b370-450a-4ce2-978a-80f6d01bc857")) {                    Plotly.newPlot(                        "f374b370-450a-4ce2-978a-80f6d01bc857",                        [{"marker":{"color":"#3b82f6"},"name":"Human","text":["9.5","8.8"],"textposition":"outside","x":["Specificity Score\n(0-10)","Named Entities\n(avg count)"],"y":[9.47,8.8],"type":"bar"},{"marker":{"color":"#ef4444"},"name":"Synthetic","text":["9.3","7.1"],"textposition":"outside","x":["Specificity Score\n(0-10)","Named Entities\n(avg count)"],"y":[9.26,7.1],"type":"bar"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmapgl":[{"type":"heatmapgl","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"tickangle":0},"yaxis":{"title":{"text":"Value"},"gridcolor":"#e5e7eb"},"barmode":"group","width":550,"height":400,"font":{"family":"Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif","color":"#1f2937"},"title":{"font":{"size":20,"color":"#1f2937"},"text":"Specificity Comparison","x":0.5,"xanchor":"center"},"margin":{"t":80,"b":60,"l":60,"r":40},"legend":{"orientation":"h","yanchor":"bottom","y":1.02,"xanchor":"center","x":0.5,"bgcolor":"rgba(255,255,255,0.8)"},"paper_bgcolor":"white","plot_bgcolor":"white"},                        {"responsive": true}                    )                };                            </script>        </div>
+                </div>
+            </div>
+            
+            <!-- Chart 5: Linguistic Markers -->
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.75rem; margin-top: 1.5rem;"><strong style="color: var(--text-primary);">Linguistic Markers:</strong> Measures natural speech patterns. Hesitation markers ("um", "uh", "you know") indicate authentic conversation. Vocabulary diversity measures word variety. Sentence length shows conciseness. Large gaps suggest synthetic text lacks conversational naturalness.</p>
+            
+            <div class="chart-row">
+                <div class="chart-container">
+                    <div style="width: 100%;">                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script src="https://cdn.plot.ly/plotly-2.12.1.min.js"></script>                <div id="a730a275-248a-4ce3-92c2-b493160624dc" class="plotly-graph-div" style="height:450px; width:100%; min-width: 700px;"></div>            <script type="text/javascript">                                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("a730a275-248a-4ce3-92c2-b493160624dc")) {                    Plotly.newPlot(                        "a730a275-248a-4ce3-92c2-b493160624dc",                        [{"marker":{"color":"#3b82f6"},"name":"Human","text":["167.9","21.7","17.7"],"textposition":"outside","x":["Hesitation Markers","Vocab Diversity","Avg Sentence Length"],"y":[167.9,21.7,17.7],"type":"bar"},{"marker":{"color":"#ef4444"},"name":"Synthetic","text":["40.3","29.3","14.3"],"textposition":"outside","x":["Hesitation Markers","Vocab Diversity","Avg Sentence Length"],"y":[40.3,29.299999999999997,14.3],"type":"bar"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmapgl":[{"type":"heatmapgl","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"tickangle":0},"yaxis":{"title":{"text":"Value"},"gridcolor":"#e5e7eb"},"barmode":"group","width":600,"height":400,"font":{"family":"Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif","color":"#1f2937"},"title":{"font":{"size":20,"color":"#1f2937"},"text":"Linguistic Markers Comparison","x":0.5,"xanchor":"center"},"margin":{"t":80,"b":60,"l":60,"r":40},"legend":{"orientation":"h","yanchor":"bottom","y":1.02,"xanchor":"center","x":0.5,"bgcolor":"rgba(255,255,255,0.8)"},"paper_bgcolor":"white","plot_bgcolor":"white","annotations":[{"font":{"color":"#6b7280","size":10},"showarrow":false,"text":"Note: Vocabulary Diversity scaled by 100\u00d7 for visibility","x":0.5,"xref":"paper","y":-0.15,"yref":"paper"}]},                        {"responsive": true}                    )                };                            </script>        </div>
+                </div>
+            </div>
+            
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.5rem;"><strong>Interpretation:</strong> Specificity levels are comparable between sources</p>
+        </section>
+        
+        <!-- Methodology -->
+        <section>
+            <h2>Methodology & Limitations</h2>
+            
+            <h3>1. Research Context</h3>
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 1rem;">To understand which of our organising principles help people to most effectively manage their money and what that might mean for a digital experience designed around customers' mental models rather than FS verticals. The evaluation compares synthetic interview transcripts (generated from detailed personas using an LLM) against genuine human interview transcripts from the same research study.</p>
+            
+            <h3>2. Data Sources</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Corpus</th>
+                        <th>Source</th>
+                        <th>n</th>
+                        <th>Format</th>
+                        <th>Preprocessing</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Human</strong></td>
+                        <td>Real interviews conducted Nov 2025</td>
+                        <td>10</td>
+                        <td>Otter.ai transcripts (.txt)</td>
+                        <td>Speaker parsing, timestamp removal, end-of-interview detection, turn segmentation</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Synthetic</strong></td>
+                        <td>LLM-generated from detailed personas</td>
+                        <td>10</td>
+                        <td>Markdown transcripts (.md)</td>
+                        <td>Speaker marker parsing (INTERVIEWER:/PERSONA:), turn segmentation</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>3. Analysis Pipeline</h3>
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.75rem;">The evaluation followed a five-stage pipeline with strict isolation constraints:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.5rem; margin-bottom: 1rem;">
+                <div style="background: var(--bg-secondary); padding: 0.75rem; border-radius: 4px; text-align: center;">
+                    <div style="font-weight: 600; font-size: 0.8125rem;">1. Preprocessing</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Normalise transcripts</div>
+                </div>
+                <div style="background: var(--bg-secondary); padding: 0.75rem; border-radius: 4px; text-align: center;">
+                    <div style="font-weight: 600; font-size: 0.8125rem;">2. Codebook Gen</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Extract & merge themes</div>
+                </div>
+                <div style="background: var(--bg-secondary); padding: 0.75rem; border-radius: 4px; text-align: center;">
+                    <div style="font-weight: 600; font-size: 0.8125rem;">3. Individual Analysis</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Isolated per-transcript</div>
+                </div>
+                <div style="background: var(--bg-secondary); padding: 0.75rem; border-radius: 4px; text-align: center;">
+                    <div style="font-weight: 600; font-size: 0.8125rem;">4. Aggregation</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Statistical comparison</div>
+                </div>
+                <div style="background: var(--bg-secondary); padding: 0.75rem; border-radius: 4px; text-align: center;">
+                    <div style="font-weight: 600; font-size: 0.8125rem;">5. Visualisation</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Charts & report</div>
+                </div>
+            </div>
+            
+            <h3>4. Codebook Generation</h3>
+            <p style="font-size: 0.8125rem; margin-bottom: 0.5rem;">Themes were generated using a three-step isolated process to prevent corpus contamination:</p>
+            <ol style="font-size: 0.8125rem; padding-left: 1.25rem; margin-bottom: 0.75rem;">
+                <li><strong>Human theme extraction:</strong> ~8,000 word sample from human transcripts → LLM identifies 12-15 themes (isolated API call)</li>
+                <li><strong>Synthetic theme extraction:</strong> ~8,000 word sample from synthetic transcripts → LLM identifies 12-15 themes (separate isolated API call)</li>
+                <li><strong>Codebook merge:</strong> Both theme sets merged by LLM, combining overlapping concepts and preserving unique themes with source attribution</li>
+            </ol>
+            <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.75rem;"><strong>Model:</strong> Claude claude-sonnet-4-20250514 | <strong>Temperature:</strong> 0.3 (analytical) | <strong>Final codebook:</strong> 18 themes</p>
+            
+            <h3>5. Individual Transcript Analysis</h3>
+            <p style="font-size: 0.8125rem; margin-bottom: 0.5rem;"><strong>Critical design principle:</strong> Each transcript was analysed in complete isolation to prevent context contamination. Only the master codebook was shared across analyses—no information from one transcript influenced analysis of another.</p>
+            
+            <table style="margin-bottom: 0.75rem;">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Metric</th>
+                        <th style="width: 20%;">Method</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Thematic Coding</strong></td>
+                        <td>LLM (Claude)</td>
+                        <td>For each theme in codebook, identify: which turns contain it, estimated word count, example quotes. Produces theme prevalence (% of transcripts) and coverage (% of transcript devoted to theme).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sentiment Scoring</strong></td>
+                        <td>LLM (Claude)</td>
+                        <td>Score each participant turn on scale of -1 (very negative) to +1 (very positive). Calculate overall mean and within-transcript variance (σ²) to measure emotional range.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Specificity Score</strong></td>
+                        <td>LLM (Claude)</td>
+                        <td>Composite 0-10 score based on: named entities (max 3 pts), specific examples (max 4 pts), personal anecdotes (max 3 pts). Formula: <code>min(entities/3, 3) + min(examples/2, 4) + min(anecdotes, 3)</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Hesitation Markers</strong></td>
+                        <td>Regex (Python)</td>
+                        <td>Count occurrences of patterns: <code>\bum+\b</code>, <code>\buh+\b</code>, <code>\berm+\b</code>, <code>\byou know\b</code>, <code>\bkind of\b</code>, <code>\bsort of\b</code>, <code>\bi mean\b</code>, <code>\blike\b</code>, <code>\bbasically\b</code>, <code>\bactually\b</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Vocabulary Diversity</strong></td>
+                        <td>Python calculation</td>
+                        <td>Type-Token Ratio (TTR): <code>unique_words / total_words</code>. Higher values indicate more varied vocabulary.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sentence Length</strong></td>
+                        <td>Python calculation</td>
+                        <td>Average words per sentence, where sentences are split on <code>[.!?]+</code> patterns.</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>6. Statistical Methods</h3>
+            
+            <h4>Theme Correlation</h4>
+            <p style="font-size: 0.8125rem;">Pearson's product-moment correlation coefficient (r) calculated between human and synthetic theme prevalence vectors:</p>
+            <div style="background: var(--bg-secondary); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.75rem; margin: 0.5rem 0;">
+                r = Σ[(xᵢ - x̄)(yᵢ - ȳ)] / √[Σ(xᵢ - x̄)² × Σ(yᵢ - ȳ)²]<br><br>
+                Where x = human prevalence %, y = synthetic prevalence % for each theme
+            </div>
+            <p style="font-size: 0.75rem; color: var(--text-secondary);">Implementation: <code>scipy.stats.pearsonr()</code> | Interpretation: r ≥ 0.8 = strong, 0.6-0.8 = moderate, &lt;0.6 = weak</p>
+            
+            <h4>Group Comparisons</h4>
+            <p style="font-size: 0.8125rem;">Independent samples t-tests for sentiment and specificity scores:</p>
+            <div style="background: var(--bg-secondary); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.75rem; margin: 0.5rem 0;">
+                t = (x̄₁ - x̄₂) / √(s₁²/n₁ + s₂²/n₂)<br><br>
+                H₀: μ_human = μ_synthetic | α = 0.05 (two-tailed)
+            </div>
+            <p style="font-size: 0.75rem; color: var(--text-secondary);">Implementation: <code>scipy.stats.ttest_ind()</code> | Assumes unequal variances (Welch's t-test)</p>
+            
+            <h4>Fidelity Score Calculation</h4>
+            <p style="font-size: 0.8125rem;">Composite score (0-100) calculated as weighted sum of four dimensions:</p>
+            <table style="margin: 0.5rem 0;">
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Weight</th>
+                        <th>Formula</th>
+                        <th>Max Points</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Thematic</td>
+                        <td>40%</td>
+                        <td><code>max(0, (r + 0.2) / 1.2) × 40</code></td>
+                        <td>40</td>
+                    </tr>
+                    <tr>
+                        <td>Sentiment</td>
+                        <td>20%</td>
+                        <td><code>max(0, (1 - |mean_diff|)) × 20</code></td>
+                        <td>20</td>
+                    </tr>
+                    <tr>
+                        <td>Specificity</td>
+                        <td>20%</td>
+                        <td><code>max(0, (1 - |score_diff| / 10)) × 20</code></td>
+                        <td>20</td>
+                    </tr>
+                    <tr>
+                        <td>Linguistic</td>
+                        <td>20%</td>
+                        <td><code>min(synth_hesit / human_hesit, 1) × 10 + 10</code></td>
+                        <td>20</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="font-size: 0.75rem; color: var(--text-secondary);"><strong>Note:</strong> The weighting scheme prioritises thematic alignment (40%) as the primary measure of research validity, with sentiment, specificity, and linguistic markers each contributing 20%.</p>
+            
+            <h3>7. Limitations & Caveats</h3>
+            
+            <div class="interpretation-box warning" style="margin-bottom: 0.75rem;">
+                <p style="margin: 0;"><strong>Critical Limitation - Sample Size:</strong> With n=10 per group, statistical tests have low power (~0.3-0.4 for medium effects). P-values should be interpreted with extreme caution. This analysis is best viewed as exploratory/descriptive rather than confirmatory.</p>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 22%;">Limitation</th>
+                        <th style="width: 12%;">Severity</th>
+                        <th>Implications</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>LLM-on-LLM Evaluation</strong></td>
+                        <td><span class="badge" style="background: #fee2e2; color: #991b1b;">High</span></td>
+                        <td>Claude is evaluating content generated by Claude (or similar models). The model may systematically rate AI-generated text more favourably, recognise patterns it would generate, or have blind spots for AI-specific artefacts.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Small Sample Size</strong></td>
+                        <td><span class="badge" style="background: #fee2e2; color: #991b1b;">High</span></td>
+                        <td>n=10 per group is insufficient for robust statistical inference. Confidence intervals are wide; results may not replicate. Individual outliers have outsized influence.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Domain Specificity</strong></td>
+                        <td><span class="badge" style="background: #fef3c7; color: #92400e;">Medium</span></td>
+                        <td>Findings are specific to personal finance/banking research. Synthetic research may perform differently in other domains (healthcare, technology, sensitive topics).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Persona Design</strong></td>
+                        <td><span class="badge" style="background: #fef3c7; color: #92400e;">Medium</span></td>
+                        <td>Synthetic transcript quality depends heavily on persona design. Results reflect this specific set of personas; different persona approaches may yield different fidelity.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Fidelity Score Weights</strong></td>
+                        <td><span class="badge" style="background: #e0e7ff; color: #3730a3;">Low</span></td>
+                        <td>The 40/20/20/20 weighting scheme is a design choice. Different weightings would produce different overall scores. Individual component scores may be more useful.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Linguistic Markers</strong></td>
+                        <td><span class="badge" style="background: #e0e7ff; color: #3730a3;">Low</span></td>
+                        <td>Hesitation markers are counted via simple regex patterns. Human transcripts from Otter.ai may capture these more faithfully than intentional text generation would.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sentiment Scale</strong></td>
+                        <td><span class="badge" style="background: #e0e7ff; color: #3730a3;">Low</span></td>
+                        <td>Sentiment is scored by LLM on a -1 to +1 scale without calibration against established sentiment analysis tools. Inter-rater reliability not assessed.</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>8. Reproducibility</h3>
+            <p style="font-size: 0.8125rem; margin-bottom: 0.5rem;"><strong>Technical Details:</strong></p>
+            <ul style="font-size: 0.8125rem; margin: 0 0 0.75rem 0; padding-left: 1.25rem; color: var(--text-secondary);">
+                <li><strong>Model:</strong> claude-sonnet-4-20250514 (Anthropic Claude)</li>
+                <li><strong>Temperature:</strong> 0.3 for all analytical tasks (deterministic-leaning)</li>
+                <li><strong>Total API tokens:</strong> ~223,000 (input + output combined)</li>
+                <li><strong>Statistical library:</strong> SciPy 1.x (numpy for array operations)</li>
+                <li><strong>All individual analyses saved:</strong> JSON files in <code>results/evaluation_*/individual_analyses/</code></li>
+                <li><strong>Intermediate codebook outputs saved:</strong> Raw theme extractions before merge preserved</li>
+            </ul>
+        </section>
+    </div>
+    
+    <footer>
+        <p>Generated on 06 December 2025 using the Human vs Synthetic Evaluation Framework</p>
+        <p>Model: claude-sonnet-4-20250514 | Total API Tokens: 223,029</p>
+    </footer>
+</body>
+</html>

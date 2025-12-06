@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Product Aggregation Prototype</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            overflow: hidden;
+            cursor: grab;
+        }
+
+        body.dragging {
+            cursor: grabbing;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .instructions {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+            max-width: 300px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .instructions h3 {
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .instructions p {
+            color: #666;
+            margin: 4px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div class="instructions">
+        <h3>Product Aggregation</h3>
+        <p>• Drag blocks to move them</p>
+        <p>• Blocks connect when close (20px)</p>
+        <p>• Release to glue blocks together</p>
+        <p>• Click membrane to disconnect</p>
+        <p>• See totals above grouped blocks</p>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.181.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.181.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+
+        // Product types with sample data
+        const PRODUCT_TYPES = [
+            { name: 'Current Account', rate: '4.75% AER', access: 'Access anytime', balance: 12450.25 },
+            { name: 'House Bills Pot', rate: '3.20% AER', access: 'Monthly access', balance: 3200.00 },
+            { name: 'Credit Card', rate: '0% APR', access: 'Pay monthly', balance: -1250.50 },
+            { name: 'Regular Saver', rate: '5.50% AER', access: 'Fixed term', balance: 8500.00 },
+            { name: 'Boosted Pot', rate: '6.00% AER', access: 'Limited access', balance: 5600.75 },
+            { name: 'Fixed Term Pot', rate: '5.25% AER', access: 'Locked until 2026', balance: 15000.00 },
+            { name: 'Home Improvements', rate: '4.00% AER', access: 'Savings goal', balance: 4200.00 },
+            { name: 'Loan', rate: '7.50% APR', access: 'Monthly repayment', balance: -8500.00 },
+            { name: 'Car Loan', rate: '6.90% APR', access: 'Monthly repayment', balance: -12000.00 },
+            { name: 'Mortgage', rate: '3.75% APR', access: 'Monthly repayment', balance: -185000.00 }
+        ];
+
+        // Scene setup
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf5f5f5);
+        const camera = new THREE.OrthographicCamera(
+            window.innerWidth / -2, window.innerWidth / 2,
+            window.innerHeight / 2, window.innerHeight / -2,
+            1, 1000
+        );
+        camera.position.z = 100;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Product blocks
+        class ProductBlock {
+            constructor(product, x, y) {
+                this.product = product;
+                this.group = null; // Will be set when grouped
+                this.connected = new Set(); // Blocks currently connected (metaball)
+                this.glued = new Set(); // Blocks permanently glued
+                this.position = new THREE.Vector2(x, y);
+                this.velocity = new THREE.Vector2(0, 0);
+                this.dragging = false;
+                this.dragOffset = new THREE.Vector2(0, 0);
+                this.width = 280;
+                this.height = 180;
+                this.radius = 12; // Corner radius
+
+                this.createMesh();
+            }
+
+            createMesh() {
+                // Create card shape with rounded corners
+                const shape = new THREE.Shape();
+                const w = this.width;
+                const h = this.height;
+                const r = this.radius;
+
+                shape.moveTo(-w/2 + r, -h/2);
+                shape.lineTo(w/2 - r, -h/2);
+                shape.quadraticCurveTo(w/2, -h/2, w/2, -h/2 + r);
+                shape.lineTo(w/2, h/2 - r);
+                shape.quadraticCurveTo(w/2, h/2, w/2 - r, h/2);
+                shape.lineTo(-w/2 + r, h/2);
+                shape.quadraticCurveTo(-w/2, h/2, -w/2, h/2 - r);
+                shape.lineTo(-w/2, -h/2 + r);
+                shape.quadraticCurveTo(-w/2, -h/2, -w/2 + r, -h/2);
+
+                const geometry = new THREE.ShapeGeometry(shape);
+                const material = new THREE.MeshBasicMaterial({
+                    color: 0xffffff,
+                    side: THREE.DoubleSide
+                });
+                this.mesh = new THREE.Mesh(geometry, material);
+                this.mesh.position.set(this.position.x, this.position.y, 0);
+
+                // Add text
+                this.createText();
+                scene.add(this.mesh);
+            }
+
+            createText() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 256;
+                canvas.height = 256;
+
+                // Title
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto';
+                ctx.textAlign = 'center';
+                ctx.fillText(this.product.name, 128, 60);
+
+                // Rate
+                ctx.fillStyle = '#666';
+                ctx.font = '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto';
+                ctx.fillText(this.product.rate, 128, 90);
+
+                // Access
+                ctx.fillText(this.product.access, 128, 110);
+
+                // Balance
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto';
+                const balance = this.product.balance >= 0 
+                    ? `£${this.product.balance.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                    : `-£${Math.abs(this.product.balance).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                ctx.fillText(balance, 128, 150);
+
+                const texture = new THREE.CanvasTexture(canvas);
+                const textMaterial = new THREE.MeshBasicMaterial({
+                    map: texture,
+                    transparent: true
+                });
+                const textGeometry = new THREE.PlaneGeometry(this.width * 0.8, this.height * 0.8);
+                this.textMesh = new THREE.Mesh(textGeometry, textMaterial);
+                this.textMesh.position.set(this.position.x, this.position.y, 1);
+                scene.add(this.textMesh);
+            }
+
+            updatePosition() {
+                this.mesh.position.set(this.position.x, this.position.y, 0);
+                this.textMesh.position.set(this.position.x, this.position.y, 1);
+            }
+
+            getBounds() {
+                return {
+                    left: this.position.x - this.width / 2,
+                    right: this.position.x + this.width / 2,
+                    top: this.position.y + this.height / 2,
+                    bottom: this.position.y - this.height / 2
+                };
+            }
+
+            distanceTo(other) {
+                const bounds1 = this.getBounds();
+                const bounds2 = other.getBounds();
+
+                // Calculate minimum distance between rectangles
+                const dx = Math.max(0, Math.max(bounds1.left - bounds2.right, bounds2.left - bounds1.right));
+                const dy = Math.max(0, Math.max(bounds1.bottom - bounds2.top, bounds2.bottom - bounds1.top));
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+
+            getEdgePoints(other) {
+                const bounds1 = this.getBounds();
+                const bounds2 = other.getBounds();
+
+                // Find closest edges
+                const dx = bounds2.left + bounds2.right - (bounds1.left + bounds1.right);
+                const dy = bounds2.top + bounds2.bottom - (bounds1.bottom + bounds1.top);
+
+                let p1, p2;
+
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    // Horizontal connection
+                    if (dx > 0) {
+                        p1 = new THREE.Vector2(bounds1.right, this.position.y);
+                        p2 = new THREE.Vector2(bounds2.left, other.position.y);
+                    } else {
+                        p1 = new THREE.Vector2(bounds1.left, this.position.y);
+                        p2 = new THREE.Vector2(bounds2.right, other.position.y);
+                    }
+                } else {
+                    // Vertical connection
+                    if (dy > 0) {
+                        p1 = new THREE.Vector2(this.position.x, bounds1.top);
+                        p2 = new THREE.Vector2(other.position.x, bounds2.bottom);
+                    } else {
+                        p1 = new THREE.Vector2(this.position.x, bounds1.bottom);
+                        p2 = new THREE.Vector2(other.position.x, bounds2.top);
+                    }
+                }
+
+                return [p1, p2];
+            }
+        }
+
+        // Metaball connection visualization
+        class MetaballConnection {
+            constructor(block1, block2) {
+                this.block1 = block1;
+                this.block2 = block2;
+                this.glued = false;
+                this.createMesh();
+            }
+
+            createMesh() {
+                const geometry = new THREE.BufferGeometry();
+                const material = new THREE.MeshBasicMaterial({
+                    color: 0x4a90e2,
+                    transparent: true,
+                    opacity: 0.6,
+                    side: THREE.DoubleSide
+                });
+                this.mesh = new THREE.Mesh(geometry, material);
+                scene.add(this.mesh);
+            }
+
+            update() {
+                if (!this.block1 || !this.block2) return;
+
+                const [p1, p2] = this.block1.getEdgePoints(this.block2);
+                const mid = new THREE.Vector2().addVectors(p1, p2).multiplyScalar(0.5);
+                const dist = p1.distanceTo(p2);
+
+                // Create blob shape
+                const segments = 32;
+                const positions = [];
+                const indices = [];
+                const radius = Math.min(15, dist / 2);
+
+                for (let i = 0; i < segments; i++) {
+                    const angle = (i / segments) * Math.PI * 2;
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    positions.push(mid.x + x, mid.y + y, 0);
+                }
+
+                // Center point
+                positions.push(mid.x, mid.y, 0);
+
+                // Create triangles
+                for (let i = 0; i < segments; i++) {
+                    indices.push(segments, i, (i + 1) % segments);
+                }
+
+                this.mesh.geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+                this.mesh.geometry.setIndex(indices);
+                this.mesh.geometry.computeVertexNormals();
+                this.mesh.position.z = -0.5;
+
+                if (this.glued) {
+                    this.mesh.material.color.setHex(0x2ecc71);
+                    this.mesh.material.opacity = 0.8;
+                } else {
+                    this.mesh.material.color.setHex(0x4a90e2);
+                    this.mesh.material.opacity = 0.6;
+                }
+            }
+
+            containsPoint(x, y) {
+                if (!this.block1 || !this.block2) return false;
+                const [p1, p2] = this.block1.getEdgePoints(this.block2);
+                const mid = new THREE.Vector2().addVectors(p1, p2).multiplyScalar(0.5);
+                const dist = Math.sqrt((x - mid.x) ** 2 + (y - mid.y) ** 2);
+                return dist < 20;
+            }
+
+            dispose() {
+                scene.remove(this.mesh);
+                this.mesh.geometry.dispose();
+                this.mesh.material.dispose();
+            }
+        }
+
+        // Total display
+        class TotalDisplay {
+            constructor(blocks) {
+                this.blocks = blocks;
+                this.createMesh();
+            }
+
+            createMesh() {
+                const total = this.blocks.reduce((sum, b) => sum + b.product.balance, 0);
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 256;
+                canvas.height = 64;
+
+                ctx.fillStyle = '#2ecc71';
+                ctx.font = 'bold 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto';
+                ctx.textAlign = 'center';
+                const totalText = total >= 0 
+                    ? `Total: £${total.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                    : `Total: -£${Math.abs(total).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                ctx.fillText(totalText, 128, 40);
+
+                const texture = new THREE.CanvasTexture(canvas);
+                const material = new THREE.MeshBasicMaterial({
+                    map: texture,
+                    transparent: true
+                });
+                const geometry = new THREE.PlaneGeometry(200, 50);
+                this.mesh = new THREE.Mesh(geometry, material);
+                this.updatePosition();
+                scene.add(this.mesh);
+            }
+
+            updatePosition() {
+                // Position above the group
+                const positions = this.blocks.map(b => b.position);
+                const center = positions.reduce((sum, p) => sum.add(p), new THREE.Vector2())
+                    .divideScalar(positions.length);
+                
+                const maxY = Math.max(...positions.map(p => p.y));
+                const bounds = this.blocks[0].getBounds();
+                this.mesh.position.set(center.x, maxY + bounds.top - bounds.bottom + 40, 2);
+            }
+
+            dispose() {
+                scene.remove(this.mesh);
+                this.mesh.geometry.dispose();
+                this.mesh.material.dispose();
+            }
+        }
+
+        // Initialize blocks
+        const blocks = [];
+        const connections = new Map();
+        const totalDisplays = new Map();
+
+        function createBlockKey(b1, b2) {
+            return [b1, b2].map(b => blocks.indexOf(b)).sort().join('-');
+        }
+
+        // Create initial blocks in a grid
+        const cols = 4;
+        const spacing = 320;
+        const startX = -(cols - 1) * spacing / 2;
+        const startY = 200;
+
+        PRODUCT_TYPES.forEach((product, i) => {
+            const col = i % cols;
+            const row = Math.floor(i / cols);
+            const x = startX + col * spacing;
+            const y = startY - row * spacing;
+            blocks.push(new ProductBlock(product, x, y));
+        });
+
+        // Mouse/touch handling
+        let mouse = new THREE.Vector2();
+        let raycaster = new THREE.Raycaster();
+        let draggedBlock = null;
+        let isDragging = false;
+
+        function screenToWorld(x, y) {
+            const vec = new THREE.Vector3();
+            vec.set(
+                (x / window.innerWidth) * 2 - 1,
+                -(y / window.innerHeight) * 2 + 1,
+                0
+            );
+            vec.unproject(camera);
+            return new THREE.Vector2(vec.x, vec.y);
+        }
+
+        function getBlockAt(x, y) {
+            const worldPos = screenToWorld(x, y);
+            for (const block of blocks) {
+                const bounds = block.getBounds();
+                if (worldPos.x >= bounds.left && worldPos.x <= bounds.right &&
+                    worldPos.y >= bounds.bottom && worldPos.y <= bounds.top) {
+                    return block;
+                }
+            }
+            return null;
+        }
+
+        function handlePointerDown(e) {
+            const x = e.touches ? e.touches[0].clientX : e.clientX;
+            const y = e.touches ? e.touches[0].clientY : e.clientY;
+
+            // Check if clicking on a connection
+            for (const [key, conn] of connections.entries()) {
+                const worldPos = screenToWorld(x, y);
+                if (conn.containsPoint(worldPos.x, worldPos.y)) {
+                    // Disconnect
+                    const [idx1, idx2] = key.split('-').map(Number);
+                    const b1 = blocks[idx1];
+                    const b2 = blocks[idx2];
+                    b1.glued.delete(b2);
+                    b2.glued.delete(b1);
+                    conn.dispose();
+                    connections.delete(key);
+                    updateTotalDisplays();
+                    return;
+                }
+            }
+
+            const block = getBlockAt(x, y);
+            if (block) {
+                draggedBlock = block;
+                isDragging = true;
+                block.dragging = true;
+                const worldPos = screenToWorld(x, y);
+                block.dragOffset.set(
+                    worldPos.x - block.position.x,
+                    worldPos.y - block.position.y
+                );
+                document.body.classList.add('dragging');
+            }
+        }
+
+        function handlePointerMove(e) {
+            if (!isDragging || !draggedBlock) return;
+
+            const x = e.touches ? e.touches[0].clientX : e.clientX;
+            const y = e.touches ? e.touches[0].clientY : e.clientY;
+            const worldPos = screenToWorld(x, y);
+
+            // Move dragged block
+            const newPos = new THREE.Vector2(
+                worldPos.x - draggedBlock.dragOffset.x,
+                worldPos.y - draggedBlock.dragOffset.y
+            );
+
+            // Move all glued blocks together
+            const group = getGroup(draggedBlock);
+            const offset = new THREE.Vector2().subVectors(newPos, draggedBlock.position);
+            
+            for (const block of group) {
+                block.position.add(offset);
+                block.updatePosition();
+            }
+
+            // Physics: push other blocks away
+            for (const block of blocks) {
+                if (group.has(block)) continue;
+                
+                for (const other of group) {
+                    const dist = block.distanceTo(other);
+                    if (dist < 50) {
+                        const push = new THREE.Vector2()
+                            .subVectors(block.position, other.position)
+                            .normalize()
+                            .multiplyScalar((50 - dist) * 0.1);
+                        block.position.add(push);
+                        block.velocity.add(push);
+                    }
+                }
+            }
+
+            // Check for connections
+            updateConnections();
+        }
+
+        function handlePointerUp(e) {
+            if (!isDragging) return;
+
+            // Glue connected blocks
+            if (draggedBlock) {
+                for (const other of draggedBlock.connected) {
+                    if (!draggedBlock.glued.has(other)) {
+                        draggedBlock.glued.add(other);
+                        other.glued.add(draggedBlock);
+                        const key = createBlockKey(draggedBlock, other);
+                        if (connections.has(key)) {
+                            connections.get(key).glued = true;
+                        }
+                    }
+                }
+                updateTotalDisplays();
+            }
+
+            draggedBlock = null;
+            isDragging = false;
+            if (blocks.find(b => b.dragging)) {
+                blocks.forEach(b => b.dragging = false);
+            }
+            document.body.classList.remove('dragging');
+        }
+
+        function getGroup(block) {
+            const group = new Set([block]);
+            const queue = [block];
+            
+            while (queue.length > 0) {
+                const current = queue.shift();
+                for (const other of current.glued) {
+                    if (!group.has(other)) {
+                        group.add(other);
+                        queue.push(other);
+                    }
+                }
+            }
+            return group;
+        }
+
+        function updateConnections() {
+            // Clear temporary connections
+            for (const [key, conn] of connections.entries()) {
+                if (!conn.glued) {
+                    conn.dispose();
+                    connections.delete(key);
+                }
+            }
+
+            // Clear connected sets
+            blocks.forEach(b => b.connected.clear());
+
+            // Check all block pairs
+            for (let i = 0; i < blocks.length; i++) {
+                for (let j = i + 1; j < blocks.length; j++) {
+                    const b1 = blocks[i];
+                    const b2 = blocks[j];
+                    const dist = b1.distanceTo(b2);
+                    const key = createBlockKey(b1, b2);
+
+                    if (dist < 20) {
+                        // Create or update connection
+                        if (!connections.has(key)) {
+                            connections.set(key, new MetaballConnection(b1, b2));
+                        }
+                        b1.connected.add(b2);
+                        b2.connected.add(b1);
+                    } else if (connections.has(key) && !connections.get(key).glued) {
+                        connections.get(key).dispose();
+                        connections.delete(key);
+                    }
+                }
+            }
+
+            // Update connection visuals
+            for (const conn of connections.values()) {
+                conn.update();
+            }
+        }
+
+        function updateTotalDisplays() {
+            // Remove all displays
+            for (const display of totalDisplays.values()) {
+                display.dispose();
+            }
+            totalDisplays.clear();
+
+            // Find all groups
+            const processed = new Set();
+            for (const block of blocks) {
+                if (processed.has(block)) continue;
+                
+                const group = getGroup(block);
+                if (group.size > 1) {
+                    const groupArray = Array.from(group);
+                    groupArray.forEach(b => processed.add(b));
+                    const display = new TotalDisplay(groupArray);
+                    const key = groupArray.map(b => blocks.indexOf(b)).sort().join('-');
+                    totalDisplays.set(key, display);
+                }
+            }
+        }
+
+        // Physics update
+        function updatePhysics() {
+            for (const block of blocks) {
+                if (block.dragging) continue;
+                
+                // Apply velocity
+                block.position.add(block.velocity);
+                block.velocity.multiplyScalar(0.9); // Damping
+                
+                if (block.velocity.length() < 0.1) {
+                    block.velocity.set(0, 0);
+                }
+                
+                block.updatePosition();
+            }
+        }
+
+        // Event listeners
+        renderer.domElement.addEventListener('mousedown', handlePointerDown);
+        renderer.domElement.addEventListener('mousemove', handlePointerMove);
+        renderer.domElement.addEventListener('mouseup', handlePointerUp);
+        renderer.domElement.addEventListener('touchstart', handlePointerDown);
+        renderer.domElement.addEventListener('touchmove', handlePointerMove);
+        renderer.domElement.addEventListener('touchend', handlePointerUp);
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            updatePhysics();
+            updateConnections();
+            for (const display of totalDisplays.values()) {
+                display.updatePosition();
+            }
+            renderer.render(scene, camera);
+        }
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            camera.left = window.innerWidth / -2;
+            camera.right = window.innerWidth / 2;
+            camera.top = window.innerHeight / 2;
+            camera.bottom = window.innerHeight / -2;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
+
