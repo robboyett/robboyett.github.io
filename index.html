@@ -4,12 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rob Boyett</title>
+    <link rel="preload" href="https://rsms.me/inter/inter.css" as="style">
     <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        /* Hide content until fonts load to prevent FOUT */
+        html {
+            visibility: hidden;
+        }
+        
+        html.fonts-loaded {
+            visibility: visible;
         }
 
         body {
@@ -127,8 +137,11 @@
             letter-spacing: -1.2px;
             color: #202020;
             text-decoration: none;
-            min-width: 348px;
+            display: block;
+            max-width: calc(100vw - 124px); /* Cap at viewport edge: 62px padding on each side */
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
             position: relative;
         }
 
@@ -746,6 +759,16 @@
         });
 
         previewBox.addEventListener('mouseleave', hidePreview);
+
+        // Wait for Inter font to load before showing page
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                document.documentElement.classList.add('fonts-loaded');
+            });
+        } else {
+            // Fallback for browsers without Font Loading API
+            document.documentElement.classList.add('fonts-loaded');
+        }
     </script>
 </body>
 </html>
