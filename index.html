@@ -280,6 +280,45 @@
             width: 41px;
         }
 
+        .contact-item.email {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .contact-item.email::after {
+            content: 'Click to copy';
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0;
+            color: white;
+            background: #1A1A1A;
+            padding: 8px 14px;
+            border-radius: 6px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .contact-item.email:hover::after {
+            opacity: 1;
+        }
+
+        .contact-item.email.copied::after {
+            content: 'Copied!';
+            background: #1A1A1A;
+        }
+
+        button.contact-item.email {
+            background: none;
+            border: none;
+            font-family: inherit;
+        }
+
         .contact-item.medium svg {
             width: 59px;
         }
@@ -360,6 +399,11 @@
                 width: 30px;
             }
 
+            .contact-item.email::after {
+                font-size: 12px;
+                padding: 6px 10px;
+            }
+
             .contact-item.medium svg {
                 width: 42px;
             }
@@ -404,12 +448,12 @@
 
         <!-- Contact -->
         <div class="contact">
-            <a href="mailto:rob.boyett@gmail.com" class="contact-item email">
+            <button class="contact-item email" id="emailCopy" data-email="rob.boyett@gmail.com">
                 <svg viewBox="0 0 41 33" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M36.5 0H4.5C2.01 0 0.0225 2.01 0.0225 4.5L0 28.5C0 30.99 2.01 33 4.5 33H36.5C38.99 33 41 30.99 41 28.5V4.5C41 2.01 38.99 0 36.5 0ZM36.5 9L20.5 19.125L4.5 9V4.5L20.5 14.625L36.5 4.5V9Z" fill="#1A1A1A"/>
                 </svg>
                 rob.boyett@gmail.com
-            </a>
+            </button>
             <a href="/feed.xml" class="contact-item">
                 <svg viewBox="0 0 33 33" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M4.125 0C1.84683 0 0 1.84683 0 4.125V28.875C0 31.1532 1.84683 33 4.125 33H28.875C31.1532 33 33 31.1532 33 28.875V4.125C33 1.84683 31.1532 0 28.875 0H4.125ZM8.25 6.1875C8.25 5.51953 8.68359 4.95117 9.28125 4.74609L9.625 4.63086C10.877 4.21875 12.1777 4 13.4883 4H19.5117C20.8223 4 22.123 4.21875 23.375 4.63086L23.7188 4.74609C24.3164 4.95117 24.75 5.51953 24.75 6.1875C24.75 7.05078 24.0508 7.75 23.1875 7.75H9.8125C8.94922 7.75 8.25 7.05078 8.25 6.1875ZM6.1875 11.6875C6.1875 10.8242 6.88672 10.125 7.75 10.125H25.25C26.1133 10.125 26.8125 10.8242 26.8125 11.6875C26.8125 12.5508 26.1133 13.25 25.25 13.25H7.75C6.88672 13.25 6.1875 12.5508 6.1875 11.6875ZM4.125 17.1875C4.125 16.3242 4.82422 15.625 5.6875 15.625H27.3125C28.1758 15.625 28.875 16.3242 28.875 17.1875V26.8125C28.875 27.6758 28.1758 28.375 27.3125 28.375H5.6875C4.82422 28.375 4.125 27.6758 4.125 26.8125V17.1875Z" fill="#1A1A1A"/>
@@ -759,6 +803,31 @@
         });
 
         previewBox.addEventListener('mouseleave', hidePreview);
+
+        // Email copy to clipboard
+        const emailButton = document.getElementById('emailCopy');
+        emailButton.addEventListener('click', async () => {
+            const email = emailButton.dataset.email;
+            try {
+                await navigator.clipboard.writeText(email);
+                emailButton.classList.add('copied');
+                setTimeout(() => {
+                    emailButton.classList.remove('copied');
+                }, 2000);
+            } catch (err) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = email;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                emailButton.classList.add('copied');
+                setTimeout(() => {
+                    emailButton.classList.remove('copied');
+                }, 2000);
+            }
+        });
 
         // Wait for Inter font to load before showing page
         if (document.fonts && document.fonts.ready) {
