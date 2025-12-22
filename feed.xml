@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+    <channel>
+        <title>Rob Boyett's Journal</title>
+        <description>Thoughts on design, AI, and building products</description>
+        <link>https://robboyett.com</link>
+        <atom:link href="https://robboyett.com/feed.xml" rel="self" type="application/rss+xml"/>
+        <language>en-gb</language>
+        <lastBuildDate>Fri, 28 Nov 2025 00:00:00 +0000</lastBuildDate>
+        
+        <item>
+            <title>The camera was always off — What a stint working with offshore developers taught me about large language models</title>
+            <link>https://robboyett.com/journal/camera-was-always-off/</link>
+            <guid>https://robboyett.com/journal/camera-was-always-off/</guid>
+            <pubDate>Fri, 28 Nov 2025 00:00:00 +0000</pubDate>
+            <description>If you're still unsure how to get started with large language models, or if prompting feels awkward, this analogy might help. Drawing from experiences working with offshore developers through camera-off calls.</description>
+        </item>
+        
+        <item>
+            <title>Synthetic vs Human Research Evaluation</title>
+            <link>https://robboyett.com/synthetic-vs-human-evaluation/</link>
+            <guid>https://robboyett.com/synthetic-vs-human-evaluation/</guid>
+            <pubDate>Sun, 22 Dec 2024 00:00:00 +0000</pubDate>
+            <description>Comparative analysis of qualitative research transcripts. Can synthetic interviews give us something useful in the early stages of understanding a problem space?</description>
+        </item>
+        
+        <item>
+            <title>"WTF is happening?" – how AI is reshaping design</title>
+            <link>https://www.designweek.co.uk/wtf-is-happening-how-ai-is-reshaping-design/</link>
+            <guid>https://www.designweek.co.uk/wtf-is-happening-how-ai-is-reshaping-design/</guid>
+            <pubDate>Mon, 01 Jan 2024 00:00:00 +0000</pubDate>
+            <description>Key insights from 40 conversations with designers about how AI is shaping the industry.</description>
+        </item>
+        
+        <item>
+            <title>Designing the designers for the orchestration era</title>
+            <link>https://medium.com/@robboyett/designing-the-designers-for-the-orchestration-era-da866d2e24c7</link>
+            <guid>https://medium.com/@robboyett/designing-the-designers-for-the-orchestration-era-da866d2e24c7</guid>
+            <pubDate>Sat, 01 Jun 2024 00:00:00 +0000</pubDate>
+            <description>Exploring how the role of designers is evolving in an era of AI orchestration.</description>
+        </item>
+        
+        <item>
+            <title>"Yes, and…" exploring through prototyping proactive participation of an LLM agent in group discussion</title>
+            <link>https://medium.com/@robboyett/yes-and-exploring-through-prototyping-proactive-participation-of-an-llm-agent-in-group-519285354fc2</link>
+            <guid>https://medium.com/@robboyett/yes-and-exploring-through-prototyping-proactive-participation-of-an-llm-agent-in-group-519285354fc2</guid>
+            <pubDate>Fri, 01 Mar 2024 00:00:00 +0000</pubDate>
+            <description>Prototyping how an LLM agent can participate proactively in group discussions.</description>
+        </item>
+        
+        <item>
+            <title>AI as infrastructure and agent within the design process</title>
+            <link>https://medium.com/design-bootcamp/ai-as-infrastructure-and-agent-within-the-design-process-a-theory-for-ais-impact-on-design-2dd2e31dd199</link>
+            <guid>https://medium.com/design-bootcamp/ai-as-infrastructure-and-agent-within-the-design-process-a-theory-for-ais-impact-on-design-2dd2e31dd199</guid>
+            <pubDate>Thu, 01 Feb 2024 00:00:00 +0000</pubDate>
+            <description>A theory for AI's impact on design process.</description>
+        </item>
+        
+        <item>
+            <title>Design Managers Guide to Midjourney</title>
+            <link>https://medium.com/design-bootcamp/design-managers-guide-to-midjourney-128c2a3cd971</link>
+            <guid>https://medium.com/design-bootcamp/design-managers-guide-to-midjourney-128c2a3cd971</guid>
+            <pubDate>Sun, 10 Mar 2024 00:00:00 +0000</pubDate>
+            <description>A practical guide to help you understand what Midjourney offers, its limitations, and what you need to know when considering adoption.</description>
+        </item>
+        
+        <item>
+            <title>How Generative AI is Reshaping My Design Practice</title>
+            <link>https://blog.prototypr.io/how-generative-ai-is-reshaping-my-design-practice-78a806dce2e3</link>
+            <guid>https://blog.prototypr.io/how-generative-ai-is-reshaping-my-design-practice-78a806dce2e3</guid>
+            <pubDate>Wed, 01 Nov 2023 00:00:00 +0000</pubDate>
+            <description>Personal reflections on how generative AI tools are changing design workflows.</description>
+        </item>
+        
+        <item>
+            <title>Why can't services be launched in a day?</title>
+            <link>https://medium.com/design-bootcamp/why-cant-services-be-launched-in-a-day-12298562827a</link>
+            <guid>https://medium.com/design-bootcamp/why-cant-services-be-launched-in-a-day-12298562827a</guid>
+            <pubDate>Tue, 01 Aug 2023 00:00:00 +0000</pubDate>
+            <description>Using a custom GPT to make a 'real' service and test business assumptions.</description>
+        </item>
+        
+        <item>
+            <title>Why can't Dall-E 3 (via ChatGPT) draw diagrams?</title>
+            <link>https://medium.com/design-bootcamp/why-cant-dall-e-3-via-chatgpt-draw-diagrams-c47b5a8c83a8</link>
+            <guid>https://medium.com/design-bootcamp/why-cant-dall-e-3-via-chatgpt-draw-diagrams-c47b5a8c83a8</guid>
+            <pubDate>Sat, 01 Jul 2023 00:00:00 +0000</pubDate>
+            <description>Exploring the limitations of AI image generation for technical diagrams.</description>
+        </item>
+        
+        <item>
+            <title>The skills paradox found after the magic of AI image generation wanes</title>
+            <link>https://medium.com/design-bootcamp/the-skills-paradox-found-after-the-magic-of-ai-image-generation-wains-is-that-rather-than-6b91ba219b6d</link>
+            <guid>https://medium.com/design-bootcamp/the-skills-paradox-found-after-the-magic-of-ai-image-generation-wains-is-that-rather-than-6b91ba219b6d</guid>
+            <pubDate>Thu, 01 Jun 2023 00:00:00 +0000</pubDate>
+            <description>How AI shifts skill requirements from tooling mastery to cultural and historical understanding.</description>
+        </item>
+        
+        <item>
+            <title>A toolkit for living as a dyslexic designer</title>
+            <link>https://uxdesign.cc/tools-for-living-as-a-dyslexic-designer-334ce5a3da5f</link>
+            <guid>https://uxdesign.cc/tools-for-living-as-a-dyslexic-designer-334ce5a3da5f</guid>
+            <pubDate>Mon, 01 May 2023 00:00:00 +0000</pubDate>
+            <description>Tools and strategies for thriving as a designer with dyslexia.</description>
+        </item>
+        
+        <item>
+            <title>The challenges of conjuring your own design culture</title>
+            <link>https://uxdesign.cc/the-challenges-of-conjuring-your-own-design-culture-c099a6d27d1c</link>
+            <guid>https://uxdesign.cc/the-challenges-of-conjuring-your-own-design-culture-c099a6d27d1c</guid>
+            <pubDate>Sat, 01 Apr 2023 00:00:00 +0000</pubDate>
+            <description>Building and maintaining design culture within organisations.</description>
+        </item>
+        
+        <item>
+            <title>Fix your product goals for better human outcomes</title>
+            <link>https://uxdesign.cc/fix-your-product-goals-for-better-human-outcomes-b83a36b171c4</link>
+            <guid>https://uxdesign.cc/fix-your-product-goals-for-better-human-outcomes-b83a36b171c4</guid>
+            <pubDate>Wed, 01 Mar 2023 00:00:00 +0000</pubDate>
+            <description>How to align product goals with human-centred outcomes.</description>
+        </item>
+        
+        <item>
+            <title>What is Digital Product in 2019?</title>
+            <link>https://medium.com/ideas-by-idean/what-is-digital-product-in-2019-62240175bd33</link>
+            <guid>https://medium.com/ideas-by-idean/what-is-digital-product-in-2019-62240175bd33</guid>
+            <pubDate>Tue, 01 Jan 2019 00:00:00 +0000</pubDate>
+            <description>Defining digital product in the modern era.</description>
+        </item>
+        
+        <item>
+            <title>What Product Teams Say And What They Really Mean</title>
+            <link>https://medium.com/ideas-by-idean/what-product-teams-say-and-what-they-really-mean-10-tips-for-diagnosing-team-issues-f77625fa72e8</link>
+            <guid>https://medium.com/ideas-by-idean/what-product-teams-say-and-what-they-really-mean-10-tips-for-diagnosing-team-issues-f77625fa72e8</guid>
+            <pubDate>Fri, 01 Feb 2019 00:00:00 +0000</pubDate>
+            <description>10 tips for diagnosing team issues.</description>
+        </item>
+        
+        <item>
+            <title>What I learned about innovation from 60/70s sci-fi pulp</title>
+            <link>https://medium.com/ideas-by-idean/what-i-learned-about-innovation-from-60-70s-sci-fi-pulp-700576f84cf2</link>
+            <guid>https://medium.com/ideas-by-idean/what-i-learned-about-innovation-from-60-70s-sci-fi-pulp-700576f84cf2</guid>
+            <pubDate>Sun, 01 Dec 2018 00:00:00 +0000</pubDate>
+            <description>Lessons about innovation from vintage science fiction.</description>
+        </item>
+    </channel>
+</rss>
+

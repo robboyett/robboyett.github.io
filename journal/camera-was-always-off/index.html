@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The camera was always off | Rob Boyett</title>
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+    
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="Rob Boyett's Journal" href="/feed.xml">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #F1F1F1;
+            color: #1A1A1A;
+            min-height: 100vh;
+        }
+
+        .page {
+            padding: 66px 62px;
+            min-height: 100vh;
+        }
+
+        /* Navigation */
+        .nav {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            gap: 6px;
+            align-items: flex-start;
+            margin-bottom: 80px;
+        }
+
+        .nav-item {
+            background: white;
+            padding: 34px 44px;
+            font-weight: 700;
+            font-size: 30px;
+            letter-spacing: -1.5px;
+            color: #202020;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .nav-item.logo {
+            min-width: auto;
+            padding: 27px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 104px;
+        }
+
+        /* Journal Dropdown */
+        .journal-dropdown {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            position: relative;
+        }
+
+        .journal-toggle {
+            background: white;
+            padding: 27px;
+            font-weight: 700;
+            font-size: 30px;
+            letter-spacing: -1.2px;
+            color: #202020;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            height: 104px;
+        }
+
+        .journal-toggle:hover {
+            background: #fafafa;
+        }
+
+        .journal-toggle .arrow {
+            font-size: 14px;
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }
+
+        .journal-dropdown.open .journal-toggle .arrow {
+            transform: rotate(180deg);
+        }
+
+        /* Journal Menu Items */
+        .journal-menu {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            align-items: flex-start;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 100;
+            margin-top: 6px;
+        }
+
+        .journal-dropdown.open .journal-menu {
+            display: flex;
+        }
+
+        .journal-menu-item {
+            background: white;
+            padding: 34px 44px;
+            font-weight: 700;
+            font-size: 30px;
+            letter-spacing: -1.2px;
+            color: #202020;
+            text-decoration: none;
+            min-width: 348px;
+            white-space: nowrap;
+        }
+
+        .journal-menu-item:hover {
+            background: #fafafa;
+        }
+
+        /* Dim content when dropdown is open */
+        .page.menu-open .article {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .article {
+            transition: opacity 0.3s ease;
+        }
+
+        /* Article Styles */
+        .article {
+            max-width: 680px;
+            margin: 0;
+        }
+
+        .article-header {
+            margin-bottom: 48px;
+        }
+
+        .article-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .article-title {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .article-subtitle {
+            font-size: 20px;
+            color: #555;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        /* Article Content */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #333;
+        }
+
+        .article-content p {
+            margin-bottom: 24px;
+        }
+
+        .article-content h2 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-top: 48px;
+            margin-bottom: 24px;
+        }
+
+        .article-content h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 36px;
+            margin-bottom: 16px;
+        }
+
+        .article-content ul,
+        .article-content ol {
+            margin-bottom: 24px;
+            padding-left: 24px;
+        }
+
+        .article-content li {
+            margin-bottom: 8px;
+        }
+
+        .article-content blockquote {
+            border-left: 3px solid #202020;
+            padding-left: 24px;
+            margin: 32px 0;
+            font-style: italic;
+            color: #555;
+        }
+
+        .article-content code {
+            background: #e8e8e8;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 16px;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .article-content pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 24px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 32px 0;
+        }
+
+        .article-content pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .article-hero {
+            width: 100%;
+            max-width: 680px;
+            border-radius: 8px;
+            margin-bottom: 48px;
+        }
+
+        .article-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 32px 0;
+        }
+
+        .article-content a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+
+        .article-content a:hover {
+            color: #004499;
+        }
+
+        /* Article Footer */
+        .article-footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid #ddd;
+        }
+
+        .article-footer p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page {
+                padding: 24px;
+            }
+
+            .nav {
+                flex-direction: column;
+                align-items: flex-start;
+                margin-bottom: 48px;
+            }
+
+            .nav-item {
+                padding: 20px 28px;
+                font-size: 22px;
+            }
+
+            .nav-item.logo {
+                height: auto;
+                padding: 20px;
+            }
+
+            .nav-item.logo svg {
+                width: 36px;
+                height: 36px;
+            }
+
+            .journal-toggle {
+                padding: 20px 28px;
+                font-size: 22px;
+                height: auto;
+            }
+
+            .journal-menu-item {
+                padding: 20px 28px;
+                font-size: 18px;
+                min-width: auto;
+                white-space: normal;
+            }
+
+            .article-title {
+                font-size: 32px;
+            }
+
+            .article-subtitle {
+                font-size: 18px;
+            }
+
+            .article-content {
+                font-size: 17px;
+            }
+
+            .article-content h2 {
+                font-size: 24px;
+            }
+
+            .article-content h3 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <!-- Navigation -->
+        <nav class="nav">
+            <a href="/" class="nav-item logo" aria-label="Home">
+                <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="25" cy="25" r="23" stroke="#202020" stroke-width="3" fill="none"/>
+                    <circle cx="17" cy="20" r="3" fill="#202020"/>
+                    <circle cx="33" cy="20" r="3" fill="#202020"/>
+                    <path d="M15 32 Q25 40 35 32" stroke="#202020" stroke-width="3" stroke-linecap="round" fill="none"/>
+                </svg>
+            </a>
+            
+            <!-- Journal Dropdown -->
+            <div class="journal-dropdown" id="journalDropdown">
+                <button class="journal-toggle" id="journalToggle">
+                    Journal
+                    <span class="arrow">▼</span>
+                </button>
+                <div class="journal-menu" id="journalMenu">
+                    <!-- Menu items loaded from journal.xml -->
+                </div>
+            </div>
+        </nav>
+
+        <!-- Article -->
+        <article class="article">
+            <header class="article-header">
+                <time class="article-date" datetime="2025-11-28">November 28, 2025</time>
+                <h1 class="article-title">The camera was always off — What a stint working with offshore developers taught me about large language models</h1>
+                <p class="article-subtitle">If you're still unsure how to get started with large language models, or if prompting feels awkward, this analogy might help.</p>
+            </header>
+
+            <img src="img.jpeg" alt="The camera was always off" class="article-hero">
+
+            <div class="article-content">
+                <p>There was a time when I worked in-house at one of the UK's high-street banks. I had access to an infinite pool of developers in mainland China. However, all communication had to go through a single point of contact, someone who would join a call every couple of days to discuss the work. They were part of the engineering team, but obviously not going to do all the work on their own. It was a strange dynamic. They never turned on their cameras, and I had almost no insight into who they were, what their working conditions were like, or how invested they were in the work. Were they relying on the job for stability? Or were they disengaged and ready to move on? These were things you'd typically pick up from face-to-face interactions, even by just seeing someone's facial expressions on a video call. But in this case, the camera was always off.</p>
+
+                <p>Our goal was to translate interface work designs into working software. I would prepare the documentation, offer a walkthrough, and answer any questions, and then I'd hand it over. After that, I'd have no input until the software came back. That meant I had to give really clear briefs, because any confusion or missing context would show up in the finished product. I could provide feedback when the work came back, but by then, revising things would just push more work back onto my plate, slow down the process, and lead to frustrating back-and-forths. Although that is a taste of what happened with pretty much every round of the process.</p>
+
+                <p>This experience, along with other management roles, built a skill set I now find entirely transferable for working with LLMs. It trained me to anticipate misunderstandings from a lack of context. I learned to frontload the correct information, shape instructions clearly, and guide things so that less rework was needed. Over time, and hard learned lessons, these tactics became second nature.</p>
+
+                <p>Two approaches, in particular, made the difference.</p>
+
+                <p>The first was using my limited time with them to understand their world. When we had direct contact, I asked about their setup, what they knew, what they didn't, and what was available to them. These were often throwaway questions, prompted by the flow of the conversation or the type of work we were tackling. But they served a crucial purpose: helping me understand their worldview. By doing this, I could better align my expectations with their reality, what tools they had, what assumptions they might be making, and where gaps in understanding might arise.</p>
+
+                <p>The second was the one-shot handover. My aim was always to get the most accurate and complete output possible in a single pass, something that needed minimal revision. It wasn't about avoiding continued work or iteration altogether; of course, things evolve. But I didn't want to spend days or weeks just trying to reach a usable baseline because of missing context or unclear instructions. That sort of back-and-forth is costly.</p>
+
+                <p>So, I put in the effort on my side. I prepared full packs of information: context, rationale, supporting materials, and sometimes broader business details that might come into play. Anything they could draw on when they hit a block. Because I knew I wouldn't be there. It was a black box, I wouldn't see them, I couldn't stand over their shoulder, and they wouldn't be able to ask me a quick question. Most likely, I'd be asleep when they were working. That mindset, doing the upfront work to prevent downstream friction, translates directly to working with large language models.</p>
+
+                <p>One habit I developed was ending most calls with a simple question: "Do you have any questions?" Almost every time, the answer was no. And it made sense, I'd just delivered a lot of information, and they were still processing it. They were trying to understand what I'd said, work out their response, and figure out what came next. At that moment, their confidence would typically remain unshaken, because the absolute pressure wouldn't begin until the work did.</p>
+
+                <p>So I stopped asking that open question. Instead, I started guiding the conversation toward specific areas: Did they understand the business context? Were they clear on the technical approach? Where were the current gaps? Who might they need to speak with? Was everything in place for the work to actually begin? By working through these specific areas, I created space for more focused and valuable questions to emerge. And in doing so, I made those crucial handover moments far smoother and more effective. This works with an LLM, too. Rather than dumping information and hoping for the best, you can ask it to reflect back what it understands. Ask it what's unclear. Ask it what assumptions it's making. You're not testing it, you're creating the same kind of space for misalignment to surface before it becomes a problem.</p>
+
+                <p>The most significant reflection I had through all of this was realising that, yes, this person was an expert, and from my perspective, had access to an almost infinite pool of other experts behind them, capable of delivering work to varying degrees. The fundamental limitation wasn't on their side. It was on mine: specifically, my ability to package the work in a way they could absorb, understand, and act on without issues emerging later. That part was primarily mechanical, focusing on building clarity, anticipating gaps, and structuring handovers well. But the human side was far more difficult.</p>
+
+                <p>I didn't know who these people were. I didn't know what kind of pressures they were under, what their working day looked like, how long their commute was, or whether they'd had any sleep the night before. All of that was hidden, made worse by the camera-off nature of our Teams calls. It turned the interaction into something transactional and faceless. They became a kind of machine-entity, and building any empathy with them, trying to truly connect, was incredibly difficult. That meant I had to over-emphasise my own humanity. I paid closer attention to how I joined calls, how patient I was, and how hard I worked to show that I was listening and trying to understand. It was an intentional effort to bridge a gap that shouldn't have existed in the first place.</p>
+
+                <p>Now, not all of these tactics fit working with a large language model. The empathy piece, for instance, you don't need to wonder if the model had a bad commute. But something adjacent still applies. It's easy to fall into the trap of seeing an LLM as an all-knowing oracle, something intelligent, responsive, and capable of incredible things. And that's true, to a point. But the other truth is that it operates inside a black box, with a narrow worldview shaped entirely by its training data. It's designed to be helpful. It's tuned to impress. And that can make it seem like it knows you, your intentions, your goals, your context, far more than it actually does.</p>
+
+                <p>That false sense of shared understanding is where things go wrong. The model might give you confident answers that are subtly off, or fill in blanks with plausible but incorrect guesses. Just like with those camera-off calls, you're working with something that can do great work, but only if you do the work upfront to make the handover clear, structured, and context-rich.</p>
+
+                <p>And perhaps there's a version of the humanity piece that still matters. Not empathy toward the model, but a kind of care in how you approach the interaction. Slowing down. Being deliberate. Recognising that clarity isn't just about efficiency, it's about creating the conditions for good work to happen. The developers I worked with deserved that care. And strangely, the quality of your work with an LLM improves when you bring that same intentionality to the conversation.</p>
+            </div>
+
+            <footer class="article-footer">
+                <p>Published by Rob Boyett. For more articles, visit the <a href="/">home page</a> or subscribe to the <a href="/feed.xml">RSS feed</a>.</p>
+            </footer>
+        </article>
+    </div>
+
+    <script>
+        // Journal dropdown toggle
+        const journalDropdown = document.getElementById('journalDropdown');
+        const journalToggle = document.getElementById('journalToggle');
+        const journalMenu = document.getElementById('journalMenu');
+        const page = document.querySelector('.page');
+
+        journalToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            journalDropdown.classList.toggle('open');
+            page.classList.toggle('menu-open');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!journalDropdown.contains(e.target)) {
+                journalDropdown.classList.remove('open');
+                page.classList.remove('menu-open');
+            }
+        });
+
+        // Load journal entries from XML
+        async function loadJournalEntries() {
+            try {
+                const response = await fetch('/journal.xml');
+                const xmlText = await response.text();
+                const parser = new DOMParser();
+                const xml = parser.parseFromString(xmlText, 'text/xml');
+                const entries = xml.querySelectorAll('entry');
+                
+                entries.forEach(entry => {
+                    const title = entry.querySelector('title').textContent;
+                    const url = entry.querySelector('url').textContent;
+                    
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.className = 'journal-menu-item';
+                    link.textContent = title;
+                    
+                    journalMenu.appendChild(link);
+                });
+            } catch (error) {
+                console.error('Error loading journal entries:', error);
+            }
+        }
+
+        loadJournalEntries();
+    </script>
+</body>
+</html>
+

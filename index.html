@@ -1,165 +1,751 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scaling Blocks</title>
+    <title>Rob Boyett</title>
     <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        'inter': ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-                    },
-                }
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #F1F1F1;
+            color: #1A1A1A;
+            min-height: 100vh;
+        }
+
+        .page {
+            padding: 66px 62px;
+            min-height: 100vh;
+        }
+
+        /* Navigation */
+        .nav {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            gap: 6px;
+            align-items: flex-start;
+        }
+
+        .nav-item {
+            background: white;
+            padding: 34px 44px;
+            font-weight: 700;
+            font-size: 30px;
+            letter-spacing: -1.5px;
+            color: #202020;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .nav-item.logo {
+            min-width: auto;
+            padding: 27px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 104px;
+        }
+
+        /* Journal Dropdown */
+        .journal-dropdown {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            position: relative;
+        }
+
+        .journal-toggle {
+            background: white;
+            padding: 27px;
+            font-weight: 700;
+            font-size: 30px;
+            letter-spacing: -1.2px;
+            color: #202020;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            height: 104px;
+        }
+
+        .journal-toggle:hover {
+            background: #fafafa;
+        }
+
+        .journal-toggle .arrow {
+            font-size: 14px;
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }
+
+        .journal-dropdown.open .journal-toggle .arrow {
+            transform: rotate(180deg);
+        }
+
+        /* Journal Menu Items */
+        .journal-menu {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            align-items: flex-start;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 100;
+            margin-top: 6px;
+        }
+
+        .journal-dropdown.open .journal-menu {
+            display: flex;
+        }
+
+        /* Dim content when dropdown is open */
+        .page.menu-open .intro,
+        .page.menu-open .contact {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .intro,
+        .contact {
+            transition: opacity 0.3s ease;
+        }
+
+        .journal-menu-item {
+            background: white;
+            padding: 34px 44px;
+            font-weight: 700;
+            font-size: 30px;
+            letter-spacing: -1.2px;
+            color: #202020;
+            text-decoration: none;
+            min-width: 348px;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .journal-menu-item:hover {
+            background: #fafafa;
+        }
+
+        /* Preview Box */
+        .preview-box {
+            position: fixed;
+            width: 400px;
+            height: 300px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.95) translateY(10px);
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .preview-box.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1) translateY(0);
+        }
+
+        .preview-box iframe {
+            width: 200%;
+            height: 200%;
+            border: none;
+            transform: scale(0.5);
+            transform-origin: top left;
+            pointer-events: none;
+        }
+
+        .preview-box .loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f5;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .preview-box .loading.with-spinner::after {
+            content: '';
+            width: 24px;
+            height: 24px;
+            border: 2px solid #ddd;
+            border-top-color: #333;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 12px;
+        }
+
+        .preview-box .loading.placeholder {
+            font-weight: 600;
+            color: #999;
+            font-size: 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hidden iframe preloader container */
+        .iframe-preloader {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+            left: -9999px;
+        }
+
+        .iframe-preloader iframe {
+            width: 800px;
+            height: 600px;
+        }
+
+        /* Main Content */
+        .intro {
+            max-width: 854px;
+            font-weight: 500;
+            font-size: 40px;
+            letter-spacing: -1.6px;
+            line-height: 1.1;
+            margin-top: 300px;
+        }
+
+        .intro p {
+            margin-bottom: 44px;
+        }
+
+        .intro p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Contact */
+        .contact {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 11px;
+            max-width: 983px;
+            margin-top: 80px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            font-size: 40px;
+            letter-spacing: -1.6px;
+            text-decoration: none;
+            color: #1A1A1A;
+        }
+
+        .contact-item svg {
+            width: 33px;
+            height: 33px;
+            flex-shrink: 0;
+        }
+
+        .contact-item.email svg {
+            width: 41px;
+        }
+
+        .contact-item.medium svg {
+            width: 59px;
+        }
+
+        /* Responsive - Mobile */
+        @media (max-width: 768px) {
+            .page {
+                padding: 40px 24px;
+            }
+
+            .nav {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .journal-dropdown {
+                align-items: flex-end;
+                width: 100%;
+            }
+
+            .journal-toggle {
+                align-self: flex-start;
+            }
+
+            .journal-menu {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: flex-end;
+                align-items: flex-start;
+                width: 100%;
+            }
+
+            .journal-menu-item {
+                min-width: auto;
+                white-space: normal;
+                font-size: 24px;
+                padding: 24px 32px;
+            }
+
+            .nav-item {
+                padding: 24px 32px;
+                font-size: 24px;
+            }
+
+            .journal-toggle {
+                padding: 24px 32px;
+                font-size: 24px;
+                min-width: auto;
+            }
+
+            .nav-item.logo {
+                min-width: auto;
+            }
+
+            .intro {
+                font-size: 28px;
+                margin-top: 200px;
+            }
+
+            .intro p {
+                margin-bottom: 32px;
+            }
+
+            .contact {
+                margin-top: 60px;
+            }
+
+            .contact-item {
+                font-size: 24px;
+            }
+
+            .contact-item svg {
+                width: 24px;
+                height: 24px;
+            }
+
+            .contact-item.email svg {
+                width: 30px;
+            }
+
+            .contact-item.medium svg {
+                width: 42px;
+            }
+
+            /* Hide preview on mobile */
+            .preview-box {
+                display: none !important;
             }
         }
-    </script>
+    </style>
 </head>
+<body>
+    <div class="page">
+        <!-- Navigation -->
+        <nav class="nav">
+            <a href="/" class="nav-item logo" aria-label="Home">
+                <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="25" cy="25" r="23" stroke="#202020" stroke-width="3" fill="none"/>
+                    <circle cx="17" cy="20" r="3" fill="#202020"/>
+                    <circle cx="33" cy="20" r="3" fill="#202020"/>
+                    <path d="M15 32 Q25 40 35 32" stroke="#202020" stroke-width="3" stroke-linecap="round" fill="none"/>
+                </svg>
+            </a>
+            
+            <!-- Journal Dropdown -->
+            <div class="journal-dropdown" id="journalDropdown">
+                <button class="journal-toggle" id="journalToggle">
+                    Journal
+                    <span class="arrow">▼</span>
+                </button>
+                <div class="journal-menu" id="journalMenu">
+                    <!-- Menu items loaded from journal.xml -->
+                </div>
+            </div>
+        </nav>
 
-<body class="font-inter bg-[#F9F5F2] text-[#46423F] m-0 p-0 text-[clamp(16px,2vw+1rem,32px)] font-light leading-tight">
+        <!-- Intro -->
+        <div class="intro">
+            <p>Hello, i'm Rob Boyett, a designer. I take products and experiences from simple ideas to market-proved concepts.</p>
+            <p>By prototyping based off insights and user needs, verifying them through research, and crafting visual stories to explain them both internally and externally.</p>
+        </div>
 
-    <!-- INTRO -->
-    <div class="max-w-[2000px] mx-auto px-5 py-5 pb-[200px] min-h-[400px]">
-        <h1 class="text-[1em] font-light m-0 p-0 w-[30ch]">
-            Hello, i'm Rob Boyett, a designer. I take products and experiences from simple ideas to market-proved concepts.
-        </h1>
-        <p class="w-[30ch]">By prototyping based off insights and user needs, verifying them through research, and crafting visual stories to
-        explain them both internally and externally.</p>
+        <!-- Contact -->
+        <div class="contact">
+            <a href="mailto:rob.boyett@gmail.com" class="contact-item email">
+                <svg viewBox="0 0 41 33" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M36.5 0H4.5C2.01 0 0.0225 2.01 0.0225 4.5L0 28.5C0 30.99 2.01 33 4.5 33H36.5C38.99 33 41 30.99 41 28.5V4.5C41 2.01 38.99 0 36.5 0ZM36.5 9L20.5 19.125L4.5 9V4.5L20.5 14.625L36.5 4.5V9Z" fill="#1A1A1A"/>
+                </svg>
+                rob.boyett@gmail.com
+            </a>
+            <a href="/feed.xml" class="contact-item">
+                <svg viewBox="0 0 33 33" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4.125 0C1.84683 0 0 1.84683 0 4.125V28.875C0 31.1532 1.84683 33 4.125 33H28.875C31.1532 33 33 31.1532 33 28.875V4.125C33 1.84683 31.1532 0 28.875 0H4.125ZM8.25 6.1875C8.25 5.51953 8.68359 4.95117 9.28125 4.74609L9.625 4.63086C10.877 4.21875 12.1777 4 13.4883 4H19.5117C20.8223 4 22.123 4.21875 23.375 4.63086L23.7188 4.74609C24.3164 4.95117 24.75 5.51953 24.75 6.1875C24.75 7.05078 24.0508 7.75 23.1875 7.75H9.8125C8.94922 7.75 8.25 7.05078 8.25 6.1875ZM6.1875 11.6875C6.1875 10.8242 6.88672 10.125 7.75 10.125H25.25C26.1133 10.125 26.8125 10.8242 26.8125 11.6875C26.8125 12.5508 26.1133 13.25 25.25 13.25H7.75C6.88672 13.25 6.1875 12.5508 6.1875 11.6875ZM4.125 17.1875C4.125 16.3242 4.82422 15.625 5.6875 15.625H27.3125C28.1758 15.625 28.875 16.3242 28.875 17.1875V26.8125C28.875 27.6758 28.1758 28.375 27.3125 28.375H5.6875C4.82422 28.375 4.125 27.6758 4.125 26.8125V17.1875Z" fill="#1A1A1A"/>
+                </svg>
+                RSS
+            </a>
+            <a href="https://www.linkedin.com/in/robboyett/" class="contact-item" target="_blank">
+                <svg viewBox="0 0 33 33" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M30.25 0H2.75C1.23122 0 0 1.23122 0 2.75V30.25C0 31.7688 1.23122 33 2.75 33H30.25C31.7688 33 33 31.7688 33 30.25V2.75C33 1.23122 31.7688 0 30.25 0ZM10.0833 28.0833H5.16667V12.8333H10.0833V28.0833ZM7.625 10.6562C6.00521 10.6562 4.70833 9.35938 4.70833 7.73958C4.70833 6.11979 6.00521 4.82292 7.625 4.82292C9.24479 4.82292 10.5417 6.11979 10.5417 7.73958C10.5417 9.35938 9.24479 10.6562 7.625 10.6562ZM28.0833 28.0833H23.1667V20.625C23.1667 18.7031 23.1302 16.225 20.4844 16.225C17.8021 16.225 17.3958 18.3229 17.3958 20.4896V28.0833H12.4792V12.8333H17.1979V15.125H17.2656C17.9115 13.8125 19.5938 12.3958 22.0938 12.3958C27.0729 12.3958 28.0833 15.6875 28.0833 19.9375V28.0833Z" fill="#1A1A1A"/>
+                </svg>
+                LinkedIn
+            </a>
+            <a href="https://medium.com/@robboyett" class="contact-item medium" target="_blank">
+                <svg viewBox="0 0 59 33" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <ellipse cx="16.5" cy="16.5" rx="16.5" ry="16.5" fill="#1A1A1A"/>
+                    <ellipse cx="42.5" cy="16.5" rx="9" ry="16" fill="#1A1A1A"/>
+                    <ellipse cx="56" cy="16.5" rx="3" ry="14" fill="#1A1A1A"/>
+                </svg>
+                Medium
+            </a>
+        </div>
     </div>
 
-    <!-- LIST ITEMS -->
-    <div class="max-w-[2000px] mx-auto px-5">
-        
-        <!-- ITEM -->
-        <article-card
-            emoji="📘"
-            title="Making use of GenAI as a UX Designer working in Pharma"
-            paragraph="Article for design managers that are evaluating GenAI tools."
-            link="https://example.com"
-            linktext="Read Here"
-            date="2025"
-            images='["https://picsum.photos/200/300","https://picsum.photos/200/300","https://picsum.photos/200/300"]'>
-        </article-card>
-
-        <!-- ITEM -->
-        <article-card emoji="🧑‍💻" title="Git Repo: Becoming an AI enabled designer"
-            paragraph="Article for design managers that are evaluating GenAI tools." link="https://example.com"
-            linktext="Read Here"
-            date="2025"
-            images='["https://picsum.photos/200/300","https://picsum.photos/200/300"]'>
-        </article-card>
-
-        <!-- ITEM -->
-        <article-card emoji="🔬" title="Making use of GenAI as a UX Designer working in Pharma"
-            paragraph="Article for design managers that are evaluating GenAI tools." link="https://example.com"
-            linktext="Read Here"
-            date="2025"
-            images='["https://picsum.photos/200/300","https://picsum.photos/200/300","https://picsum.photos/200/300"]'>
-        </article-card>
-
-        <!-- ITEM -->
-        <article-card emoji="📒" title="Making use of GenAI as a UX Designer working in Pharma"
-            paragraph="Article for design managers that are evaluating GenAI tools." link="https://example.com"
-            linktext="Read Here"
-            date="2025"
-            images='["https://picsum.photos/200/300"]'>
-        </article-card>
-
+    <!-- Preview Box -->
+    <div class="preview-box" id="previewBox">
+        <div class="loading" id="previewLoading">Loading preview</div>
+        <iframe id="previewFrame" src="about:blank"></iframe>
+        <img id="previewImage" src="" alt="Preview" style="display: none; width: 100%; height: 100%; object-fit: cover;" />
     </div>
 
-    <!-- FOOTER -->
-    <div class="max-w-[2000px] mx-auto px-5 py-5 h-screen flex items-end">
-        <div>© 2025 Commercially sensitive content. Please do not reproduce or share without consent.</div>
-    </div>
+    <!-- Hidden iframe preloader for fast previews -->
+    <div class="iframe-preloader" id="iframePreloader"></div>
 
     <script>
-        function setupBlockAnimations() {
-            // Get all .block elements inside article-card components
-            const blocks = document.querySelectorAll('article-card .block');
+        // Journal dropdown toggle
+        const journalDropdown = document.getElementById('journalDropdown');
+        const journalToggle = document.getElementById('journalToggle');
+        const journalMenu = document.getElementById('journalMenu');
+        const previewBox = document.getElementById('previewBox');
+        const previewFrame = document.getElementById('previewFrame');
+        const previewLoading = document.getElementById('previewLoading');
+        const iframePreloader = document.getElementById('iframePreloader');
+        const page = document.querySelector('.page');
 
-            // Set initial state for all blocks
-            gsap.set(blocks, {
-                height: "80px"
-            });
-
-            // Function to expand block dynamically to fit content
-            const expandBlock = (block) => {
-                const fullHeight = block.scrollHeight;
-                block.style.height = block.offsetHeight + 'px';
-                gsap.to(block, {
-                    height: fullHeight + 'px',
-                    duration: 0.4,
-                    ease: "power2.inOut",
-                    onComplete: () => {
-                        block.style.height = 'auto';
+        // Load journal entries from XML
+        async function loadJournalEntries() {
+            try {
+                const response = await fetch('/journal.xml');
+                const xmlText = await response.text();
+                const parser = new DOMParser();
+                const xml = parser.parseFromString(xmlText, 'text/xml');
+                const entries = xml.querySelectorAll('entry');
+                
+                entries.forEach(entry => {
+                    const title = entry.querySelector('title').textContent;
+                    const url = entry.querySelector('url').textContent;
+                    const preview = entry.querySelector('preview');
+                    const placeholder = entry.querySelector('placeholder');
+                    
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.className = 'journal-menu-item';
+                    link.textContent = title;
+                    
+                    if (preview) {
+                        link.dataset.preview = preview.textContent;
                     }
+                    if (placeholder) {
+                        link.dataset.previewPlaceholder = placeholder.textContent;
+                    }
+                    
+                    // Add hover events for preview
+                    link.addEventListener('mouseenter', (e) => {
+                        showPreview(link, e);
+                        positionPreviewAtCursor(e);
+                    });
+                    link.addEventListener('mousemove', (e) => {
+                        positionPreviewAtCursor(e);
+                    });
+                    link.addEventListener('mouseleave', hidePreview);
+                    
+                    journalMenu.appendChild(link);
                 });
-            };
+            } catch (error) {
+                console.error('Error loading journal entries:', error);
+            }
+        }
 
-            // Function to contract block to collapsed height
-            const contractBlock = (block) => {
-                if (getComputedStyle(block).height === 'auto' || block.style.height === 'auto') {
-                    block.style.height = block.offsetHeight + 'px';
+        // Load entries on page load
+        loadJournalEntries();
+
+        // Cache for preloaded iframes
+        const preloadedFrames = new Map();
+        let currentPreviewUrl = null;
+        let hideTimeout = null;
+
+        journalToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            journalDropdown.classList.toggle('open');
+            page.classList.toggle('menu-open');
+            
+            // Preload all internal previews when menu opens
+            if (journalDropdown.classList.contains('open')) {
+                preloadPreviews();
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!journalDropdown.contains(e.target)) {
+                journalDropdown.classList.remove('open');
+                page.classList.remove('menu-open');
+                hidePreview();
+            }
+        });
+
+        // Preload internal page previews
+        function preloadPreviews() {
+            const menuItems = document.querySelectorAll('.journal-menu-item[data-preview]');
+            
+            menuItems.forEach(item => {
+                const url = item.dataset.preview;
+                if (url && !preloadedFrames.has(url)) {
+                    const iframe = document.createElement('iframe');
+                    iframe.src = url;
+                    iframe.setAttribute('loading', 'lazy');
+                    iframePreloader.appendChild(iframe);
+                    
+                    iframe.onload = () => {
+                        preloadedFrames.set(url, true);
+                    };
                 }
-                gsap.to(block, {
-                    height: "80px",
-                    duration: 0.4,
-                    ease: "power2.inOut"
-                });
-            };
-
-            blocks.forEach((block) => {
-                let isExpanded = false;
-
-                block.addEventListener('mouseenter', () => {
-                    if (window.matchMedia('(hover: hover)').matches) {
-                        expandBlock(block);
-                    }
-                });
-
-                block.addEventListener('mouseleave', () => {
-                    if (window.matchMedia('(hover: hover)').matches) {
-                        contractBlock(block);
-                    }
-                });
-
-                block.addEventListener('click', () => {
-                    if (!window.matchMedia('(hover: hover)').matches) {
-                        if (isExpanded) {
-                            contractBlock(block);
-                        } else {
-                            blocks.forEach(otherBlock => {
-                                if (otherBlock !== block) {
-                                    contractBlock(otherBlock);
-                                }
-                            });
-                            expandBlock(block);
-                        }
-                        isExpanded = !isExpanded;
-                    }
-                });
-            });
-
-            gsap.from(blocks, {
-                y: 50,
-                opacity: 0,
-                duration: 0.6,
-                stagger: 0.05,
-                ease: "power3.inOut"
             });
         }
 
-        window.addEventListener('DOMContentLoaded', setupBlockAnimations);
+        // Track which URLs have been loaded and their screenshot URLs
+        const loadedUrls = new Map(); // url -> screenshotUrl for external, true for internal
+        const previewImage = document.getElementById('previewImage');
+        let currentImageUrl = null;
+        
+        // Check if URL is external
+        function isExternalUrl(url) {
+            if (!url || url === '#') return false;
+            try {
+                const urlObj = new URL(url, window.location.origin);
+                return urlObj.origin !== window.location.origin;
+            } catch {
+                return false;
+            }
+        }
+        
+        // Get Microlink screenshot URL
+        function getMicrolinkScreenshot(url) {
+            return `https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&meta=false&embed=screenshot.url`;
+        }
+
+        // Track current preview type
+        let currentPreviewType = null; // 'iframe', 'image', or 'placeholder'
+
+        // Show preview on hover
+        function showPreview(item, e) {
+            const url = item.dataset.preview;
+            const placeholder = item.dataset.previewPlaceholder;
+            
+            clearTimeout(hideTimeout);
+
+            // Always reset and hide all preview types first
+            previewLoading.classList.remove('with-spinner', 'placeholder');
+            previewLoading.style.display = 'none';
+            previewFrame.style.display = 'none';
+            previewImage.style.display = 'none';
+
+            if (placeholder) {
+                // Show placeholder for items without real preview
+                previewLoading.textContent = placeholder;
+                previewLoading.classList.add('placeholder');
+                previewLoading.style.display = 'flex';
+                currentPreviewUrl = null;
+                currentImageUrl = null;
+                currentPreviewType = 'placeholder';
+            } else if (url && isExternalUrl(url)) {
+                // External URL - use Microlink screenshot
+                const screenshotUrl = getMicrolinkScreenshot(url);
+                currentPreviewType = 'image';
+                
+                // Always update the image src when switching URLs
+                if (currentImageUrl !== screenshotUrl) {
+                    currentImageUrl = screenshotUrl;
+                    
+                    if (loadedUrls.has(url)) {
+                        // Already cached - just update src and show
+                        previewImage.src = screenshotUrl;
+                        previewLoading.style.display = 'none';
+                        previewImage.style.display = 'block';
+                    } else {
+                        // New URL - show loading state
+                        previewLoading.textContent = 'Loading preview';
+                        previewLoading.classList.add('with-spinner');
+                        previewLoading.style.display = 'flex';
+                        
+                        // Load screenshot
+                        previewImage.onload = () => {
+                            loadedUrls.set(url, screenshotUrl);
+                            if (currentImageUrl === screenshotUrl) {
+                                previewLoading.style.display = 'none';
+                                previewImage.style.display = 'block';
+                            }
+                        };
+                        previewImage.onerror = () => {
+                            if (currentImageUrl === screenshotUrl) {
+                                previewLoading.textContent = 'External Link ↗';
+                                previewLoading.classList.remove('with-spinner');
+                                previewLoading.classList.add('placeholder');
+                            }
+                        };
+                        previewImage.src = screenshotUrl;
+                    }
+                } else {
+                    // Same URL - show immediately
+                    previewLoading.style.display = 'none';
+                    previewImage.style.display = 'block';
+                }
+                currentPreviewUrl = url;
+            } else if (url) {
+                // Internal URL - use iframe
+                currentImageUrl = null;
+                currentPreviewType = 'iframe';
+                
+                if (currentPreviewUrl === url && loadedUrls.has(url)) {
+                    // Same URL already loaded - show immediately
+                    previewLoading.style.display = 'none';
+                    previewFrame.style.display = 'block';
+                } else {
+                    // Different or new URL - show loading state
+                    previewLoading.textContent = 'Loading preview';
+                    previewLoading.classList.add('with-spinner');
+                    previewLoading.style.display = 'flex';
+                    
+                    if (currentPreviewUrl !== url) {
+                        // Load the preview
+                        currentPreviewUrl = url;
+                        previewFrame.src = url;
+                    }
+                    
+                    previewFrame.onload = () => {
+                        loadedUrls.set(url, true);
+                        if (currentPreviewUrl === url) {
+                            previewLoading.style.display = 'none';
+                            previewFrame.style.display = 'block';
+                        }
+                    };
+                }
+            } else {
+                // No preview available
+                return;
+            }
+
+            // Position the preview box
+            positionPreview(item);
+            previewBox.classList.add('visible');
+        }
+
+        // Store current mouse position
+        let mouseX = 0;
+        let mouseY = 0;
+
+        // Position preview box following the cursor
+        function positionPreviewAtCursor(e) {
+            const boxWidth = 400;
+            const boxHeight = 300;
+            const offsetX = 20; // Distance from cursor
+            const offsetY = 10;
+            const padding = 20;
+
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+
+            // Default: position to the right and below cursor
+            let left = mouseX + offsetX;
+            let top = mouseY + offsetY;
+
+            // If it would go off the right edge, position to the left of cursor
+            if (left + boxWidth > window.innerWidth - padding) {
+                left = mouseX - boxWidth - offsetX;
+            }
+
+            // If it would go off the left edge, keep it at minimum padding
+            if (left < padding) {
+                left = padding;
+            }
+
+            // If it would go off the bottom, position above cursor
+            if (top + boxHeight > window.innerHeight - padding) {
+                top = mouseY - boxHeight - offsetY;
+            }
+
+            // If it would go off the top, keep at minimum padding
+            if (top < padding) {
+                top = padding;
+            }
+
+            previewBox.style.left = `${left}px`;
+            previewBox.style.top = `${top}px`;
+        }
+
+        // Initial position (fallback)
+        function positionPreview(item) {
+            const rect = item.getBoundingClientRect();
+            const boxWidth = 400;
+            const boxHeight = 300;
+            const padding = 20;
+
+            let left = rect.right + padding;
+            let top = rect.top;
+
+            if (left + boxWidth > window.innerWidth - padding) {
+                left = rect.left - boxWidth - padding;
+            }
+
+            if (left < padding) {
+                left = Math.max(padding, (window.innerWidth - boxWidth) / 2);
+            }
+
+            if (top + boxHeight > window.innerHeight - padding) {
+                top = window.innerHeight - boxHeight - padding;
+            }
+            if (top < padding) {
+                top = padding;
+            }
+
+            previewBox.style.left = `${left}px`;
+            previewBox.style.top = `${top}px`;
+        }
+
+        // Hide preview
+        function hidePreview() {
+            hideTimeout = setTimeout(() => {
+                previewBox.classList.remove('visible');
+            }, 100);
+        }
+
+        // Note: Hover events for menu items are attached in loadJournalEntries()
+
+        // Keep preview visible when hovering over it
+        previewBox.addEventListener('mouseenter', () => {
+            clearTimeout(hideTimeout);
+        });
+
+        previewBox.addEventListener('mouseleave', hidePreview);
     </script>
-
-    <!-- Include the component definition -->
-    <script src="article-card.js"></script>
 </body>
-
 </html>
