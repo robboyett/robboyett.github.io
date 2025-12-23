@@ -6,7 +6,15 @@
         <link>https://robboyett.com</link>
         <atom:link href="https://robboyett.com/feed.xml" rel="self" type="application/rss+xml"/>
         <language>en-gb</language>
-        <lastBuildDate>Fri, 28 Nov 2025 00:00:00 +0000</lastBuildDate>
+        <lastBuildDate>Tue, 23 Dec 2025 00:00:00 +0000</lastBuildDate>
+        
+        <item>
+            <title>A Field Guide to Vibe Coding as a Digital Product Designer</title>
+            <link>https://robboyett.com/journal/vibe-coding-field-guide/</link>
+            <guid>https://robboyett.com/journal/vibe-coding-field-guide/</guid>
+            <pubDate>Tue, 23 Dec 2025 00:00:00 +0000</pubDate>
+            <description>Capturing methods and patterns that are proving useful whilst working with AI-assisted prototyping. Covers context management, tool selection, debugging patterns and more.</description>
+        </item>
         
         <item>
             <title>The camera was always off — What a stint working with offshore developers taught me about large language models</title>
@@ -14,6 +22,14 @@
             <guid>https://robboyett.com/journal/camera-was-always-off/</guid>
             <pubDate>Fri, 28 Nov 2025 00:00:00 +0000</pubDate>
             <description>If you're still unsure how to get started with large language models, or if prompting feels awkward, this analogy might help. Drawing from experiences working with offshore developers through camera-off calls.</description>
+        </item>
+        
+        <item>
+            <title>Becoming an AI designer - open source guide</title>
+            <link>https://github.com/robboyett/Becoming-an-AI-designer/blob/main/README.md</link>
+            <guid>https://github.com/robboyett/Becoming-an-AI-designer/blob/main/README.md</guid>
+            <pubDate>Sun, 23 Nov 2025 00:00:00 +0000</pubDate>
+            <description>An open source guide to becoming an AI designer, covering tools, techniques, and mindset shifts.</description>
         </item>
         
         <item>

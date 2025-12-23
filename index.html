@@ -34,89 +34,6 @@
             min-height: 100vh;
         }
 
-        /* Navigation */
-        .nav {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: nowrap;
-            gap: 6px;
-            align-items: flex-start;
-        }
-
-        .nav-item {
-            background: white;
-            padding: 34px 44px;
-            font-weight: 700;
-            font-size: 30px;
-            letter-spacing: -1.5px;
-            color: #202020;
-            text-decoration: none;
-            flex-shrink: 0;
-        }
-
-        .nav-item.logo {
-            min-width: auto;
-            padding: 27px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 104px;
-        }
-
-        /* Journal Dropdown */
-        .journal-dropdown {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            position: relative;
-        }
-
-        .journal-toggle {
-            background: white;
-            padding: 27px;
-            font-weight: 700;
-            font-size: 30px;
-            letter-spacing: -1.2px;
-            color: #202020;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            height: 104px;
-        }
-
-        .journal-toggle:hover {
-            background: #fafafa;
-        }
-
-        .journal-toggle .arrow {
-            font-size: 14px;
-            transition: transform 0.3s ease;
-            display: inline-block;
-        }
-
-        .journal-dropdown.open .journal-toggle .arrow {
-            transform: rotate(180deg);
-        }
-
-        /* Journal Menu Items */
-        .journal-menu {
-            display: none;
-            flex-direction: column;
-            gap: 6px;
-            align-items: flex-start;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            z-index: 100;
-            margin-top: 6px;
-        }
-
-        .journal-dropdown.open .journal-menu {
-            display: flex;
-        }
-
         /* Dim content when dropdown is open */
         .page.menu-open .intro,
         .page.menu-open .contact {
@@ -127,26 +44,6 @@
         .intro,
         .contact {
             transition: opacity 0.3s ease;
-        }
-
-        .journal-menu-item {
-            background: white;
-            padding: 34px 44px;
-            font-weight: 700;
-            font-size: 30px;
-            letter-spacing: -1.2px;
-            color: #202020;
-            text-decoration: none;
-            display: block;
-            max-width: calc(100vw - 124px); /* Cap at viewport edge: 62px padding on each side */
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            position: relative;
-        }
-
-        .journal-menu-item:hover {
-            background: #fafafa;
         }
 
         /* Preview Box */
@@ -329,50 +226,6 @@
                 padding: 40px 24px;
             }
 
-            .nav {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .journal-dropdown {
-                align-items: flex-end;
-                width: 100%;
-            }
-
-            .journal-toggle {
-                align-self: flex-start;
-            }
-
-            .journal-menu {
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: flex-end;
-                align-items: flex-start;
-                width: 100%;
-            }
-
-            .journal-menu-item {
-                min-width: auto;
-                white-space: normal;
-                font-size: 24px;
-                padding: 24px 32px;
-            }
-
-            .nav-item {
-                padding: 24px 32px;
-                font-size: 24px;
-            }
-
-            .journal-toggle {
-                padding: 24px 32px;
-                font-size: 24px;
-                min-width: auto;
-            }
-
-            .nav-item.logo {
-                min-width: auto;
-            }
-
             .intro {
                 font-size: 28px;
                 margin-top: 200px;
@@ -414,31 +267,14 @@
             }
         }
     </style>
+    
+    <!-- Navigation Component -->
+    <script src="/components/site-nav.js"></script>
 </head>
 <body>
     <div class="page">
         <!-- Navigation -->
-        <nav class="nav">
-            <a href="/" class="nav-item logo" aria-label="Home">
-                <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="25" cy="25" r="23" stroke="#202020" stroke-width="3" fill="none"/>
-                    <circle cx="17" cy="20" r="3" fill="#202020"/>
-                    <circle cx="33" cy="20" r="3" fill="#202020"/>
-                    <path d="M15 32 Q25 40 35 32" stroke="#202020" stroke-width="3" stroke-linecap="round" fill="none"/>
-                </svg>
-            </a>
-            
-            <!-- Journal Dropdown -->
-            <div class="journal-dropdown" id="journalDropdown">
-                <button class="journal-toggle" id="journalToggle">
-                    Journal
-                    <span class="arrow">▼</span>
-                </button>
-                <div class="journal-menu" id="journalMenu">
-                    <!-- Menu items loaded from journal.xml -->
-                </div>
-            </div>
-        </nav>
+        <site-nav></site-nav>
 
         <!-- Intro -->
         <div class="intro">
@@ -488,91 +324,49 @@
     <div class="iframe-preloader" id="iframePreloader"></div>
 
     <script>
-        // Journal dropdown toggle
-        const journalDropdown = document.getElementById('journalDropdown');
-        const journalToggle = document.getElementById('journalToggle');
-        const journalMenu = document.getElementById('journalMenu');
         const previewBox = document.getElementById('previewBox');
         const previewFrame = document.getElementById('previewFrame');
         const previewLoading = document.getElementById('previewLoading');
         const iframePreloader = document.getElementById('iframePreloader');
         const page = document.querySelector('.page');
-
-        // Load journal entries from XML
-        async function loadJournalEntries() {
-            try {
-                const response = await fetch('/journal.xml');
-                const xmlText = await response.text();
-                const parser = new DOMParser();
-                const xml = parser.parseFromString(xmlText, 'text/xml');
-                const entries = xml.querySelectorAll('entry');
-                
-                entries.forEach(entry => {
-                    const title = entry.querySelector('title').textContent;
-                    const url = entry.querySelector('url').textContent;
-                    const preview = entry.querySelector('preview');
-                    const placeholder = entry.querySelector('placeholder');
-                    
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.className = 'journal-menu-item';
-                    link.textContent = title;
-                    
-                    if (preview) {
-                        link.dataset.preview = preview.textContent;
-                    }
-                    if (placeholder) {
-                        link.dataset.previewPlaceholder = placeholder.textContent;
-                    }
-                    
-                    // Add hover events for preview
-                    link.addEventListener('mouseenter', (e) => {
-                        showPreview(link, e);
-                        positionPreviewAtCursor(e);
-                    });
-                    link.addEventListener('mousemove', (e) => {
-                        positionPreviewAtCursor(e);
-                    });
-                    link.addEventListener('mouseleave', hidePreview);
-                    
-                    journalMenu.appendChild(link);
-                });
-            } catch (error) {
-                console.error('Error loading journal entries:', error);
-            }
-        }
-
-        // Load entries on page load
-        loadJournalEntries();
+        const siteNav = document.querySelector('site-nav');
 
         // Cache for preloaded iframes
         const preloadedFrames = new Map();
         let currentPreviewUrl = null;
         let hideTimeout = null;
 
-        journalToggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            journalDropdown.classList.toggle('open');
-            page.classList.toggle('menu-open');
-            
+        // Handle menu open/close events from site-nav component
+        siteNav.addEventListener('menu-open', () => {
+            page.classList.add('menu-open');
             // Preload all internal previews when menu opens
-            if (journalDropdown.classList.contains('open')) {
-                preloadPreviews();
-            }
+            preloadPreviews();
         });
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!journalDropdown.contains(e.target)) {
-                journalDropdown.classList.remove('open');
-                page.classList.remove('menu-open');
-                hidePreview();
-            }
+        siteNav.addEventListener('menu-close', () => {
+            page.classList.remove('menu-open');
+            hidePreview();
+        });
+
+        // When journal entries are loaded, attach preview handlers
+        siteNav.addEventListener('entries-loaded', (e) => {
+            const entries = e.detail.entries;
+            entries.forEach(({ element: link }) => {
+                // Add hover events for preview
+                link.addEventListener('mouseenter', (e) => {
+                    showPreview(link, e);
+                    positionPreviewAtCursor(e);
+                });
+                link.addEventListener('mousemove', (e) => {
+                    positionPreviewAtCursor(e);
+                });
+                link.addEventListener('mouseleave', hidePreview);
+            });
         });
 
         // Preload internal page previews
         function preloadPreviews() {
-            const menuItems = document.querySelectorAll('.journal-menu-item[data-preview]');
+            const menuItems = siteNav.getMenuItems();
             
             menuItems.forEach(item => {
                 const url = item.dataset.preview;
