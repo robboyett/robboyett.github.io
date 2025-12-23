@@ -142,6 +142,21 @@
             margin-bottom: 16px;
             padding-bottom: 12px;
             border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .live-indicator {
+            color: #22c55e;
+            font-size: 9px;
+            letter-spacing: 0.5px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         .stats-grid {
@@ -263,26 +278,18 @@
                 <p>I've been capturing methods and patterns that are proving useful whilst working with AI-assisted prototyping. The landscape shifted fast in 2025, and I wanted to map what's actually working day-to-day.</p>
 
                 <div class="stats-panel">
-                    <h3>Document Stats</h3>
+                    <h3>Document Stats <span class="live-indicator">● Live</span></h3>
                     <div class="stats-grid">
                         <div class="stat-item">
-                            <span class="stat-value">4,250</span>
+                            <span class="stat-value" id="stat-words">—</span>
                             <span class="stat-label">Words</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-value">12</span>
+                            <span class="stat-value" id="stat-revisions">—</span>
                             <span class="stat-label">Revisions</span>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-value">3</span>
-                            <span class="stat-label">Comments</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value">0</span>
-                            <span class="stat-label">Suggestions</span>
-                        </div>
                         <div class="stat-item timestamp">
-                            <span class="stat-value">Dec 23, 2025</span>
+                            <span class="stat-value" id="stat-modified">—</span>
                             <span class="stat-label">Last modified</span>
                         </div>
                     </div>
@@ -311,6 +318,38 @@
         siteNav.addEventListener('menu-close', () => {
             page.classList.remove('menu-open');
         });
+
+        // Fetch live document stats from Google Apps Script
+        async function fetchDocStats() {
+            const statsUrl = 'https://script.google.com/macros/s/AKfycbzrYa9MPC04TXMM0vCIiG22E_uOzHGVpeJKpcU0NMOxiVTi5kGT1Dg9QrUnNbRhYl-wPA/exec';
+            
+            try {
+                const response = await fetch(statsUrl);
+                const data = await response.json();
+                
+                // Format word count with commas
+                const wordCount = data.words.toLocaleString();
+                document.getElementById('stat-words').textContent = wordCount;
+                
+                // Revisions
+                document.getElementById('stat-revisions').textContent = data.revisions;
+                
+                // Format last modified date
+                const lastModified = new Date(data.lastModified);
+                const options = { month: 'short', day: 'numeric', year: 'numeric' };
+                document.getElementById('stat-modified').textContent = lastModified.toLocaleDateString('en-US', options);
+                
+            } catch (error) {
+                console.error('Error fetching doc stats:', error);
+                // Show fallback values on error
+                document.getElementById('stat-words').textContent = '—';
+                document.getElementById('stat-revisions').textContent = '—';
+                document.getElementById('stat-modified').textContent = '—';
+            }
+        }
+
+        // Fetch stats on page load
+        fetchDocStats();
 
         // Wait for Inter font to load before showing page
         if (document.fonts && document.fonts.ready) {

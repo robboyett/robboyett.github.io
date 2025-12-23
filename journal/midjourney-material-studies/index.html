@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Midjourney Material Studies | Rob Boyett</title>
+    <link rel="preload" href="https://rsms.me/inter/inter.css" as="style">
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+    
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="Rob Boyett's Journal" href="/feed.xml">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Hide content until fonts load to prevent FOUT */
+        html {
+            visibility: hidden;
+        }
+        
+        html.fonts-loaded {
+            visibility: visible;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #F1F1F1;
+            color: #1A1A1A;
+            min-height: 100vh;
+        }
+
+        .page {
+            padding: 66px 62px;
+            min-height: 100vh;
+        }
+
+        /* Dim content when dropdown is open */
+        .page.menu-open .article {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .article {
+            transition: opacity 0.3s ease;
+        }
+
+        /* Article Styles */
+        .article {
+            max-width: 680px;
+            margin: 0;
+        }
+
+        .article-header {
+            margin-bottom: 48px;
+        }
+
+        .article-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .article-title {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .article-subtitle {
+            font-size: 20px;
+            color: #555;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        /* Article Content */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #333;
+        }
+
+        .article-content p {
+            margin-bottom: 24px;
+        }
+
+        .article-content h2 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-top: 48px;
+            margin-bottom: 24px;
+        }
+
+        .article-content h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 36px;
+            margin-bottom: 16px;
+        }
+
+        .article-content ul,
+        .article-content ol {
+            margin-bottom: 24px;
+            padding-left: 24px;
+        }
+
+        .article-content li {
+            margin-bottom: 8px;
+        }
+
+        .article-content blockquote {
+            border-left: 3px solid #202020;
+            padding-left: 24px;
+            margin: 32px 0;
+            font-style: italic;
+            color: #555;
+        }
+
+        .article-content code {
+            background: #e8e8e8;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 16px;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .article-content pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 24px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 32px 0;
+        }
+
+        .article-content pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .article-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 32px 0;
+        }
+
+        .article-content a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+
+        .article-content a:hover {
+            color: #004499;
+        }
+
+        /* Material Studies Canvas */
+        .material-canvas {
+            position: relative;
+            width: calc(100% + 400px);
+            margin-left: 0;
+            height: 1400px;
+            background: #2a2a2a;
+            border-radius: 12px;
+            margin-top: 48px;
+            margin-bottom: 48px;
+            overflow: hidden;
+            cursor: grab;
+            touch-action: none;
+        }
+
+        .material-canvas:active {
+            cursor: grabbing;
+        }
+
+        .material-card {
+            position: absolute;
+            width: 200px;
+            cursor: grab;
+            touch-action: none;
+            transition: box-shadow 0.2s ease, transform 0.1s ease;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .material-card:active {
+            cursor: grabbing;
+        }
+
+        .material-card.dragging {
+            transition: none;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            transform: scale(1.02);
+        }
+
+        .material-card img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 6px;
+            pointer-events: none;
+        }
+
+        .material-label {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: #000;
+            color: #fff;
+            font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+            font-size: 10px;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 12px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            pointer-events: none;
+        }
+
+        .canvas-controls {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .canvas-hint {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 11px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            pointer-events: none;
+        }
+
+        .canvas-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 11px;
+            font-family: 'Inter', sans-serif;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .canvas-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        @media (max-width: 768px) {
+            .material-canvas {
+                width: calc(100% + 200px);
+                margin-left: 0;
+                height: 1000px;
+            }
+
+            .material-card {
+                width: 140px;
+            }
+
+            .material-label {
+                font-size: 8px;
+                padding: 4px 8px;
+            }
+        }
+
+        /* Article Footer */
+        .article-footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid #ddd;
+        }
+
+        .article-footer p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page {
+                padding: 24px;
+            }
+
+            .article-title {
+                font-size: 32px;
+            }
+
+            .article-subtitle {
+                font-size: 18px;
+            }
+
+            .article-content {
+                font-size: 17px;
+            }
+
+            .article-content h2 {
+                font-size: 24px;
+            }
+
+            .article-content h3 {
+                font-size: 20px;
+            }
+        }
+    </style>
+    
+    <!-- Navigation Component -->
+    <script src="/components/site-nav.js"></script>
+</head>
+<body>
+    <div class="page">
+        <!-- Navigation -->
+        <site-nav></site-nav>
+
+        <!-- Article -->
+        <article class="article">
+            <header class="article-header">
+                <time class="article-date" datetime="2025-12-23">December 23, 2025</time>
+                <h1 class="article-title">Midjourney Material Studies</h1>
+            </header>
+
+            <div class="article-content">
+                <p>Around 17 months after Midjourney's public beta launched, I began probing the tool through systematic material studies. Using geometric forms as constants, I tested how the model handled variations in surface treatment—metals, woods, plastics, textured finishes—to understand its capabilities and limitations beyond marketing claims.</p>
+
+                <p>This constrained experimental approach revealed specific affordances: where the tool reliably understood material properties, where it became ambiguous, and what the gap between prompt and output actually looked like. Rather than debating whether AI is "creative," I was establishing empirical understanding of what it could do.</p>
+
+                <p>These images capture a particular moment in AI image generation capability—distinctive lighting characteristics, material boundary behaviours, and aesthetic coherences that have since evolved. They remain useful reference material, documenting not just the outputs but a methodology for systematically testing new tools rather than accepting surface-level impressions.</p>
+
+                <div class="material-canvas" id="materialCanvas">
+                    <div class="canvas-controls">
+                        <span class="canvas-hint">Drag to rearrange</span>
+                        <button class="canvas-btn" id="btnGrid">Grid</button>
+                        <button class="canvas-btn" id="btnCircle">Circle</button>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="article-footer">
+                <p>Published by Rob Boyett. For more articles, visit the <a href="/">home page</a> or subscribe to the <a href="/feed.xml">RSS feed</a>.</p>
+            </footer>
+        </article>
+    </div>
+
+    <script>
+        // Handle menu open/close events from site-nav component
+        const page = document.querySelector('.page');
+        const siteNav = document.querySelector('site-nav');
+
+        siteNav.addEventListener('menu-open', () => {
+            page.classList.add('menu-open');
+        });
+
+        siteNav.addEventListener('menu-close', () => {
+            page.classList.remove('menu-open');
+        });
+
+        // Material Studies Canvas
+        const images = [
+            'robboyett_a_small_Ash_wood_pentagonal_prism_shape._Sat_on_a_whi_06c1dd64-bc10-4ee4-99c4-233a32a27723.png',
+            'robboyett_a_small_Ash_wood_pentagonal_prism_shape._Sat_on_a_whi_b77f0aaa-0a8e-4935-950c-4d988161ef73.png',
+            'robboyett_a_small_Bamboo_wooden_pentagonal_prism_shape._Sat_on__57b560c5-8445-49d5-b6ad-13bde24b0b33.png',
+            'robboyett_a_small_blue_foam_pentagonal_prism_shape._Sat_on_a_wh_eb557822-b714-4a9c-93f4-f2ff3707213a.png',
+            'robboyett_a_small_Cedar_wooden_pentagonal_prism_shape._Sat_on_a_ef95f355-687c-4b7d-9030-e55aaffcbd32.png',
+            'robboyett_a_small_cherry_wood_pentagonal_prism_shape._Sat_on_a__002f517f-0ea2-45f4-bdb6-f2ba53411258.png',
+            'robboyett_a_small_Concrete_pentagonal_prism_shape._Sat_on_a_whi_da5ab243-4885-4cb0-b50b-c1a8155cc672.png',
+            'robboyett_a_small_cork_pentagonal_prism_shape._Sat_on_a_white_t_30698de7-840a-4106-9779-3195e32c8d4e.png',
+            'robboyett_a_small_Ebony_wooden_pentagonal_prism_shape._Sat_on_a_e5a8691f-ecbd-4a7f-b24f-ac1a005f1d6c.png',
+            'robboyett_a_small_Foam_pentagonal_prism_shape._Sat_on_a_white_t_4846dfb8-96f5-4aaf-8363-72506cbe2cb7.png',
+            'robboyett_a_small_glass_pentagonal_prism_shape._Sat_on_a_white__2f3b609d-2588-4b7b-912e-d17d7c8b12fd.png',
+            'robboyett_a_small_Rosewood_wood_pentagonal_prism_shape._Sat_on__4cfb7046-e21e-47d0-9fc5-d959746f20d5.png',
+            'robboyett_a_small_Rosewood_wood_pentagonal_prism_shape._Sat_on__8a5a2de5-7ac8-4db8-96f6-13f273ab72a0.png',
+            'robboyett_a_small_walnut_wooden_pentagonal_prism_shape._Sat_on__4f2ba911-449c-4a0f-86aa-5abe84c006ce.png'
+        ];
+
+        // Extract material name from filename
+        function extractMaterial(filename) {
+            const match = filename.match(/robboyett_a_small_(.+?)_(?:pentagonal|wooden_pentagonal)/i);
+            if (match) {
+                let material = match[1].replace(/_/g, ' ').toLowerCase();
+                // Clean up common patterns
+                material = material.replace(' wooden', '');
+                material = material.replace(' wood', '');
+                return material.trim();
+            }
+            return 'material';
+        }
+
+        // Initialize canvas
+        const canvas = document.getElementById('materialCanvas');
+        let highestZ = 1;
+
+        // Create cards with scattered positions
+        function initializeCanvas() {
+            const canvasRect = canvas.getBoundingClientRect();
+            const cardWidth = window.innerWidth <= 768 ? 140 : 200;
+            const padding = 20;
+
+            images.forEach((filename, index) => {
+                const card = document.createElement('div');
+                card.className = 'material-card';
+                card.style.zIndex = index + 1;
+                
+                // Scatter positions with some overlap
+                const maxX = Math.max(canvasRect.width - cardWidth - padding, padding);
+                const maxY = Math.max(canvas.offsetHeight - cardWidth - padding, padding);
+                const x = padding + Math.random() * maxX;
+                const y = padding + Math.random() * maxY;
+                
+                card.style.left = x + 'px';
+                card.style.top = y + 'px';
+
+                const img = document.createElement('img');
+                img.src = filename;
+                img.alt = extractMaterial(filename);
+                img.draggable = false;
+
+                const label = document.createElement('span');
+                label.className = 'material-label';
+                label.textContent = extractMaterial(filename);
+
+                card.appendChild(img);
+                card.appendChild(label);
+                canvas.appendChild(card);
+
+                // Make draggable
+                makeDraggable(card);
+            });
+
+            highestZ = images.length + 1;
+        }
+
+        // Draggable functionality
+        function makeDraggable(element) {
+            let isDragging = false;
+            let startX, startY, initialX, initialY;
+
+            function onStart(e) {
+                isDragging = true;
+                element.classList.add('dragging');
+                
+                // Bring to front
+                highestZ++;
+                element.style.zIndex = highestZ;
+
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                
+                startX = clientX;
+                startY = clientY;
+                initialX = element.offsetLeft;
+                initialY = element.offsetTop;
+
+                e.preventDefault();
+            }
+
+            function onMove(e) {
+                if (!isDragging) return;
+
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+
+                let newX = initialX + dx;
+                let newY = initialY + dy;
+
+                // Constrain to canvas
+                const canvasRect = canvas.getBoundingClientRect();
+                const cardWidth = element.offsetWidth;
+                const cardHeight = element.offsetHeight;
+
+                newX = Math.max(0, Math.min(newX, canvas.offsetWidth - cardWidth));
+                newY = Math.max(0, Math.min(newY, canvas.offsetHeight - cardHeight));
+
+                element.style.left = newX + 'px';
+                element.style.top = newY + 'px';
+                element.style.transform = 'scale(1.02)';
+
+                e.preventDefault();
+            }
+
+            function onEnd() {
+                if (!isDragging) return;
+                isDragging = false;
+                element.classList.remove('dragging');
+                element.style.transform = '';
+            }
+
+            // Mouse events
+            element.addEventListener('mousedown', onStart);
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onEnd);
+
+            // Touch events
+            element.addEventListener('touchstart', onStart, { passive: false });
+            document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('touchend', onEnd);
+        }
+
+        // Initialize when DOM is ready
+        initializeCanvas();
+
+        // Arrangement functions
+        function arrangeGrid() {
+            const cards = canvas.querySelectorAll('.material-card');
+            const cardWidth = window.innerWidth <= 768 ? 140 : 200;
+            const gap = 20;
+            const padding = 20;
+            const cols = Math.floor((canvas.offsetWidth - padding * 2 + gap) / (cardWidth + gap));
+            
+            cards.forEach((card, index) => {
+                const col = index % cols;
+                const row = Math.floor(index / cols);
+                const x = padding + col * (cardWidth + gap);
+                const y = padding + 60 + row * (cardWidth + gap); // 60px offset for controls
+                
+                card.style.transition = 'left 0.4s ease, top 0.4s ease';
+                card.style.left = x + 'px';
+                card.style.top = y + 'px';
+                
+                // Remove transition after animation
+                setTimeout(() => {
+                    card.style.transition = 'box-shadow 0.2s ease, transform 0.1s ease';
+                }, 400);
+            });
+        }
+
+        function arrangeCircle() {
+            const cards = canvas.querySelectorAll('.material-card');
+            const cardWidth = window.innerWidth <= 768 ? 140 : 200;
+            const centerX = canvas.offsetWidth / 2;
+            const centerY = canvas.offsetHeight / 2;
+            const radius = Math.min(cards.length * 30, 450);
+            
+            cards.forEach((card, index) => {
+                // Start from top and go clockwise
+                const angle = (index / cards.length) * 2 * Math.PI - Math.PI / 2;
+                const x = centerX + radius * Math.cos(angle) - cardWidth / 2;
+                const y = centerY + radius * Math.sin(angle) - cardWidth / 2;
+                
+                card.style.transition = 'left 0.4s ease, top 0.4s ease';
+                card.style.left = Math.max(0, x) + 'px';
+                card.style.top = Math.max(60, y) + 'px'; // 60px offset for controls
+                
+                // Remove transition after animation
+                setTimeout(() => {
+                    card.style.transition = 'box-shadow 0.2s ease, transform 0.1s ease';
+                }, 400);
+            });
+        }
+
+        // Button event listeners
+        document.getElementById('btnGrid').addEventListener('click', arrangeGrid);
+        document.getElementById('btnCircle').addEventListener('click', arrangeCircle);
+
+        // Wait for Inter font to load before showing page
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                document.documentElement.classList.add('fonts-loaded');
+            });
+        } else {
+            // Fallback for browsers without Font Loading API
+            document.documentElement.classList.add('fonts-loaded');
+        }
+    </script>
+</body>
+</html>
+
