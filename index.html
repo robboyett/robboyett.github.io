@@ -220,6 +220,294 @@
             width: 59px;
         }
 
+        /* Thoughts Button - subtle tab at top */
+        .thoughts-toggle {
+            position: fixed;
+            top: 0;
+            right: 60px;
+            z-index: 1001;
+            margin: 0;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 8px 16px 10px;
+            border-radius: 0 0 6px 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            color: #666;
+            transition: color 0.2s ease, background 0.2s ease;
+        }
+
+        .thoughts-toggle:hover {
+            color: #1A1A1A;
+            background: rgba(255, 255, 255, 1);
+        }
+
+        .thoughts-toggle svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .thoughts-toggle svg path {
+            fill: #666;
+            transition: fill 0.2s ease;
+        }
+
+        .thoughts-toggle:hover svg path {
+            fill: #1A1A1A;
+        }
+
+        .thoughts-toggle.active {
+            background: #1A1A1A;
+            color: white;
+        }
+
+        .thoughts-toggle.active svg path {
+            fill: white;
+        }
+
+        /* Thoughts Overlay */
+        .thoughts-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .thoughts-overlay.visible {
+            pointer-events: all;
+            opacity: 1;
+        }
+
+        .thoughts-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(241, 241, 241, 0.85);
+        }
+
+        .thoughts-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            padding: 100px 60px;
+        }
+
+        /* Sticky Note Styles */
+        .sticky-note {
+            position: absolute;
+            width: 240px;
+            min-height: 140px;
+            padding: 32px 20px 20px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 1.45;
+            color: rgba(0, 0, 0, 0.85);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+            transform-origin: center center;
+            transition: box-shadow 0.3s ease, transform 0.2s ease;
+            cursor: grab;
+            user-select: none;
+            border-radius: 2px;
+        }
+
+        .sticky-note:hover {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+            transform: translateY(-2px);
+            z-index: 10;
+        }
+
+        .sticky-note.dragging {
+            cursor: grabbing;
+            z-index: 100;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
+            transform: scale(1.02);
+        }
+
+        /* Tape strip at top */
+        .sticky-note .tape {
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 18px;
+            background: rgba(255, 255, 255, 0.65);
+            border-radius: 1px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Flat Colors matching reference */
+        .sticky-note.yellow {
+            background: #FFF59D;
+        }
+
+        .sticky-note.pink {
+            background: #F8BBD9;
+        }
+
+        .sticky-note.green {
+            background: #A5F5C8;
+        }
+
+        .sticky-note.blue {
+            background: #90CAF9;
+        }
+
+        .sticky-note.white {
+            background: #FFFFFF;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .sticky-note.orange {
+            background: #FFCC80;
+        }
+
+        .sticky-note.purple {
+            background: #E1BEE7;
+        }
+
+        /* Write a note - interactive post-it */
+        .sticky-note.write-note {
+            background: #FFF59D;
+            display: flex;
+            flex-direction: column;
+            min-height: 180px;
+            z-index: 20;
+        }
+
+        .sticky-note.write-note .note-prompt {
+            color: #666;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .sticky-note.write-note.editing {
+            cursor: default;
+        }
+
+        .sticky-note.write-note.editing .note-prompt {
+            display: none;
+        }
+
+        .sticky-note.write-note .note-form {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            gap: 8px;
+        }
+
+        .sticky-note.write-note.editing .note-form {
+            display: flex;
+        }
+
+        .sticky-note.write-note textarea {
+            flex: 1;
+            border: none;
+            background: transparent;
+            resize: none;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.4;
+            color: rgba(0, 0, 0, 0.85);
+            outline: none;
+            min-height: 80px;
+            caret-color: #333;
+        }
+
+        .sticky-note.write-note textarea::placeholder {
+            color: rgba(0, 0, 0, 0.35);
+            font-style: italic;
+        }
+
+        .sticky-note.write-note .note-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .sticky-note.write-note button {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .sticky-note.write-note button:hover {
+            opacity: 0.8;
+        }
+
+        .sticky-note.write-note .cancel-btn {
+            background: transparent;
+            color: #666;
+        }
+
+        .sticky-note.write-note .send-btn {
+            background: transparent;
+            color: rgba(0, 0, 0, 0.6);
+            border: 1.5px solid rgba(0, 0, 0, 0.4);
+        }
+
+        .sticky-note.write-note .send-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .sticky-note.write-note .send-btn:hover {
+            background: transparent;
+            color: rgba(0, 0, 0, 0.85);
+            border-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .sticky-note.write-note.sent {
+            border: 2px solid #81C784;
+            background: #E8F5E9;
+        }
+
+        .sticky-note.write-note.sent .note-form {
+            display: none;
+        }
+
+        .sticky-note.write-note.sent .note-prompt {
+            display: flex;
+            color: #4CAF50;
+            font-style: normal;
+            font-weight: 600;
+        }
+
+        @keyframes noteEntry {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* Responsive - Mobile */
         @media (max-width: 768px) {
             .page {
@@ -264,6 +552,51 @@
             /* Hide preview on mobile */
             .preview-box {
                 display: none !important;
+            }
+
+            /* Thoughts button mobile */
+            .thoughts-toggle {
+                right: 20px;
+                padding: 6px 12px 8px;
+                font-size: 11px;
+            }
+
+            .thoughts-container {
+                padding: 80px 20px;
+                overflow-y: auto;
+            }
+
+            .thoughts-overlay {
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .thoughts-container {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 16px;
+                padding: 60px 20px 100px !important;
+                min-height: auto;
+                height: auto;
+            }
+
+            .sticky-note {
+                position: relative !important;
+                width: calc(100% - 20px) !important;
+                max-width: 320px;
+                margin: 0 auto !important;
+                left: auto !important;
+                top: auto !important;
+                right: auto !important;
+                bottom: auto !important;
+                min-height: 120px;
+            }
+
+            .sticky-note.write-note {
+                order: -1;
+                margin-bottom: 8px !important;
             }
         }
     </style>
@@ -310,6 +643,19 @@
                 </svg>
                 Medium
             </a>
+        </div>
+    </div>
+
+    <!-- Thoughts Toggle Button -->
+    <button class="thoughts-toggle" id="thoughtsToggle" aria-label="Show thoughts">
+        <span>Thinking About</span>
+    </button>
+
+    <!-- Thoughts Overlay -->
+    <div class="thoughts-overlay" id="thoughtsOverlay">
+        <div class="thoughts-backdrop"></div>
+        <div class="thoughts-container" id="thoughtsContainer">
+            <!-- Sticky notes loaded from thoughts.xml -->
         </div>
     </div>
 
@@ -631,6 +977,314 @@
         } else {
             // Fallback for browsers without Font Loading API
             document.documentElement.classList.add('fonts-loaded');
+        }
+
+        // Thoughts / Sticky Notes Feature
+        const thoughtsToggle = document.getElementById('thoughtsToggle');
+        const thoughtsOverlay = document.getElementById('thoughtsOverlay');
+        const thoughtsContainer = document.getElementById('thoughtsContainer');
+        let thoughtsLoaded = false;
+        let thoughtsOpen = false;
+        let loadedAtMobile = null;
+
+        // Toggle thoughts overlay
+        thoughtsToggle.addEventListener('click', () => {
+            thoughtsOpen = !thoughtsOpen;
+            if (thoughtsOpen) {
+                showThoughts();
+            } else {
+                hideThoughts();
+            }
+        });
+
+        // Close when clicking backdrop
+        thoughtsOverlay.addEventListener('click', (e) => {
+            if (e.target.classList.contains('thoughts-backdrop')) {
+                thoughtsOpen = false;
+                hideThoughts();
+            }
+        });
+
+        // Close with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && thoughtsOpen) {
+                thoughtsOpen = false;
+                hideThoughts();
+            }
+        });
+
+        function showThoughts() {
+            thoughtsOverlay.classList.add('visible');
+            thoughtsToggle.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Check if we need to reload due to viewport size change
+            const isMobile = window.innerWidth <= 768;
+            if (!thoughtsLoaded || loadedAtMobile !== isMobile) {
+                loadThoughts();
+                loadedAtMobile = isMobile;
+            }
+        }
+
+        function hideThoughts() {
+            thoughtsOverlay.classList.remove('visible');
+            thoughtsToggle.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        async function loadThoughts() {
+            try {
+                const response = await fetch('/thoughts.xml');
+                const xmlText = await response.text();
+                const parser = new DOMParser();
+                const xml = parser.parseFromString(xmlText, 'text/xml');
+                const thoughts = xml.querySelectorAll('thought');
+                
+                thoughtsContainer.innerHTML = '';
+                
+                thoughts.forEach((thought, index) => {
+                    const color = thought.getAttribute('color') || 'yellow';
+                    const text = thought.querySelector('text').textContent;
+                    
+                    const note = document.createElement('div');
+                    note.className = `sticky-note ${color}`;
+                    note.innerHTML = `
+                        <div class="tape"></div>
+                        ${text}
+                    `;
+                    
+                    // Position notes in an ad-hoc scattered pattern (desktop only)
+                    if (window.innerWidth > 768) {
+                        const position = getAdHocPosition(index, thoughts.length);
+                        note.style.left = position.x + '%';
+                        note.style.top = position.y + '%';
+                    }
+                    
+                    // Stagger animation entry
+                    note.style.opacity = '0';
+                    note.style.animation = `noteEntry 0.4s ease ${index * 0.08}s forwards`;
+                    
+                    // Make note draggable
+                    makeDraggable(note);
+                    
+                    thoughtsContainer.appendChild(note);
+                });
+                
+                // Add the "write me a note" post-it
+                addWriteNotePostIt(thoughts.length);
+                
+                thoughtsLoaded = true;
+            } catch (error) {
+                console.error('Error loading thoughts:', error);
+                thoughtsContainer.innerHTML = '<div class="sticky-note yellow" style="position: relative; margin: 40px auto;">No thoughts yet...</div>';
+                addWriteNotePostIt(0);
+            }
+        }
+
+        // Add interactive "write me a note" post-it
+        function addWriteNotePostIt(index) {
+            const note = document.createElement('div');
+            note.className = 'sticky-note write-note editing';
+            note.innerHTML = `
+                <div class="tape"></div>
+                <div class="note-prompt">✓ Sent!</div>
+                <form class="note-form" action="https://formspree.io/f/xojarkpa" method="POST">
+                    <textarea name="message" placeholder="What are you thinking about?" required autofocus></textarea>
+                    <div class="note-actions">
+                        <button type="submit" class="send-btn">Send</button>
+                    </div>
+                </form>
+            `;
+            
+            // Position it in bottom right area (desktop only, using left/top so dragging works)
+            if (window.innerWidth > 768) {
+                note.style.left = '70%';
+                note.style.top = '55%';
+            }
+            
+            // Animation
+            note.style.opacity = '0';
+            note.style.animation = `noteEntry 0.4s ease ${index * 0.08}s forwards`;
+            
+            const prompt = note.querySelector('.note-prompt');
+            const form = note.querySelector('.note-form');
+            const textarea = note.querySelector('textarea');
+            
+            // Make it draggable like other notes, but not when interacting with form
+            makeDraggable(note);
+            
+            // Prevent drag when clicking on form elements
+            form.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+            });
+            form.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+            }, { passive: true });
+            
+            // Click anywhere on the note to focus textarea
+            note.addEventListener('click', (e) => {
+                if (!e.target.closest('.note-actions')) {
+                    textarea.focus();
+                }
+            });
+            
+            // Handle form submission
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const submitBtn = note.querySelector('.send-btn');
+                const messageText = textarea.value;
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0';
+                
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: new FormData(form),
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    
+                    if (response.ok) {
+                        // Clear and animate "Thanks" letter by letter
+                        textarea.value = '';
+                        textarea.readOnly = true;
+                        
+                        const thanksText = 'Thanks ✓';
+                        let i = 0;
+                        const typeInterval = setInterval(() => {
+                            if (i < thanksText.length) {
+                                textarea.value += thanksText[i];
+                                i++;
+                            } else {
+                                clearInterval(typeInterval);
+                                
+                                // Wait, then clear and reset
+                                setTimeout(() => {
+                                    textarea.value = '';
+                                    textarea.readOnly = false;
+                                    submitBtn.disabled = false;
+                                    submitBtn.style.opacity = '1';
+                                    textarea.focus();
+                                }, 1500);
+                            }
+                        }, 80);
+                    } else {
+                        throw new Error('Failed to send');
+                    }
+                } catch (error) {
+                    textarea.value = 'Error - try again';
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = '1';
+                    setTimeout(() => {
+                        textarea.value = messageText;
+                    }, 2000);
+                }
+            });
+            
+            // Prevent drag on this note when editing
+            note.addEventListener('mousedown', (e) => {
+                if (note.classList.contains('editing')) {
+                    e.stopPropagation();
+                }
+            });
+            
+            thoughtsContainer.appendChild(note);
+        }
+
+        // Generate ad-hoc positions for sticky notes
+        function getAdHocPosition(index, total) {
+            // Create a scattered but readable layout - 3 columns, tighter spacing
+            const positions = [
+                { x: 5, y: 2 },
+                { x: 35, y: 4 },
+                { x: 65, y: 3 },
+                { x: 8, y: 28 },
+                { x: 38, y: 26 },
+                { x: 68, y: 25 },
+                { x: 5, y: 52 },
+                { x: 35, y: 54 },
+                { x: 65, y: 52 },
+            ];
+            
+            // Use predefined positions, with fallback for more notes
+            if (index < positions.length) {
+                return positions[index];
+            }
+            
+            // Generate additional positions if more notes than predefined
+            const row = Math.floor(index / 3);
+            const col = index % 3;
+            return {
+                x: 5 + (col * 30),
+                y: 2 + (row * 26)
+            };
+        }
+
+        // Make sticky notes draggable
+        function makeDraggable(element) {
+            let isDragging = false;
+            let startX, startY, initialX, initialY;
+
+            element.addEventListener('mousedown', startDrag);
+            element.addEventListener('touchstart', startDrag, { passive: false });
+
+            function startDrag(e) {
+                e.preventDefault();
+                isDragging = true;
+                element.classList.add('dragging');
+
+                // Get the current position
+                const rect = element.getBoundingClientRect();
+                const containerRect = thoughtsContainer.getBoundingClientRect();
+                
+                // Convert to absolute positioning if using percentage
+                element.style.left = (rect.left - containerRect.left) + 'px';
+                element.style.top = (rect.top - containerRect.top) + 'px';
+
+                if (e.type === 'touchstart') {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                } else {
+                    startX = e.clientX;
+                    startY = e.clientY;
+                }
+
+                initialX = rect.left - containerRect.left;
+                initialY = rect.top - containerRect.top;
+
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('mouseup', stopDrag);
+                document.addEventListener('touchmove', drag, { passive: false });
+                document.addEventListener('touchend', stopDrag);
+            }
+
+            function drag(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+
+                let currentX, currentY;
+                if (e.type === 'touchmove') {
+                    currentX = e.touches[0].clientX;
+                    currentY = e.touches[0].clientY;
+                } else {
+                    currentX = e.clientX;
+                    currentY = e.clientY;
+                }
+
+                const deltaX = currentX - startX;
+                const deltaY = currentY - startY;
+
+                element.style.left = (initialX + deltaX) + 'px';
+                element.style.top = (initialY + deltaY) + 'px';
+            }
+
+            function stopDrag() {
+                isDragging = false;
+                element.classList.remove('dragging');
+                document.removeEventListener('mousemove', drag);
+                document.removeEventListener('mouseup', stopDrag);
+                document.removeEventListener('touchmove', drag);
+                document.removeEventListener('touchend', stopDrag);
+            }
         }
     </script>
 </body>

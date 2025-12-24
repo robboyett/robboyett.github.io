@@ -45,7 +45,7 @@ class SiteNav extends HTMLElement {
 
                 .nav {
                     display: flex;
-                    flex-direction: row;
+                    flex-direction: row !important;
                     flex-wrap: nowrap;
                     gap: 6px;
                     align-items: flex-start;
@@ -150,37 +150,44 @@ class SiteNav extends HTMLElement {
                 /* Responsive */
                 @media (max-width: 768px) {
                     .nav {
-                        flex-direction: column;
-                        align-items: flex-start;
+                        flex-direction: row;
+                        flex-wrap: nowrap;
+                        align-items: stretch;
                         margin-bottom: 48px;
                     }
 
                     .nav-item {
-                        padding: 20px 28px;
-                        font-size: 22px;
+                        padding: 16px 20px;
+                        font-size: 20px;
                     }
 
                     .nav-item.logo {
-                        height: auto;
-                        padding: 20px;
+                        height: 64px;
+                        width: 64px;
+                        padding: 0;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
                     }
 
                     .nav-item.logo svg {
-                        width: 36px;
-                        height: 36px;
+                        width: 32px;
+                        height: 32px;
                     }
 
                     .journal-toggle {
-                        padding: 20px 28px;
-                        font-size: 22px;
-                        height: auto;
+                        padding: 16px 20px;
+                        font-size: 20px;
+                        height: 64px;
                     }
 
                     .journal-menu-item {
-                        padding: 20px 28px;
-                        font-size: 18px;
-                        min-width: auto;
+                        padding: 24px 32px;
+                        font-size: 22px;
+                        width: calc(100vw - 80px);
+                        max-width: calc(100vw - 80px);
                         white-space: normal;
+                        word-wrap: break-word;
                     }
                 }
             </style>

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UX Insights for VS Code | Rob Boyett</title>
+    <link rel="preload" href="https://rsms.me/inter/inter.css" as="style">
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+    
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="Rob Boyett's Journal" href="/feed.xml">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Hide content until fonts load to prevent FOUT */
+        html {
+            visibility: hidden;
+        }
+        
+        html.fonts-loaded {
+            visibility: visible;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #F1F1F1;
+            color: #1A1A1A;
+            min-height: 100vh;
+        }
+
+        .page {
+            padding: 66px 62px;
+            min-height: 100vh;
+        }
+
+        /* Dim content when dropdown is open */
+        .page.menu-open .article {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .article {
+            transition: opacity 0.3s ease;
+        }
+
+        /* Article Styles */
+        .article {
+            max-width: 680px;
+            margin: 0;
+        }
+
+        .article-header {
+            margin-bottom: 48px;
+        }
+
+        .article-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .article-title {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .article-subtitle {
+            font-size: 20px;
+            color: #555;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        /* Article Content */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #333;
+        }
+
+        .article-content p {
+            margin-bottom: 24px;
+        }
+
+        .article-content h2 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-top: 48px;
+            margin-bottom: 24px;
+        }
+
+        .article-content h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 36px;
+            margin-bottom: 16px;
+        }
+
+        .article-content ul,
+        .article-content ol {
+            margin-bottom: 24px;
+            padding-left: 24px;
+        }
+
+        .article-content li {
+            margin-bottom: 8px;
+        }
+
+        .article-content blockquote {
+            border-left: 3px solid #202020;
+            padding-left: 24px;
+            margin: 32px 0;
+            font-style: italic;
+            color: #555;
+        }
+
+        .article-content code {
+            background: #e8e8e8;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 16px;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .article-content pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 24px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 32px 0;
+        }
+
+        .article-content pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .article-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 32px 0;
+        }
+
+        .article-content figure {
+            margin: 40px 0;
+        }
+
+        .article-content figure img {
+            margin: 0;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .article-content a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+
+        .article-content a:hover {
+            color: #004499;
+        }
+
+        /* Project Link Box */
+        .project-link {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin: 40px 0;
+            text-decoration: none !important;
+            color: inherit;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .project-link:hover {
+            border-color: #ccc;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            color: inherit;
+        }
+
+        .project-link * {
+            text-decoration: none !important;
+        }
+
+        .project-link-icon {
+            width: 48px;
+            height: 48px;
+            background: #24292f;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .project-link-icon svg {
+            width: 28px;
+            height: 28px;
+            fill: white;
+        }
+
+        .project-link-content {
+            flex: 1;
+        }
+
+        .project-link-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+            color: #1a1a1a;
+        }
+
+        .project-link-description {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .project-link-arrow {
+            color: #999;
+            font-size: 20px;
+        }
+
+        /* Article Footer */
+        .article-footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid #ddd;
+        }
+
+        .article-footer p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page {
+                padding: 24px;
+            }
+
+            .article-title {
+                font-size: 32px;
+            }
+
+            .article-subtitle {
+                font-size: 18px;
+            }
+
+            .article-content {
+                font-size: 17px;
+            }
+
+            .article-content h2 {
+                font-size: 24px;
+            }
+
+            .article-content h3 {
+                font-size: 20px;
+            }
+
+            .project-link {
+                padding: 16px;
+            }
+
+            .project-link-icon {
+                width: 40px;
+                height: 40px;
+            }
+
+            .project-link-icon svg {
+                width: 24px;
+                height: 24px;
+            }
+        }
+    </style>
+    
+    <!-- Navigation Component -->
+    <script src="/components/site-nav.js"></script>
+</head>
+<body>
+    <div class="page">
+        <!-- Navigation -->
+        <site-nav></site-nav>
+
+        <!-- Article -->
+        <article class="article">
+            <header class="article-header">
+                <time class="article-date" datetime="2025-12-23">December 23, 2025</time>
+                <h1 class="article-title">UX Insights for VS Code</h1>
+                <p class="article-subtitle">An experiment in co-locating research with code—making design context a first-class artefact in the development environment.</p>
+            </header>
+
+            <div class="article-content">
+                <p>Over time, I've become increasingly uncomfortable with how easily design context gets lost once work moves from research into delivery. In most organisations, research lives in one place, design decisions get compressed into artefacts, and developers receive the outcome without the reasoning that shaped it. The result is predictable: well-intentioned divergence, fragile trust in design decisions, and a constant need for clarification and handover.</p>
+
+                <p>The experiment behind this project started from an idea: what if research lived alongside the code it informs? Not as static documentation or links out to a repository few people open, but as first-class, versioned artefacts inside the same environment where features are built. By co-locating research, rationale, and constraints with implementation, context could become something you encounter in the flow of work rather than something you're asked to remember or reconstruct later. Ideally it flattens the distance between thinking and building.</p>
+
+                <p>There's also a forward-looking dimension to this. As AI-assisted coding becomes normal, the quality of what we build will increasingly depend on the quality of context we give these systems. Code alone is insufficient. Intent, trade-offs, and evidence matter. Treating research as part of the repository acknowledges that design knowledge is not peripheral, but structural. The plugin that follows is one expression of that principle, not the point in itself, but a way of testing whether this kind of proximity can meaningfully change how teams understand, trust, and extend design decisions over time.</p>
+
+                <figure>
+                    <img src="Marketing-Image-01.png" alt="Screenshot of the VS Code plugin showing the research insights sidebar, with markdown documentation automatically surfaced next to relevant code.">
+                </figure>
+
+                <figure>
+                    <img src="Marketing-Image-02.png" alt="Markdown research file open in a webview panel inside VS Code, displaying a styled, readable layout with headings, links, and formatting preserved.">
+                </figure>
+
+                <a href="https://github.com/robboyett/vscode-ux-insights" class="project-link" target="_blank" rel="noopener">
+                    <div class="project-link-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </div>
+                    <div class="project-link-content">
+                        <div class="project-link-title">robboyett/vscode-ux-insights</div>
+                        <div class="project-link-description">VS Code extension to surface UX research insights directly within your codebase</div>
+                    </div>
+                    <span class="project-link-arrow">→</span>
+                </a>
+            </div>
+
+            <footer class="article-footer">
+                <p>Published by Rob Boyett. For more articles, visit the <a href="/">home page</a> or subscribe to the <a href="/feed.xml">RSS feed</a>.</p>
+            </footer>
+        </article>
+    </div>
+
+    <script>
+        // Handle menu open/close events from site-nav component
+        const page = document.querySelector('.page');
+        const siteNav = document.querySelector('site-nav');
+
+        siteNav.addEventListener('menu-open', () => {
+            page.classList.add('menu-open');
+        });
+
+        siteNav.addEventListener('menu-close', () => {
+            page.classList.remove('menu-open');
+        });
+
+        // Wait for Inter font to load before showing page
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                document.documentElement.classList.add('fonts-loaded');
+            });
+        } else {
+            // Fallback for browsers without Font Loading API
+            document.documentElement.classList.add('fonts-loaded');
+        }
+    </script>
+</body>
+</html>
+

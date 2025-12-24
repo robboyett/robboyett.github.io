@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthetic vs Human Research Evaluation | Rob Boyett</title>
+    <link rel="preload" href="https://rsms.me/inter/inter.css" as="style">
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.12.1.min.js"></script>
+    
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="Rob Boyett's Journal" href="/feed.xml">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Hide content until fonts load to prevent FOUT */
+        html {
+            visibility: hidden;
+        }
+        
+        html.fonts-loaded {
+            visibility: visible;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #F1F1F1;
+            color: #1A1A1A;
+            min-height: 100vh;
+        }
+
+        .page {
+            padding: 66px 62px;
+            min-height: 100vh;
+        }
+
+        /* Dim content when dropdown is open */
+        .page.menu-open .article {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .article {
+            transition: opacity 0.3s ease;
+        }
+
+        /* Article Styles */
+        .article {
+            max-width: 680px;
+            margin: 0;
+        }
+
+        .article-header {
+            margin-bottom: 48px;
+        }
+
+        .article-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .article-title {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .article-subtitle {
+            font-size: 20px;
+            color: #555;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        /* Article Content */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #333;
+        }
+
+        .article-content p {
+            margin-bottom: 24px;
+        }
+
+        .article-content h2 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-top: 48px;
+            margin-bottom: 24px;
+        }
+
+        .article-content h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 36px;
+            margin-bottom: 16px;
+        }
+
+        .article-content h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 24px;
+            margin-bottom: 12px;
+        }
+
+        .article-content ul,
+        .article-content ol {
+            margin-bottom: 24px;
+            padding-left: 24px;
+        }
+
+        .article-content li {
+            margin-bottom: 8px;
+        }
+
+        .article-content blockquote {
+            border-left: 3px solid #202020;
+            padding-left: 24px;
+            margin: 32px 0;
+            font-style: italic;
+            color: #555;
+        }
+
+        .article-content code {
+            background: #e8e8e8;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 14px;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .article-content pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 24px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 32px 0;
+        }
+
+        .article-content pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .article-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 32px 0;
+        }
+
+        .article-content a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+
+        .article-content a:hover {
+            color: #004499;
+        }
+
+        /* Article Footer */
+        .article-footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid #ddd;
+        }
+
+        .article-footer p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Evaluation Report Styles */
+        :root {
+            --human-color: #3b82f6;
+            --synthetic-color: #dc2626;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --border-color: #e5e7eb;
+            --success: #059669;
+            --warning: #d97706;
+        }
+
+        .report-section {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 32px 0;
+        }
+
+        .report-section h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0 0 16px 0;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .report-section h3 {
+            font-size: 17px;
+            font-weight: 600;
+            margin: 24px 0 12px;
+            color: var(--text-primary);
+        }
+
+        .report-section h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin: 16px 0 8px;
+        }
+
+        .fidelity-hero {
+            text-align: center;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .fidelity-score {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .fidelity-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stat-value.human {
+            color: var(--human-color);
+        }
+
+        .stat-value.synthetic {
+            color: var(--synthetic-color);
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .interpretation-box {
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--border-color);
+            padding: 12px 16px;
+            margin: 16px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .interpretation-box.warning {
+            border-left-color: var(--warning);
+        }
+
+        .interpretation-box p {
+            margin: 0;
+            font-size: 15px;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        .report-table th,
+        .report-table td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .report-table th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge.human {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge.synthetic {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge.both {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .chart-container {
+            width: max-content;
+            min-width: 100%;
+            margin: 24px 0;
+            overflow-x: visible;
+        }
+
+        .chart-container > div {
+            min-width: 680px;
+        }
+
+        /* Specific chart sizing */
+        #radar-chart {
+            width: 780px !important;
+            height: 650px !important;
+        }
+
+        #correlation-chart {
+            width: 680px !important;
+            height: 550px !important;
+        }
+
+        #sentiment-chart {
+            width: 800px !important;
+            height: 480px !important;
+        }
+
+        #specificity-chart {
+            width: 680px !important;
+            height: 420px !important;
+        }
+
+        #linguistic-chart {
+            width: 680px !important;
+            height: 420px !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page {
+                padding: 24px;
+            }
+
+            .article-title {
+                font-size: 32px;
+            }
+
+            .article-subtitle {
+                font-size: 18px;
+            }
+
+            .article-content {
+                font-size: 17px;
+            }
+
+            .article-content h2 {
+                font-size: 24px;
+            }
+
+            .article-content h3 {
+                font-size: 20px;
+            }
+
+            .chart-container {
+                width: 100%;
+                min-width: 100%;
+                overflow-x: auto;
+            }
+
+            .chart-container > div {
+                min-width: 500px;
+            }
+
+            .report-section {
+                padding: 16px;
+                margin: 24px -12px;
+            }
+        }
+    </style>
+    
+    <!-- Navigation Component -->
+    <script src="/components/site-nav.js"></script>
+</head>
+<body>
+    <div class="page">
+        <!-- Navigation -->
+        <site-nav></site-nav>
+
+        <!-- Article -->
+        <article class="article">
+            <header class="article-header">
+                <time class="article-date" datetime="2025-12-06">December 6, 2025</time>
+                <h1 class="article-title">Synthetic vs Human Research Evaluation</h1>
+                <p class="article-subtitle">How valuable are AI-generated interviews for qualitative research? An experiment comparing 10 real user interviews against 10 synthetic interviews.</p>
+            </header>
+
+            <div class="article-content">
+                <p>Over the past year, I've been circling a question that feels important for where design and research are heading: can synthetic interviews give us something useful in the early stages of understanding a problem space? Not as a gimmick, and not as a replacement for real conversations, but as a practical part of shaping hypotheses.</p>
+
+                <p>Recently, I had the right conditions to try this properly. I was already running research with real participants, and I had enough background material to build credible personas. So I created a parallel synthetic track, running the same discussion guide through my own setup, transcript by transcript. Two studies side by side—one human, one simulated.</p>
+
+                <p>I built my own rig rather than using one of the platforms that have emerged in this space. I wanted to get my fingers into the soil—understand the pitfalls and benefits directly—especially since design is such a fluid, problem-fitting exercise. The value of a flexible setup that can adapt to different test types felt higher than convenience, so long as I could prove it generates valuable input.</p>
+
+                <p>This past weekend I cleaned the data and compared the two sets, building a Python-generated report looking at thematic coverage, emotional tone, specificity, and linguistic markers worth paying attention to. The point wasn't to prove anything definitive, but to see whether there's enough correlation to argue there's value here for designers who want to move faster without cutting corners.</p>
+
+                <p>I went in with a strong view: synthetic research isn't a replacement for talking to real people, but it might widen the aperture of what we already think we know. There's always that early stage where the team operates on half-formed assumptions about motivations, barriers, and emotional patterns. We chip away at those a few interviews at a time, refining questions as we go. What I wanted to test was whether synthetic interviews, grounded in good persona research, could accelerate that exploration—surfacing themes in advance, pressure-testing hypotheses so the real qualitative work becomes more focused.</p>
+
+                <p>What stands out is that synthetic interviews track the core thematic structure surprisingly closely, but with a different texture. They're confident, fluent, tidy. Real people are contradictory, uncertain, occasionally messy. So the role I see emerging isn't synthetic versus human, but layered. Start with a hypothesis, build personas from what you know, run a synthetic round to see where the cracks form, then sharpen your questions for real conversations. That feels closer to quantitative-before-qualitative thinking, except through narrative instead of numbers.</p>
+
+                <p>There's also the possibility of using synthetic interviews to simulate groups that are harder to recruit, creating a proxy view before spending the time and money finding them. If that works, we might treat insight as existing in different proportions—fully human, blended, or fully synthetic—each with its own strengths and blind spots.</p>
+
+                <p>I don't think synthetic interviews add new human insight on their own. What they could do is increase the quality of the early stage by making real interviews smarter. And perhaps the interesting question isn't "can synthetic replace human?" But "what mix gets us to better design decisions sooner?"</p>
+
+                <!-- Key Outcomes Section -->
+                <div class="report-section">
+                    <h2>Key Outcomes</h2>
+                    
+                    <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 24px; flex-wrap: wrap;">
+                        <div class="fidelity-hero" style="margin: 0; padding: 16px 24px; flex: 0 0 auto;">
+                            <div class="fidelity-label">Fidelity Score</div>
+                            <div class="fidelity-score">85.1<span style="font-size: 16px; color: var(--text-secondary);">/100</span></div>
+                        </div>
+                        <div style="flex: 1; min-width: 250px;">
+                            <p style="font-weight: 600; color: var(--success); margin-bottom: 4px;">Excellent Fidelity</p>
+                            <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">In this evaluation the synthetic research closely mirrors human patterns. The overall quality is high enough to be useful for certain research applications.</p>
+                        </div>
+                    </div>
+                    
+                    <div style="overflow-x: auto;">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 20%;">Dimension</th>
+                                    <th style="text-align: center; width: 12%; color: var(--human-color);">Human</th>
+                                    <th style="text-align: center; width: 12%; color: var(--synthetic-color);">Synthetic</th>
+                                    <th style="text-align: center; width: 12%;">Verdict</th>
+                                    <th>Interpretation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 600;">Thematic Coverage</div>
+                                        <div style="font-size: 12px; color: var(--text-secondary);">Theme correlation (r)</div>
+                                    </td>
+                                    <td style="text-align: center;" colspan="2">
+                                        <span style="font-size: 20px; font-weight: 600;">0.80</span>
+                                        <div style="font-size: 12px; color: var(--text-secondary);">16/18 themes shared</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="badge" style="background: #d1fae5; color: #065f46;">Strong</span>
+                                    </td>
+                                    <td style="color: var(--text-secondary);">
+                                        Synthetic reliably identifies the same core topics. <strong style="color: var(--text-primary);">Trust it for initial theme exploration.</strong>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 600;">Sentiment & Emotion</div>
+                                        <div style="font-size: 12px; color: var(--text-secondary);">Average sentiment (-1 to +1)</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span style="font-size: 20px; font-weight: 600; color: var(--human-color);">0.15</span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span style="font-size: 20px; font-weight: 600; color: var(--synthetic-color);">0.14</span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="badge" style="background: #d1fae5; color: #065f46;">Match</span>
+                                    </td>
+                                    <td style="color: var(--text-secondary);">
+                                        Nearly identical emotional tone. <strong style="color: var(--text-primary);">Neither overly positive nor artificially neutral.</strong>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 600;">Specificity & Detail</div>
+                                        <div style="font-size: 12px; color: var(--text-secondary);">Specificity score (0-10)</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span style="font-size: 20px; font-weight: 600; color: var(--human-color);">9.5</span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span style="font-size: 20px; font-weight: 600; color: var(--synthetic-color);">9.3</span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="badge" style="background: #d1fae5; color: #065f46;">Match</span>
+                                    </td>
+                                    <td style="color: var(--text-secondary);">
+                                        Both highly specific. <strong style="color: var(--text-primary);">Synthetic provides concrete answers, not vague generalisations.</strong>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 600;">Linguistic Authenticity</div>
+                                        <div style="font-size: 12px; color: var(--text-secondary);">Hesitation markers (avg)</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span style="font-size: 20px; font-weight: 600; color: var(--human-color);">168</span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span style="font-size: 20px; font-weight: 600; color: var(--synthetic-color);">40</span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="badge" style="background: #fef3c7; color: #92400e;">Gap</span>
+                                    </td>
+                                    <td style="color: var(--text-secondary);">
+                                        Synthetic is 4× more polished. <strong style="color: var(--text-primary);">Lacks natural "ums" and conversational hesitations.</strong>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <h3>Where The Synthetic Research Falls Short</h3>
+                    <div style="overflow-x: auto; margin-top: 12px;">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>Gap Type</th>
+                                    <th style="text-align: center; color: var(--human-color);">Human</th>
+                                    <th style="text-align: center; color: var(--synthetic-color);">Synthetic</th>
+                                    <th>Impact</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 500;">Generational Perspectives</div>
+                                        <div style="font-size: 12px; color: var(--text-secondary);">Financial model shifts across generations</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span style="font-weight: 600; color: var(--human-color);">20%</span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span style="font-weight: 600; color: var(--synthetic-color);">0%</span>
+                                    </td>
+                                    <td style="color: var(--text-secondary);">
+                                        Completely missing intergenerational comparisons
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 500;">Cash Flow Urgency</div>
+                                        <div style="font-size: 12px; color: var(--text-secondary);">Timing and cash flow pressures</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span style="font-weight: 600; color: var(--human-color);">70%</span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span style="font-weight: 600; color: var(--synthetic-color);">30%</span>
+                                    </td>
+                                    <td style="color: var(--text-secondary);">
+                                        Underrepresents real-world financial stress
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 500;">Theme Intensity</div>
+                                        <div style="font-size: 12px; color: var(--text-secondary);">Coverage depth per theme</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span style="font-weight: 600; color: var(--human-color);">1×</span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span style="font-weight: 600; color: var(--synthetic-color);">2-4×</span>
+                                    </td>
+                                    <td style="color: var(--text-secondary);">
+                                        Over-covers themes vs natural human depth
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="interpretation-box" style="margin-top: 16px;">
+                        <p><strong>Bottom Line:</strong> In this case, it appears that synthetic research is a strong complement for theme exploration and hypothesis generation, but human research remains essential for capturing generational perspectives, real-world urgency, and authentic conversational nuance.</p>
+                    </div>
+                </div>
+
+                <!-- Thematic Analysis Section -->
+                <div class="report-section">
+                    <h2>Thematic Analysis</h2>
+                    
+                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;"><strong style="color: var(--text-primary);">Thematic Coverage Comparison:</strong> This radar chart shows the prevalence of each theme across human and synthetic transcripts. Areas where the shapes overlap indicate strong thematic alignment; divergent areas highlight where synthetic research may over- or under-represent topics.</p>
+                </div>
+
+                <div class="chart-container">
+                    <div id="radar-chart" style="width: 700px; height: 600px;"></div>
+                </div>
+
+                <div class="report-section">
+                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;"><strong style="color: var(--text-primary);">Theme Prevalence Correlation:</strong> Each point represents a theme—its position shows how often it appeared in human (x-axis) vs synthetic (y-axis) transcripts. Points near the diagonal line indicate strong correlation. Points far from the line show themes where synthetic research diverges from human patterns.</p>
+                </div>
+
+                <div class="chart-container">
+                    <div id="correlation-chart" style="width: 650px; height: 550px;"></div>
+                </div>
+
+                <!-- Sentiment Analysis Section -->
+                <div class="report-section">
+                    <h2>Sentiment Analysis</h2>
+                    
+                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;"><strong style="color: var(--text-primary);">Sentiment Distribution:</strong> Box plots showing the range of emotional tones across all transcripts. The left chart compares overall sentiment scores (-1 = negative, +1 = positive). The right chart shows within-transcript variance—high variance indicates the respondent expressed a mix of positive and negative sentiments.</p>
+                </div>
+
+                <div class="chart-container">
+                    <div id="sentiment-chart" style="width: 800px; height: 450px;"></div>
+                </div>
+
+                <!-- Specificity Analysis Section -->
+                <div class="report-section">
+                    <h2>Specificity & Concreteness</h2>
+                    
+                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;"><strong style="color: var(--text-primary);">Specificity Comparison:</strong> Measures how concrete and detailed the responses are. Specificity score (0-10) assesses whether responses include specific examples vs vague generalisations. Named entities count tracks mentions of specific brands, products, people, or places.</p>
+                </div>
+
+                <div class="chart-container">
+                    <div id="specificity-chart" style="width: 550px; height: 400px;"></div>
+                </div>
+
+                <div class="report-section">
+                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;"><strong style="color: var(--text-primary);">Linguistic Markers:</strong> Measures natural speech patterns. Hesitation markers ("um", "uh", "you know") indicate authentic conversation. Vocabulary diversity measures word variety. Sentence length shows conciseness. Large gaps suggest synthetic text lacks conversational naturalness.</p>
+                </div>
+
+                <div class="chart-container">
+                    <div id="linguistic-chart" style="width: 600px; height: 400px;"></div>
+                </div>
+
+                <!-- Methodology Section -->
+                <div class="report-section">
+                    <h2>Methodology & Limitations</h2>
+                    
+                    <h3>Research Context</h3>
+                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">To understand which of our organising principles help people to most effectively manage their money and what that might mean for a digital experience designed around customers' mental models rather than FS verticals. The evaluation compares synthetic interview transcripts (generated from detailed personas using an LLM) against genuine human interview transcripts from the same research study.</p>
+                    
+                    <h3>Data Sources</h3>
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Corpus</th>
+                                <th>Source</th>
+                                <th>n</th>
+                                <th>Format</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Human</strong></td>
+                                <td>Real interviews conducted Nov 2025</td>
+                                <td>10</td>
+                                <td>Otter.ai transcripts (.txt)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Synthetic</strong></td>
+                                <td>LLM-generated from detailed personas</td>
+                                <td>10</td>
+                                <td>Markdown transcripts (.md)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <h3>Limitations & Caveats</h3>
+                    
+                    <div class="interpretation-box warning" style="margin-bottom: 16px;">
+                        <p><strong>Critical Limitation - Sample Size:</strong> With n=10 per group, statistical tests have low power (~0.3-0.4 for medium effects). P-values should be interpreted with extreme caution. This analysis is best viewed as exploratory/descriptive rather than confirmatory.</p>
+                    </div>
+                    
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 25%;">Limitation</th>
+                                <th style="width: 12%;">Severity</th>
+                                <th>Implications</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>LLM-on-LLM Evaluation</strong></td>
+                                <td><span class="badge" style="background: #fee2e2; color: #991b1b;">High</span></td>
+                                <td>Claude is evaluating content generated by Claude. The model may systematically rate AI-generated text more favourably.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Small Sample Size</strong></td>
+                                <td><span class="badge" style="background: #fee2e2; color: #991b1b;">High</span></td>
+                                <td>n=10 per group is insufficient for robust statistical inference. Confidence intervals are wide.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Domain Specificity</strong></td>
+                                <td><span class="badge" style="background: #fef3c7; color: #92400e;">Medium</span></td>
+                                <td>Findings are specific to personal finance/banking research. May differ in other domains.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Persona Design</strong></td>
+                                <td><span class="badge" style="background: #fef3c7; color: #92400e;">Medium</span></td>
+                                <td>Synthetic transcript quality depends heavily on persona design. Different approaches may yield different fidelity.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-top: 16px;"><strong>Technical Details:</strong> Model: claude-sonnet-4-20250514 | Temperature: 0.3 | Total API tokens: ~223,000</p>
+                </div>
+
+            </div>
+
+            <footer class="article-footer">
+                <p>Published by Rob Boyett. For more articles, visit the <a href="/">home page</a> or subscribe to the <a href="/feed.xml">RSS feed</a>.</p>
+            </footer>
+        </article>
+    </div>
+
+    <script>
+        // Handle menu open/close events from site-nav component
+        const page = document.querySelector('.page');
+        const siteNav = document.querySelector('site-nav');
+
+        siteNav.addEventListener('menu-open', () => {
+            page.classList.add('menu-open');
+        });
+
+        siteNav.addEventListener('menu-close', () => {
+            page.classList.remove('menu-open');
+        });
+
+        // Wait for Inter font to load before showing page
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                document.documentElement.classList.add('fonts-loaded');
+            });
+        } else {
+            document.documentElement.classList.add('fonts-loaded');
+        }
+
+        // Plotly Charts
+        const chartLayout = {
+            font: { family: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif", color: '#1f2937' },
+            paper_bgcolor: 'white',
+            plot_bgcolor: 'white',
+            margin: { t: 60, b: 60, l: 60, r: 40 }
+        };
+
+        // Radar Chart
+        Plotly.newPlot('radar-chart', [
+            {
+                type: 'scatterpolar',
+                r: [100, 100, 90, 90, 80, 70, 70, 60, 60, 60, 100],
+                theta: ['Multi-Account Organisation', 'Mobile Banking Dependency', 'Customisation Need', 'Time Horizon Thinking', 'Purpose-Based Organisation', 'Cash Flow Management', 'Detailed Control', 'Rate Chasing', 'Visual Money Models', 'Psychological Comfort', 'Multi-Account Organisation'],
+                fill: 'toself',
+                fillcolor: 'rgba(59, 130, 246, 0.3)',
+                line: { color: '#3b82f6', width: 2 },
+                name: 'Human'
+            },
+            {
+                type: 'scatterpolar',
+                r: [100, 80, 100, 90, 100, 30, 70, 40, 80, 100, 100],
+                theta: ['Multi-Account Organisation', 'Mobile Banking Dependency', 'Customisation Need', 'Time Horizon Thinking', 'Purpose-Based Organisation', 'Cash Flow Management', 'Detailed Control', 'Rate Chasing', 'Visual Money Models', 'Psychological Comfort', 'Multi-Account Organisation'],
+                fill: 'toself',
+                fillcolor: 'rgba(239, 68, 68, 0.3)',
+                line: { color: '#ef4444', width: 2 },
+                name: 'Synthetic'
+            }
+        ], {
+            ...chartLayout,
+            title: { text: 'Thematic Coverage Comparison', font: { size: 18 }, x: 0.5, xanchor: 'center' },
+            polar: {
+                radialaxis: { visible: true, range: [0, 100], ticksuffix: '%', gridcolor: '#e5e7eb' },
+                angularaxis: { gridcolor: '#e5e7eb' },
+                bgcolor: 'white'
+            },
+            showlegend: true,
+            legend: { orientation: 'h', y: 1.1, x: 0.5, xanchor: 'center' },
+            margin: { t: 60, b: 60, l: 120, r: 80 },
+            width: 780,
+            height: 650
+        }, { responsive: true });
+
+        // Correlation Chart
+        Plotly.newPlot('correlation-chart', [
+            {
+                type: 'scatter',
+                mode: 'markers+text',
+                x: [80, 60, 100, 30, 70, 60, 10, 100, 50, 70, 50, 20, 60, 90, 40, 0, 90, 30],
+                y: [100, 40, 100, 10, 30, 80, 20, 80, 20, 70, 50, 0, 100, 100, 20, 20, 90, 50],
+                text: ['Purpose-Based', 'Rate Chasing', 'Multi-Account', 'Economic Uncertainty', 'Cash Flow', 'Visual Models', 'Joint/Separate', 'Mobile Banking', 'Spending Insights', 'Detailed Control', 'Financial Stress', 'Generational', 'Psychological', 'Customisation', 'Flexible Credit', 'Inflation', 'Time Horizon', 'Automation'],
+                textposition: 'top center',
+                textfont: { size: 9 },
+                marker: { color: '#3b82f6', size: 12, line: { color: 'white', width: 2 } },
+                hovertemplate: '<b>%{text}</b><br>Human: %{x}%<br>Synthetic: %{y}%<extra></extra>',
+                showlegend: false
+            },
+            {
+                type: 'scatter',
+                mode: 'lines',
+                x: [0, 100],
+                y: [0, 100],
+                line: { color: '#6b7280', dash: 'dash', width: 1 },
+                name: 'Perfect Correlation'
+            }
+        ], {
+            ...chartLayout,
+            title: { text: 'Theme Prevalence Correlation', font: { size: 18 }, x: 0.5, xanchor: 'center' },
+            xaxis: { title: 'Human Prevalence (%)', gridcolor: '#e5e7eb', range: [0, 110] },
+            yaxis: { title: 'Synthetic Prevalence (%)', gridcolor: '#e5e7eb', range: [0, 110] },
+            annotations: [{ x: 0.95, y: 0.05, xref: 'paper', yref: 'paper', text: 'r = 0.80', showarrow: false, font: { size: 16 }, bgcolor: 'white', bordercolor: '#e5e7eb', borderwidth: 1 }],
+            showlegend: true,
+            legend: { orientation: 'h', y: 1.1, x: 0.5, xanchor: 'center' },
+            width: 650,
+            height: 550
+        }, { responsive: true });
+
+        // Sentiment Chart
+        Plotly.newPlot('sentiment-chart', [
+            { type: 'box', y: [0.1, -0.1, 0.4, 0.1, 0.1, 0.1, -0.2, 0.3, 0.3, 0.4], name: 'Human', marker: { color: '#3b82f6' }, boxmean: 'sd', xaxis: 'x', yaxis: 'y' },
+            { type: 'box', y: [0.3, -0.3, 0.3, 0.4, -0.1, -0.4, 0.4, 0.4, 0.1, 0.3], name: 'Synthetic', marker: { color: '#ef4444' }, boxmean: 'sd', xaxis: 'x', yaxis: 'y' },
+            { type: 'box', y: [0.028, 0.027, 0.037, 0.042, 0.016, 0.141, 0.089, 0.047, 0.077, 0.024], name: 'Human', marker: { color: '#3b82f6' }, boxmean: 'sd', xaxis: 'x2', yaxis: 'y2', showlegend: false },
+            { type: 'box', y: [0.015, 0.212, 0.038, 0.031, 0.069, 0.198, 0.026, 0.04, 0.046, 0.024], name: 'Synthetic', marker: { color: '#ef4444' }, boxmean: 'sd', xaxis: 'x2', yaxis: 'y2', showlegend: false }
+        ], {
+            ...chartLayout,
+            title: { text: 'Sentiment Distribution Comparison', font: { size: 18 }, x: 0.5, xanchor: 'center' },
+            xaxis: { domain: [0, 0.44], anchor: 'y' },
+            yaxis: { title: 'Sentiment (-1 to +1)', gridcolor: '#e5e7eb', anchor: 'x' },
+            xaxis2: { domain: [0.56, 1], anchor: 'y2' },
+            yaxis2: { title: 'Variance', gridcolor: '#e5e7eb', anchor: 'x2' },
+            annotations: [
+                { text: 'Overall Sentiment Score', x: 0.22, y: 1, xref: 'paper', yref: 'paper', showarrow: false, font: { size: 14 } },
+                { text: 'Within-Transcript Variance', x: 0.78, y: 1, xref: 'paper', yref: 'paper', showarrow: false, font: { size: 14 } }
+            ],
+            showlegend: true,
+            legend: { orientation: 'h', y: 1.15, x: 0.5, xanchor: 'center' },
+            width: 800,
+            height: 450
+        }, { responsive: true });
+
+        // Specificity Chart
+        Plotly.newPlot('specificity-chart', [
+            { type: 'bar', x: ['Specificity Score\n(0-10)', 'Named Entities\n(avg count)'], y: [9.47, 8.8], name: 'Human', marker: { color: '#3b82f6' }, text: ['9.5', '8.8'], textposition: 'outside' },
+            { type: 'bar', x: ['Specificity Score\n(0-10)', 'Named Entities\n(avg count)'], y: [9.26, 7.1], name: 'Synthetic', marker: { color: '#ef4444' }, text: ['9.3', '7.1'], textposition: 'outside' }
+        ], {
+            ...chartLayout,
+            title: { text: 'Specificity Comparison', font: { size: 18 }, x: 0.5, xanchor: 'center' },
+            barmode: 'group',
+            yaxis: { title: 'Value', gridcolor: '#e5e7eb' },
+            showlegend: true,
+            legend: { orientation: 'h', y: 1.1, x: 0.5, xanchor: 'center' },
+            width: 550,
+            height: 400
+        }, { responsive: true });
+
+        // Linguistic Chart
+        Plotly.newPlot('linguistic-chart', [
+            { type: 'bar', x: ['Hesitation Markers', 'Vocab Diversity (×100)', 'Avg Sentence Length'], y: [167.9, 21.7, 17.7], name: 'Human', marker: { color: '#3b82f6' }, text: ['168', '22', '17.7'], textposition: 'outside' },
+            { type: 'bar', x: ['Hesitation Markers', 'Vocab Diversity (×100)', 'Avg Sentence Length'], y: [40.3, 29.3, 14.3], name: 'Synthetic', marker: { color: '#ef4444' }, text: ['40', '29', '14.3'], textposition: 'outside' }
+        ], {
+            ...chartLayout,
+            title: { text: 'Linguistic Markers Comparison', font: { size: 18 }, x: 0.5, xanchor: 'center' },
+            barmode: 'group',
+            yaxis: { title: 'Value', gridcolor: '#e5e7eb' },
+            showlegend: true,
+            legend: { orientation: 'h', y: 1.1, x: 0.5, xanchor: 'center' },
+            width: 600,
+            height: 400
+        }, { responsive: true });
+    </script>
+</body>
+</html>
+
