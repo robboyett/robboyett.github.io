@@ -1,28 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <thoughts>
     <!-- Available colors: yellow, pink, green, blue, white, orange, purple -->
+    <!-- Generated from Apple Notes "Thinking About" folder -->
     <thought color="yellow">
-        <text>What makes a great ChatGPT app</text>
+        <text>Design and engineering aren’t phases — they’re partners in a continuous loop.
+The old handoff model is broken. Today, design must be embedded from speculative prototype to hardened platform.</text>
     </thought>
     <thought color="pink">
-        <text>Trying to summarise the UI exploration flow I do now, best I can come up with is the calling it a prototyping flurry 🫠</text>
+        <text>There isn’t one kind of software — there are two: design software and production software. Treating everything like it’s destined for scale kills creativity. We need spaces where software exists to think, not just to ship.</text>
     </thought>
     <thought color="green">
-        <text>We often talk about the value of LLMs in terms of levelling skills, lifting less experienced people more than experts. I think there’s another factor at play that hasn’t been acknowledged, our biology. Mental energy rises and falls across the day, the week, the project cycle. And the value we get from LLMs slides with it.</text>
-    </thought>
-    <thought color="blue">
         <text>Doing some thinking and prototyping around AI joining design teams as a member and amplifyer. 
 
 Effective AI integration in this space appears to require subordinating technical capability to social appropriateness. 
 
 The challenge isn’t building more capable AI, but building AI that understands when not to exercise its capabilities. That’s an interesting challenge.</text>
     </thought>
+    <thought color="blue">
+        <text>We often talk about the value of LLMs in terms of levelling skills, lifting less experienced people more than experts. I think there’s another factor at play that hasn’t been acknowledged, our biology. Mental energy rises and falls across the day, the week, the project cycle. And the value we get from LLMs slides with it.</text>
+    </thought>
     <thought color="white">
-        <text>There isn’t one kind of software — there are two: design software and production software. Treating everything like it’s destined for scale kills creativity. We need spaces where software exists to think, not just to ship.</text>
+        <text>Trying to summarise the UI exploration flow I do now, best I can come up with is the calling it a prototyping flurry 🫠</text>
     </thought>
     <thought color="orange">
-        <text>Design and engineering aren’t phases — they’re partners in a continuous loop.
-The old handoff model is broken. Today, design must be embedded from speculative prototype to hardened platform.</text>
+        <text>If I can have a publishing process from Apple Notes through to my website so that I can easily note down my thoughts and publish them without much hassle?</text>
     </thought>
 </thoughts>
 

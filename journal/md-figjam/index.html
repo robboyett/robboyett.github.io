@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MD ↔ FigJam | Rob Boyett</title>
+    <link rel="preload" href="https://rsms.me/inter/inter.css" as="style">
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+    
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="Rob Boyett's Journal" href="/feed.xml">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Hide content until fonts load to prevent FOUT */
+        html {
+            visibility: hidden;
+        }
+        
+        html.fonts-loaded {
+            visibility: visible;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #F1F1F1;
+            color: #1A1A1A;
+            min-height: 100vh;
+        }
+
+        .page {
+            padding: 66px 62px;
+            min-height: 100vh;
+        }
+
+        /* Dim content when dropdown is open */
+        .page.menu-open .article {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .article {
+            transition: opacity 0.3s ease;
+        }
+
+        /* Article Styles */
+        .article {
+            max-width: 680px;
+            margin: 0;
+        }
+
+        .article-header {
+            margin-bottom: 48px;
+        }
+
+        .article-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .article-title {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .article-subtitle {
+            font-size: 20px;
+            color: #555;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        /* Article Content */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #333;
+        }
+
+        .article-content p {
+            margin-bottom: 24px;
+        }
+
+        .article-content a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+
+        .article-content a:hover {
+            color: #004499;
+        }
+
+        .article-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 32px 0;
+        }
+
+        /* Article Footer */
+        .article-footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid #ddd;
+        }
+
+        .article-footer p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page {
+                padding: 24px;
+            }
+
+            .article-title {
+                font-size: 32px;
+            }
+
+            .article-subtitle {
+                font-size: 18px;
+            }
+
+            .article-content {
+                font-size: 17px;
+            }
+        }
+    </style>
+    
+    <!-- Navigation Component -->
+    <script src="/components/site-nav.js"></script>
+</head>
+<body>
+    <div class="page">
+        <!-- Navigation -->
+        <site-nav></site-nav>
+
+        <!-- Article -->
+        <article class="article">
+            <header class="article-header">
+                <time class="article-date" datetime="2026-01">January 2026</time>
+                <h1 class="article-title">MD ↔ FigJam</h1>
+                <p class="article-subtitle">A FigJam plugin to import and export sticky notes as markdown</p>
+            </header>
+
+            <div class="article-content">
+                
+                <p>A recurring friction in my work is the gap between thinking space and output space. FigJam is where I do a lot of
+                divergent work—synthesis, affinity mapping, workshop facilitation—but the content that lives there rarely stays there.
+                It needs to move outward: into documents, presentations, research repositories, or prompts for AI tools. And content
+                from those places needs to move in. The interface for doing this has always been the problem. Selecting and copying
+                sticky notes in FigJam gives you plain text with no structure. Recreating stickies from a list means clicking, pasting,
+                clicking, pasting.</p>
+                
+                <p>So I made a small FigJam plugin called MD ↔ FigJam to solve an annoyance I kept hitting: getting structured content in and out of sticky notes without endless clicking.</p>
+
+                <p>You write in a simple markdown-ish format, define colours inline with [Yellow], and it generates the stickies in a grid. Select stickies, and it exports back to the same format.</p>
+
+                <p>Useful for workshop prep, importing research notes, or just not wanting to create 40 stickies by hand.</p>
+
+                <!-- Add your image here -->
+                <img src="hero.webp" alt="MD ↔ FigJam plugin interface">
+
+                <p>Free on the Figma Community: <a href="https://www.figma.com/community/plugin/1588947011514620624/md-figjam">MD ↔ FigJam</a></p>
+            </div>
+
+            <footer class="article-footer">
+                <p>Published by Rob Boyett. For more articles, visit the <a href="/">home page</a> or subscribe to the <a href="/feed.xml">RSS feed</a>.</p>
+            </footer>
+        </article>
+    </div>
+
+    <script>
+        // Handle menu open/close events from site-nav component
+        const page = document.querySelector('.page');
+        const siteNav = document.querySelector('site-nav');
+
+        siteNav.addEventListener('menu-open', () => {
+            page.classList.add('menu-open');
+        });
+
+        siteNav.addEventListener('menu-close', () => {
+            page.classList.remove('menu-open');
+        });
+
+        // Wait for Inter font to load before showing page
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                document.documentElement.classList.add('fonts-loaded');
+            });
+        } else {
+            // Fallback for browsers without Font Loading API
+            document.documentElement.classList.add('fonts-loaded');
+        }
+    </script>
+</body>
+</html>

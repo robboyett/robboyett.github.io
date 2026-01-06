@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <journal>
     <entry>
+        <title>MD ↔ FigJam</title>
+        <url>/journal/md-figjam/</url>
+        <preview>/journal/md-figjam/</preview>
+    </entry>
+    <entry>
         <title>Drawbot Crafting Kit</title>
         <url>/journal/drawbot/</url>
         <preview>/journal/drawbot/</preview>
