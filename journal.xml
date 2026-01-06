@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <journal>
     <entry>
+        <title>Drawbot Crafting Kit</title>
+        <url>/journal/drawbot/</url>
+        <preview>/journal/drawbot/</preview>
+    </entry>
+    <entry>
         <title>UX Insights for VS Code</title>
         <url>/journal/ux-insights-vscode/</url>
         <preview>/journal/ux-insights-vscode/</preview>

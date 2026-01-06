@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drawbot | Rob Boyett</title>
+    <link rel="preload" href="https://rsms.me/inter/inter.css" as="style">
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+    
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="Rob Boyett's Journal" href="/feed.xml">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Hide content until fonts load to prevent FOUT */
+        html {
+            visibility: hidden;
+        }
+        
+        html.fonts-loaded {
+            visibility: visible;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #F1F1F1;
+            color: #1A1A1A;
+            min-height: 100vh;
+        }
+
+        .page {
+            padding: 66px 62px;
+            min-height: 100vh;
+        }
+
+        /* Dim content when dropdown is open */
+        .page.menu-open .article {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .article {
+            transition: opacity 0.3s ease;
+        }
+
+        /* Article Styles */
+        .article {
+            max-width: 680px;
+            margin: 0;
+        }
+
+        .article-header {
+            margin-bottom: 48px;
+        }
+
+        .article-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .article-title {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .article-subtitle {
+            font-size: 20px;
+            color: #555;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        /* Article Content */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #333;
+        }
+
+        .article-content p {
+            margin-bottom: 24px;
+        }
+
+        .article-content a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+
+        .article-content a:hover {
+            color: #004499;
+        }
+
+        /* Masonry Gallery */
+        .gallery {
+            margin-top: 48px;
+            column-count: 3;
+            column-gap: 16px;
+        }
+
+        .gallery-item {
+            break-inside: avoid;
+            margin-bottom: 16px;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            display: block;
+            border-radius: 6px;
+            background-color: #ddd;
+        }
+
+        /* Article Footer */
+        .article-footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid #ddd;
+            max-width: 680px;
+        }
+
+        .article-footer p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .gallery {
+                column-count: 2;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .page {
+                padding: 24px;
+            }
+
+            .article-title {
+                font-size: 32px;
+            }
+
+            .article-subtitle {
+                font-size: 18px;
+            }
+
+            .article-content {
+                font-size: 17px;
+            }
+
+            .gallery {
+                column-count: 1;
+            }
+
+            .gallery-item {
+                margin-bottom: 12px;
+            }
+        }
+    </style>
+    
+    <!-- Navigation Component -->
+    <script src="/components/site-nav.js"></script>
+</head>
+<body>
+    <div class="page">
+        <!-- Navigation -->
+        <site-nav></site-nav>
+
+        <!-- Article -->
+        <article class="article">
+            <header class="article-header">
+                <time class="article-date" datetime="2020-02">February 2020</time>
+                <h1 class="article-title">Drawbot</h1>
+                <p class="article-subtitle">A cardboard crafting kit for young makers</p>
+            </header>
+
+            <div class="article-content">
+                <p>I love to tinker, especially with cardboard and simple electronics. In early 2020 I set out to create a crafting set for younger children and explore a small business along the way. The pack sold 150 units in the runup to Christmas 2020.</p>
+            </div>
+        </article>
+
+        <!-- Masonry Gallery -->
+        <div class="gallery">
+            <div class="gallery-item">
+                <img src="screenshot-01.webp" alt="Drawbot screenshot">
+            </div>
+            <div class="gallery-item">
+                <img src="screenshot-02.webp" alt="Drawbot screenshot">
+            </div>
+            <div class="gallery-item">
+                <img src="A6-Portrait-UK.webp" alt="Drawbot A6 portrait flyer">
+            </div>
+            <div class="gallery-item">
+                <img src="screenshot-03.webp" alt="Drawbot screenshot">
+            </div>
+            <div class="gallery-item">
+                <img src="poster-02.webp" alt="Drawbot poster">
+            </div>
+            <div class="gallery-item">
+                <img src="screenshot-04.webp" alt="Drawbot screenshot">
+            </div>
+            <div class="gallery-item">
+                <img src="screenshot-05.webp" alt="Drawbot screenshot">
+            </div>
+            <div class="gallery-item">
+                <img src="video-01.gif" alt="Drawbot in action">
+            </div>
+            <div class="gallery-item">
+                <img src="IMG_4512.webp" alt="Drawbot kit photo">
+            </div>
+            <div class="gallery-item">
+                <img src="temp-header-04.webp" alt="Drawbot header image">
+            </div>
+            <div class="gallery-item">
+                <img src="video-02.gif" alt="Drawbot in action">
+            </div>
+            <div class="gallery-item">
+                <img src="IMG_4515.webp" alt="Drawbot kit photo">
+            </div>
+            <div class="gallery-item">
+                <img src="DrawBot.webp" alt="Drawbot logo">
+            </div>
+            <div class="gallery-item">
+                <img src="video-03.gif" alt="Drawbot in action">
+            </div>
+            <div class="gallery-item">
+                <img src="IMG_4517.webp" alt="Drawbot kit photo">
+            </div>
+            <div class="gallery-item">
+                <img src="temp-inaction.webp" alt="Drawbot in action">
+            </div>
+            <div class="gallery-item">
+                <img src="IMG_4519.webp" alt="Drawbot kit photo">
+            </div>
+            <div class="gallery-item">
+                <img src="video-04.gif" alt="Drawbot in action">
+            </div>
+            <div class="gallery-item">
+                <img src="tote-bag-figma.webp" alt="Drawbot tote bag design">
+            </div>
+            <div class="gallery-item">
+                <img src="button-fig.webp" alt="Drawbot button design">
+            </div>
+            <div class="gallery-item">
+                <img src="Round-Sticker-Template.webp" alt="Drawbot sticker design">
+            </div>
+            <div class="gallery-item">
+                <img src="Round-Sticker-Template-1.webp" alt="Drawbot sticker design">
+            </div>
+            <div class="gallery-item">
+                <img src="video-05.gif" alt="Drawbot in action">
+            </div>
+            <div class="gallery-item">
+                <img src="STEAM.webp" alt="Drawbot STEAM badge">
+            </div>
+            <div class="gallery-item">
+                <img src="guy.webp" alt="Drawbot character">
+            </div>
+            <div class="gallery-item">
+                <img src="Drew.webp" alt="Drawbot character">
+            </div>
+            <div class="gallery-item">
+                <img src="Blue.webp" alt="Drawbot blue variant">
+            </div>
+            <div class="gallery-item">
+                <img src="Green.webp" alt="Drawbot green variant">
+            </div>
+            <div class="gallery-item">
+                <img src="Orange.webp" alt="Drawbot orange variant">
+            </div>
+            <div class="gallery-item">
+                <img src="Red.webp" alt="Drawbot red variant">
+            </div>
+            <div class="gallery-item">
+                <img src="Yello.webp" alt="Drawbot yellow variant">
+            </div>
+            <div class="gallery-item">
+                <img src="Purp.webp" alt="Drawbot purple variant">
+            </div>
+            <div class="gallery-item">
+                <img src="d-blue.webp" alt="Drawbot dark blue variant">
+            </div>
+            <div class="gallery-item">
+                <img src="Ico-Craft-white.webp" alt="Craft icon">
+            </div>
+            <div class="gallery-item">
+                <img src="Ico-Play-white.webp" alt="Play icon">
+            </div>
+            <div class="gallery-item">
+                <img src="Ico-Remix-white.webp" alt="Remix icon">
+            </div>
+        </div>
+
+        <footer class="article-footer">
+            <p>Published by Rob Boyett. For more articles, visit the <a href="/">home page</a> or subscribe to the <a href="/feed.xml">RSS feed</a>.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Handle menu open/close events from site-nav component
+        const page = document.querySelector('.page');
+        const siteNav = document.querySelector('site-nav');
+
+        siteNav.addEventListener('menu-open', () => {
+            page.classList.add('menu-open');
+        });
+
+        siteNav.addEventListener('menu-close', () => {
+            page.classList.remove('menu-open');
+        });
+
+        // Wait for Inter font to load before showing page
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                document.documentElement.classList.add('fonts-loaded');
+            });
+        } else {
+            // Fallback for browsers without Font Loading API
+            document.documentElement.classList.add('fonts-loaded');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+---
+description: Rules for creating and publishing journal pages on robboyett.github.io
+globs:
+  - journal/**/*.html
+---
+
+# Creating Journal Pages
+
+When creating a new journal page, follow these steps in order:
+
+## 1. Reference the Template
+
+Always start by reading `journal/template.html` to understand the current page structure, styling, and component usage. Use this as the foundation for any new journal page.
+
+Key elements from the template:
+- Inter font preloading and loading script
+- `<site-nav>` component for navigation
+- Menu open/close event handlers for dimming content
+- Consistent typography and spacing classes
+- Article structure: `.article-header`, `.article-content`, `.article-footer`
+
+## 2. Create the Journal Page
+
+Create a new folder under `/journal/` with a URL-friendly name (lowercase, hyphens instead of spaces):
+
+```
+/journal/[page-name]/index.html
+```
+
+Include:
+- Appropriate `<title>` tag: "Article Title | Rob Boyett"
+- Correct `datetime` attribute on the `<time>` element
+- RSS feed link in the head
+- All necessary images/assets in the same folder
+
+## 3. Update journal.xml (Navigation Menu)
+
+After the page is complete, add an entry to `/journal.xml` for the site navigation dropdown.
+
+Add a new `<entry>` element near the **top** of the file (newest entries first):
+
+```xml
+<entry>
+    <title>Article Title</title>
+    <url>/journal/page-name/</url>
+    <preview>/journal/page-name/</preview>
+</entry>
+```
+
+Note: The `<preview>` element typically matches the `<url>` for local journal pages.
+
+## 4. Update feed.xml (RSS Feed)
+
+Add a new `<item>` element to `/feed.xml` after the `<lastBuildDate>` tag (newest entries first).
+
+```xml
+<item>
+    <title>Article Title</title>
+    <link>https://robboyett.com/journal/page-name/</link>
+    <guid>https://robboyett.com/journal/page-name/</guid>
+    <pubDate>Day, DD Mon YYYY 00:00:00 +0000</pubDate>
+    <description>A brief description of the article for RSS readers.</description>
+</item>
+```
+
+Also update the `<lastBuildDate>` to the current date.
+
+### Date Format Reference
+
+RSS dates use RFC 822 format:
+- `Mon, 06 Jan 2025 00:00:00 +0000`
+- Day names: Mon, Tue, Wed, Thu, Fri, Sat, Sun
+- Month names: Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec
+
+## Checklist
+
+Before considering a journal page complete:
+
+- [ ] Page created at `/journal/[page-name]/index.html`
+- [ ] Title and date are correct
+- [ ] `<site-nav>` component included
+- [ ] Menu event handlers set up
+- [ ] Entry added to `journal.xml`
+- [ ] Item added to `feed.xml`
+- [ ] `<lastBuildDate>` updated in `feed.xml`
+- [ ] All images/assets are in the page folder
