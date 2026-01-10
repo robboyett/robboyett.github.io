@@ -32,6 +32,11 @@ Include:
 - Correct `datetime` attribute on the `<time>` element
 - RSS feed link in the head
 - All necessary images/assets in the same folder
+- Cabin analytics script before the closing `</body>` tag:
+  ```html
+  <!-- Analytics -->
+  <script async defer src="https://scripts.withcabin.com/hello.js"></script>
+  ```
 
 ## 3. Update journal.xml (Navigation Menu)
 
@@ -80,6 +85,7 @@ Before considering a journal page complete:
 - [ ] Title and date are correct
 - [ ] `<site-nav>` component included
 - [ ] Menu event handlers set up
+- [ ] Cabin analytics script added before `</body>`
 - [ ] Entry added to `journal.xml`
 - [ ] Item added to `feed.xml`
 - [ ] `<lastBuildDate>` updated in `feed.xml`
