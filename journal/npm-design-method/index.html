@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Why can't I npm a design method yet? | Rob Boyett</title>
+    <link rel="preload" href="https://rsms.me/inter/inter.css" as="style">
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+    
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="Rob Boyett's Journal" href="/feed.xml">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Hide content until fonts load to prevent FOUT */
+        html {
+            visibility: hidden;
+        }
+        
+        html.fonts-loaded {
+            visibility: visible;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #F1F1F1;
+            color: #1A1A1A;
+            min-height: 100vh;
+        }
+
+        .page {
+            padding: 66px 62px;
+            min-height: 100vh;
+        }
+
+        /* Dim content when dropdown is open */
+        .page.menu-open .article {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .article {
+            transition: opacity 0.3s ease;
+        }
+
+        /* Article Styles */
+        .article {
+            max-width: 680px;
+            margin: 0;
+        }
+
+        .article-header {
+            margin-bottom: 48px;
+        }
+
+        .article-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .article-title {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .article-subtitle {
+            font-size: 20px;
+            color: #555;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        /* Article Content */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #333;
+        }
+
+        .article-content p {
+            margin-bottom: 24px;
+        }
+
+        .article-content h2 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-top: 48px;
+            margin-bottom: 24px;
+        }
+
+        .article-content h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 36px;
+            margin-bottom: 16px;
+        }
+
+        .article-content ul,
+        .article-content ol {
+            margin-bottom: 24px;
+            padding-left: 24px;
+        }
+
+        .article-content li {
+            margin-bottom: 8px;
+        }
+
+        .article-content blockquote {
+            border-left: 3px solid #202020;
+            padding-left: 24px;
+            margin: 32px 0;
+            font-style: italic;
+            color: #555;
+        }
+
+        .article-content code {
+            background: #e8e8e8;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 16px;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .article-content pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 24px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 32px 0;
+        }
+
+        .article-content pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .article-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 32px 0;
+        }
+
+        .article-content a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+
+        .article-content a:hover {
+            color: #004499;
+        }
+
+        /* Article Footer */
+        .article-footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid #ddd;
+        }
+
+        .article-footer p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Term tooltips */
+        .term {
+            position: relative;
+            border-bottom: 1px solid #999;
+            cursor: help;
+        }
+
+        .term-tooltip {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(var(--tooltip-offset, -50%));
+            background: #1A1A1A;
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 14px;
+            line-height: 1.5;
+            letter-spacing: 0.01em;
+            width: max-content;
+            max-width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.15s ease, visibility 0.15s ease;
+            z-index: 100;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .term-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: var(--arrow-left, 50%);
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #1A1A1A;
+        }
+
+        /* Desktop hover */
+        @media (hover: hover) {
+            .term:hover .term-tooltip {
+                opacity: 1;
+                visibility: visible;
+            }
+        }
+
+        /* Mobile modal */
+        .term-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+
+        .term-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .term-modal-content {
+            background: #fff;
+            padding: 24px;
+            border-radius: 12px;
+            max-width: 320px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .term-modal-title {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #1A1A1A;
+        }
+
+        .term-modal-text {
+            font-size: 15px;
+            line-height: 1.6;
+            letter-spacing: 0.01em;
+            color: #555;
+            margin-bottom: 16px;
+        }
+
+        .term-modal-close {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: #1A1A1A;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page {
+                padding: 24px;
+            }
+
+            .article-title {
+                font-size: 32px;
+            }
+
+            .article-subtitle {
+                font-size: 18px;
+            }
+
+            .article-content {
+                font-size: 17px;
+            }
+
+            .article-content h2 {
+                font-size: 24px;
+            }
+
+            .article-content h3 {
+                font-size: 20px;
+            }
+        }
+    </style>
+    
+    <!-- Navigation Component -->
+    <script src="/components/site-nav.js"></script>
+</head>
+<body>
+    <div class="page">
+        <!-- Navigation -->
+        <site-nav></site-nav>
+
+        <!-- Article -->
+        <article class="article">
+            <header class="article-header">
+                <time class="article-date" datetime="2026-01-10">January 10, 2026</time>
+                <h1 class="article-title">Why can't I <span class="term" data-term="npm" data-definition="Node Package Manager—a tool that lets developers download and share reusable code packages with a single command.">npm<span class="term-tooltip">A tool that lets developers download and share reusable code packages.</span></span> a design method yet?</h1>
+                <p class="article-subtitle">Design has the tools to compound. What's stopping it?</p>
+            </header>
+
+            <div class="article-content">
+                <p>For most of my career, I've worked closely with engineers. Embedded in teams, collaborating across functions, shipping software together. I thought I understood how engineering worked because I was always near it. Over the last year or so, I got closer. I started spending real time inside <span class="term" data-term="Codebases" data-definition="The complete collection of source code used to build a software application, typically stored in a version control system.">codebases<span class="term-tooltip">The complete collection of source code used to build a software application.</span></span>, <span class="term" data-term="Frameworks" data-definition="Pre-built code structures that provide a foundation for developing software, like React for interfaces or Django for web apps.">frameworks<span class="term-tooltip">Pre-built code structures that provide a foundation for developing software.</span></span>, and the tooling that actually holds software together—not as an engineer by training, but close enough to feel the difference.</p>
+
+                <p>Getting closer exposed a truth I suppose I had always known. Engineering operates with a deep, almost default commitment to abstraction and sharing. Engineers are constantly looking for ways to reduce future effort: factoring out common logic, naming patterns, building <span class="term" data-term="Libraries" data-definition="Reusable collections of code that developers can import into their projects to add functionality without writing it from scratch.">libraries<span class="term-tooltip">Reusable collections of code that developers can import to add functionality.</span></span>, and leaving behind structures that make the next piece of work easier.</p>
+
+                <p>Design, even when it's thoughtful and rigorous, often treats each problem as newly situated. Work is framed as too contextual, too human, or too specific to stabilise. As a result, progress tends to live in people and teams, not in systems.</p>
+
+                <p>Design is usually described as the more reflective, human-centred discipline. You'd expect it to be better at learning from itself. And yet, structurally, it struggles to do so. Design has precious few on-the-ground tactics for compounding decisions as it moves. We have a few bigger concepts and methodology books to lean on—double diamond, design sprints—nothing compared to the sea of often grass-roots level progress found in engineering.</p>
+
+
+                <p>In engineering circles recently, <a href="https://every.to/chain-of-thought" target="_blank">Dan Shipper</a> put language to an idea many engineers already recognise: compounding work. The idea is simple. Each unit of effort should make the next one easier, not harder. Codebases, tools, conventions, and decisions are structured so that value accrues over time.</p>
+
+                <p>What matters here isn't the term or the tooling. It's the mindset: work is not just about shipping outcomes, but about improving the system that produces those outcomes. Seen through that lens, the contrast with design becomes clearer. Design work is often excellent in the moment, but fragile across time. Insights live in people. Decisions live in meetings. Rationale lives in slide decks that quickly lose their audience. When teams change or projects end, much of that value quietly evaporates. The result is not a lack of creativity, but a lack of continuity.</p>
+
+                <p>Nowhere is this difference more visible than in the <span class="term" data-term="Open-source" data-definition="Software whose source code is publicly available, allowing anyone to view, use, modify, and distribute it freely.">open-source<span class="term-tooltip">Software whose source code is publicly available for anyone to use or modify.</span></span> software community. Engineering has spent decades figuring out how to coordinate large, distributed groups of people who may never meet. Through platforms like <span class="term" data-term="GitHub" data-definition="A web platform where developers store, share, and collaborate on code. It tracks every change made, enabling distributed teamwork.">GitHub<span class="term-tooltip">A platform where developers store, share, and collaborate on code.</span></span>, strangers contribute to shared systems, incrementally improving them, argue in public, <span class="term" data-term="Fork" data-definition="Creating your own copy of someone else's code repository, allowing you to experiment or take development in a different direction.">fork<span class="term-tooltip">Creating your own copy of a code repository to modify independently.</span></span> when they disagree, and leave behind a visible history of how things evolved. Projects like <span class="term" data-term="Linux" data-definition="An open-source operating system kernel, collaboratively built by thousands of developers worldwide since 1991.">Linux<span class="term-tooltip">An open-source operating system built collaboratively by thousands of developers.</span></span> exist not because everyone agrees, but because the work is legible, modular, and cumulative.</p>
+
+                <p>Design is also collaborative, but in a very different way. Design collaboration tends to be local, synchronous, and relationship-driven. Workshops, crits, stand-ups, and working sessions are where meaning is made. That human situated work is one of design's great strengths. But it also means that progress is tightly bound to specific teams and individuals.</p>
+
+                <p>Across the discipline, knowledge tends to travel through people rather than through systems. When it scales, it does so through books, talks, frameworks, and prominent individuals. These can be insightful and influential, but they are also brittle. They freeze ideas in time and centre progress on authorship rather than accumulation.</p>
+
+                <p>Engineering is not immune to that thinking, but generally, the physiology is not to wait for a single person to articulate the next big idea. There is a preference towards building infrastructure that allows many people to make small, durable contributions.</p>
+
+                <p>What makes this more interesting is that design already has a partial counter-example: design systems. If there is one area of design that clearly can compound, it's here. Design systems already demonstrate shared vocabulary, reusable abstractions, reduced marginal cost of change, and partial independence from individuals.</p>
+
+                <p>And yet, most design systems stall surprisingly early. In practice, they tend to concentrate on:</p>
+
+                <ul>
+                    <li>Colour <span class="term" data-term="Tokens" data-definition="Named variables that store design values like colours, spacing, or typography, making them reusable and easy to update globally.">tokens<span class="term-tooltip">Named variables storing design values like colours or spacing.</span></span></li>
+                    <li>Spacing scales</li>
+                    <li>Buttons, inputs and the rest of the basic components</li>
+                </ul>
+
+                <p>All useful, all foundational. The bedrock. What rarely compounds are the more consequential layers:</p>
+
+                <ul>
+                    <li>Larger interaction patterns</li>
+                    <li>Multi-step flows</li>
+                    <li>Behavioural logic</li>
+                    <li>System-level constraints</li>
+                    <li>Decision rationale</li>
+                </ul>
+
+                <p>In other words, the parts of design that actually carry meaning.</p>
+
+                <p>Even teams with mature systems often find themselves returning to first principles when working on flows or complex behaviours, rebuilding logic that already exists elsewhere. This happens so consistently that it's treated as inevitable. Tooling reinforces this assumption. Figma has made atomic <span class="term" data-term="Componentisation" data-definition="Breaking interfaces into reusable building blocks (components) that can be combined and reused across different parts of a product.">componentisation<span class="term-tooltip">Breaking interfaces into reusable building blocks.</span></span> straightforward, but offers far less support once you move beyond components into behaviour across time. Over time, a belief hardens: anything beyond components is too contextual to stabilise. The result is a strange loop. Design assumes its work doesn't travel, so it never builds the structures that would allow it to.</p>
+
+                <p>Engineers can pull mature, iterated code packages into their work—pieces of functionality that can represent years of shared learning. They don't just save time; they carry decisions, trade-offs, and assumptions forward, all captured in <span class="term" data-term="Git" data-definition="A version control system that tracks every change to code, who made it, and why—creating a complete history of how software evolved.">Git<span class="term-tooltip">A version control system that tracks every change to code.</span></span>. If I want to solve a familiar problem, I don't start at bedrock. I import something that already embodies collective progress.</p>
+
+                <p>In design, if I want a qualitative research framework, a futures workshop structure, or a synthesis method, I usually start from a method someone once shared online or in a book. It's unversioned, stripped of context, disconnected from any wider history of improvement. I might tweak it, maybe improve it, but that improvement rarely travels beyond the team I'm on.</p>
+
+                <p>It's tempting to explain this away with practical reasons. Design work is messy. Context matters. Facilitation relies on judgement. Outcomes are hard to measure. All of that is true. But it's no longer sufficient. We now live in a world where memory is cheap, where context can be summarised, where decisions can be captured, and where knowledge can be scaffolded rather than flattened. The technical barriers that once made this unrealistic have largely fallen away.</p>
+
+                <p>What remains looks less like a tooling problem and more like a psychological one.</p>
+
+                <p>Design still treats much of its knowledge as inherently personal, situational, and non-transferable. Methods are seen as craft objects rather than shared infrastructure. Improvement is something individuals accumulate, not something the discipline compounds. We assume that if something travels too far, it must lose its humanity. And so we don't build the structures that would allow it to travel well.</p>
+
+                <p>Design culture has good reasons for resisting formalisation. Much of its value lies in judgement, empathy, cultural sensitivity, and working closely with real people in specific contexts. Not everything in design should scale, and not everything should be abstracted.</p>
+
+                <p>The problem is that design often treats all of its work as if it's too bound up in context to carry forward. The cost of that stance is easy to miss because it's distributed:</p>
+
+                <ul>
+                    <li>Teams rediscover the same problems</li>
+                    <li>Decisions are revisited without awareness of why they were made</li>
+                    <li>Lessons are learned locally but rarely compound globally</li>
+                    <li>Progress depends on who is in the room, not what the system knows</li>
+                </ul>
+
+                <p>This doesn't preserve humanity. It creates organisational amnesia.</p>
+
+                <p>Engineering learned long ago that abstraction is not the opposite of care. In many cases, it is an expression of it. Encoding hard-won lessons into systems protects future users and teams from repeating mistakes. It preserves intent beyond individual memory. Design has only taken that idea part of the way.</p>
+
+                <p>Until recently, there were practical excuses for this. Capturing rationale was expensive. Translating context was hard. Making work legible to outsiders took time most teams didn't have. Those excuses are weaker now.</p>
+
+                <p>Artificial Intelligence, mostly in the form of <span class="term" data-term="LLMs" data-definition="Large Language Models—AI systems trained on vast amounts of text that can generate, analyse, and transform written content.">LLMs<span class="term-tooltip">Large Language Models—AI that can generate and analyse text.</span></span>, has changed the economics of memory, translation, and scaffolding. It is suddenly cheap to summarise decisions, surface precedents, translate between contexts, and help newcomers orient themselves. Engineering is already exploiting this to build systems that quite literally improve themselves. Design has access to the same tools, but far fewer shared conventions for using them.</p>
+
+                <p>Design discourse often frames this as a binary choice. On one side: humanity, creativity, small groups, trust, and care. On the other: abstraction, scale, systems, and formality. But engineering didn't scale everything. It scaled the parts that benefited from it, while leaving judgement, debate, and creativity intact.</p>
+
+                <p>The more useful question for design is not whether it should become more like engineering, but where abstraction actually helps. What aspects of design work truly depend on being local and embodied? And what aspects are merely undocumented?</p>
+
+                <p>Design systems hint at an answer. They show that design can compound, but also how cautiously it does so. Components are allowed to stabilise; flows and behaviours are treated as permanently provisional. That distinction may be the next frontier.</p>
+
+                <p>A compounding design discipline wouldn't try to automate taste or standardise empathy. It would focus on the less visible, but deeply consequential parts of the work:</p>
+
+                <ul>
+                    <li>Making decisions inspectable, not just outcomes</li>
+                    <li>Capturing trade-offs, constraints, and rejected paths</li>
+                    <li>Allowing small contributions to improve shared patterns</li>
+                    <li>Ensuring progress survives team changes and time</li>
+                </ul>
+
+                <p>None of this diminishes individual designers. It respects them enough to ask a more complex question: what remains useful when the people who made the decisions move on?</p>
+
+                <p>Engineering learned how to coordinate strangers. Design already knows how to work with humans. The open question is whether it can learn to do both at once.</p>
+
+                <p>Perhaps the future of design lies not in choosing between humanity and scale, but in being more deliberate about where each belongs. Keeping judgement, care, and collaboration grounded in small groups, while allowing knowledge, decisions, and lessons to compound beyond them.</p>
+
+                <p>That feels less like a manifesto and more like unfinished work.</p>
+            </div>
+
+            <footer class="article-footer">
+                <p>Published by Rob Boyett. For more articles, visit the <a href="/">home page</a> or subscribe to the <a href="/feed.xml">RSS feed</a>.</p>
+            </footer>
+        </article>
+    </div>
+
+    <!-- Term modal for mobile -->
+    <div class="term-modal" id="termModal">
+        <div class="term-modal-content">
+            <div class="term-modal-title" id="termModalTitle"></div>
+            <div class="term-modal-text" id="termModalText"></div>
+            <button class="term-modal-close" id="termModalClose">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // Handle menu open/close events from site-nav component
+        const page = document.querySelector('.page');
+        const siteNav = document.querySelector('site-nav');
+
+        siteNav.addEventListener('menu-open', () => {
+            page.classList.add('menu-open');
+        });
+
+        siteNav.addEventListener('menu-close', () => {
+            page.classList.remove('menu-open');
+        });
+
+        // Wait for Inter font to load before showing page
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                document.documentElement.classList.add('fonts-loaded');
+            });
+        } else {
+            // Fallback for browsers without Font Loading API
+            document.documentElement.classList.add('fonts-loaded');
+        }
+
+        // Term tooltip handling
+        const termModal = document.getElementById('termModal');
+        const termModalTitle = document.getElementById('termModalTitle');
+        const termModalText = document.getElementById('termModalText');
+        const termModalClose = document.getElementById('termModalClose');
+        const isTouchDevice = window.matchMedia('(hover: none)').matches;
+
+        // Desktop: position tooltips to stay within viewport
+        if (!isTouchDevice) {
+            document.querySelectorAll('.term').forEach(term => {
+                const tooltip = term.querySelector('.term-tooltip');
+                
+                const positionTooltip = () => {
+                    const termRect = term.getBoundingClientRect();
+                    const tooltipRect = tooltip.getBoundingClientRect();
+                    const padding = 12;
+                    
+                    // Where tooltip would naturally be centered
+                    const termCenterX = termRect.left + (termRect.width / 2);
+                    const tooltipNaturalLeft = termCenterX - (tooltipRect.width / 2);
+                    const tooltipNaturalRight = tooltipNaturalLeft + tooltipRect.width;
+                    
+                    let offsetAdjust = 0;
+                    let arrowPercent = 50;
+                    
+                    // Check left overflow
+                    if (tooltipNaturalLeft < padding) {
+                        offsetAdjust = padding - tooltipNaturalLeft;
+                        arrowPercent = ((termCenterX - padding) / tooltipRect.width) * 100;
+                    }
+                    // Check right overflow
+                    else if (tooltipNaturalRight > window.innerWidth - padding) {
+                        offsetAdjust = (window.innerWidth - padding) - tooltipNaturalRight;
+                        const adjustedLeft = tooltipNaturalLeft + offsetAdjust;
+                        arrowPercent = ((termCenterX - adjustedLeft) / tooltipRect.width) * 100;
+                    }
+                    
+                    arrowPercent = Math.max(10, Math.min(90, arrowPercent));
+                    
+                    // Apply offset via CSS variable
+                    const offsetValue = `calc(-50% + ${offsetAdjust}px)`;
+                    tooltip.style.setProperty('--tooltip-offset', offsetValue);
+                    tooltip.style.setProperty('--arrow-left', `${arrowPercent}%`);
+                };
+                
+                term.addEventListener('mouseenter', positionTooltip);
+                
+                term.addEventListener('mouseleave', () => {
+                    tooltip.style.setProperty('--tooltip-offset', '-50%');
+                    tooltip.style.setProperty('--arrow-left', '50%');
+                });
+            });
+        }
+
+        // Mobile: tap to show modal
+        if (isTouchDevice) {
+            document.querySelectorAll('.term').forEach(term => {
+                term.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    termModalTitle.textContent = term.dataset.term;
+                    termModalText.textContent = term.dataset.definition;
+                    termModal.classList.add('active');
+                });
+            });
+
+            termModalClose.addEventListener('click', () => {
+                termModal.classList.remove('active');
+            });
+
+            termModal.addEventListener('click', (e) => {
+                if (e.target === termModal) {
+                    termModal.classList.remove('active');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
