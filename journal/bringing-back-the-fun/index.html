@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bringing Back the Fun | Rob Boyett</title>
+    <link rel="preload" href="https://rsms.me/inter/inter.css" as="style">
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+    
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="Rob Boyett's Journal" href="/feed.xml">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            visibility: hidden;
+        }
+        
+        html.fonts-loaded {
+            visibility: visible;
+        }
+
+        html {
+            background-color: #F1F1F1;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: transparent;
+            color: #1A1A1A;
+            min-height: 100vh;
+        }
+        
+        .page {
+            position: relative;
+        }
+
+        /* Absolute car canvas - scrolls with page, behind content */
+        #car-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .page {
+            padding: 66px 62px;
+            min-height: 100vh;
+        }
+
+        .page.menu-open .article {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .article {
+            transition: opacity 0.3s ease;
+            max-width: 680px;
+            margin: 0;
+        }
+
+        .article-header {
+            margin-bottom: 48px;
+        }
+
+        .article-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .article-title {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .article-subtitle {
+            font-size: 20px;
+            color: #555;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        .article-content {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #333;
+        }
+
+        .article-content p { margin-bottom: 24px; }
+
+        .article-content h2 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-top: 48px;
+            margin-bottom: 24px;
+        }
+
+        .article-content h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 36px;
+            margin-bottom: 16px;
+        }
+
+        .article-content blockquote {
+            border-left: 3px solid #202020;
+            padding-left: 24px;
+            margin: 32px 0;
+            font-style: italic;
+            color: #555;
+        }
+
+        .article-content a { color: #0066cc; text-decoration: underline; }
+        .article-content a:hover { color: #004499; }
+
+        .article-footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid #ddd;
+        }
+
+        .article-footer p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Controls - hint on desktop, interactive on mobile */
+        .controls-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(26, 26, 26, 0.9);
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 100;
+        }
+
+        .controls-hint kbd {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin: 0 2px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 11px;
+        }
+        
+        /* Mobile touch controls */
+        .mobile-controls {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 100;
+            gap: 12px;
+            justify-content: space-between;
+            align-items: flex-end;
+            pointer-events: none;
+        }
+        
+        .mobile-controls > * {
+            pointer-events: auto;
+        }
+        
+        .steer-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(26, 26, 26, 0.85);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.1s;
+        }
+        
+        .control-btn:active, .control-btn.active {
+            background: rgba(80, 80, 80, 0.9);
+            transform: scale(0.95);
+        }
+        
+        .accelerate-btn {
+            width: 80px;
+            height: 80px;
+            font-size: 28px;
+        }
+
+        @media (max-width: 768px) {
+            .controls-hint {
+                display: none;
+            }
+            .mobile-controls {
+                display: flex;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .page { padding: 24px; }
+            .article-title { font-size: 32px; }
+            .article-subtitle { font-size: 18px; }
+            .article-content { font-size: 17px; }
+        }
+    </style>
+    
+    <script src="/components/site-nav.js"></script>
+</head>
+<body>
+    <!-- Fixed car canvas -->
+    <canvas id="car-canvas"></canvas>
+    
+    <!-- Controls hint (desktop) -->
+    <div class="controls-hint">
+        <kbd>←</kbd><kbd>→</kbd> steer · <kbd>Space</kbd> accelerate
+    </div>
+    
+    <!-- Mobile touch controls -->
+    <div class="mobile-controls">
+        <div class="steer-buttons">
+            <button class="control-btn steer-left" aria-label="Steer left">←</button>
+            <button class="control-btn steer-right" aria-label="Steer right">→</button>
+        </div>
+        <button class="control-btn accelerate-btn" aria-label="Accelerate">▲</button>
+    </div>
+
+    <div class="page">
+        <site-nav></site-nav>
+
+        <article class="article">
+            <header class="article-header">
+                <time class="article-date" datetime="2026-01-13">January 13, 2026</time>
+                <h1 class="article-title">Bringing back the fun!</h1>
+                <p class="article-subtitle">If the tools now let us make things faster, why are we using that speed to polish harder?</p>
+            </header>
+
+            <div class="article-content">
+                <p>The old model went something like this: have an idea, refine it, refine it again, run it past people, refine it further, maybe ship it. Most ideas died somewhere in that process—not because they were bad, but because the effort required to find out if they were good was too high.</p>
+
+                <p>LLMs change that equation. The cost of making a rough thing has collapsed. You can go from notion to prototype in an afternoon. Not a polished prototype, a scrappy one, full of gaps, but real enough to learn from.</p>
+
+                <p>And yet.</p>
+
+                <p>Most of what I see people doing with these tools is compressing the refinement stage. Getting to polished faster. Which is fine, useful even, but it misses the more interesting opportunity, compressing the commitment stage. Making things before you're sure they're worth making. Sketching in code instead of in decks.</p>
+
+                <p>I've been doing this A LOT more lately. Small projects that exist to answer a question rather than to ship. Prototypes that might go nowhere. The kind of making I used to do when I was younger, before I learned to be sensible about where I put my effort. Some of it has led somewhere. Some of it hasn't. That's the point.</p>
+
+                <p>The permission slip here isn't "AI will do the work for you." It's closer to the cost of trying things is now low enough that you can afford to try more things. You can be less precious. Less strategic. More willing to make something just to see what happens.</p>
+
+                <p>We used to call this play. Somewhere along the way, the industry got serious. Briefs got serious. Conversations about metrics, alignment, and measurable outcomes. The craft of making something delightful became secondary to making something that performs.</p>
+
+                <p>Maybe the tools are offering us a way back. Not to abandon rigour, but to remember that rigour was never the whole point. The point was to make things worth making. And sometimes you don't know if something's worth making until you've made it.</p>
+
+                <p>Play more. Sharpen less. See what emerges.</p>
+            </div>
+
+            <footer class="article-footer">
+                <p>Published by Rob Boyett. For more articles, visit the <a href="/">home page</a> or subscribe to the <a href="/feed.xml">RSS feed</a>.</p>
+            </footer>
+        </article>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+
+    <script>
+        // Navigation component handlers
+        const page = document.querySelector('.page');
+        const siteNav = document.querySelector('site-nav');
+        if (siteNav) {
+            siteNav.addEventListener('menu-open', () => page.classList.add('menu-open'));
+            siteNav.addEventListener('menu-close', () => page.classList.remove('menu-open'));
+        }
+
+        // Font loading
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => document.documentElement.classList.add('fonts-loaded'));
+        } else {
+            document.documentElement.classList.add('fonts-loaded');
+        }
+
+        // ===================================
+        // 3D Car in Fixed Canvas
+        // ===================================
+        
+        (function() {
+            const canvas = document.getElementById('car-canvas');
+            
+            function getPageHeight() {
+                return Math.max(
+                    document.body.scrollHeight,
+                    document.body.offsetHeight,
+                    document.documentElement.clientHeight,
+                    document.documentElement.scrollHeight,
+                    document.documentElement.offsetHeight
+                );
+            }
+            
+            const canvasWidth = window.innerWidth;
+            const canvasHeight = getPageHeight();
+
+            // Scene - transparent background
+            const scene = new THREE.Scene();
+            scene.background = null;
+            
+            // Camera - orthographic top-down view, scaled to page size
+            let viewHeight = canvasHeight / 2; // Half page height in world units
+            let viewWidth = canvasWidth / 2;   // Half page width in world units
+            const camera = new THREE.OrthographicCamera(
+                -viewWidth, viewWidth,
+                viewHeight, -viewHeight,
+                0.1, 500
+            );
+            camera.position.set(0, 200, 0);
+            camera.lookAt(0, 0, 0);
+
+            // Renderer - with alpha for transparency
+            const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+            renderer.setSize(canvasWidth, canvasHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setClearColor(0x000000, 0); // Transparent background
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            mainLight.position.set(50, 100, 50);
+            mainLight.castShadow = true;
+            mainLight.shadow.mapSize.width = 2048;
+            mainLight.shadow.mapSize.height = 2048;
+            mainLight.shadow.camera.near = 10;
+            mainLight.shadow.camera.far = 300;
+            mainLight.shadow.camera.left = -60;
+            mainLight.shadow.camera.right = 60;
+            mainLight.shadow.camera.top = 60;
+            mainLight.shadow.camera.bottom = -60;
+            scene.add(mainLight);
+            scene.add(mainLight.target); // Need to add target to scene for it to update
+
+            // Fill light from opposite side
+            const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
+            fillLight.position.set(-30, 50, -30);
+            scene.add(fillLight);
+
+            // Invisible ground plane that only shows shadows
+            const shadowPlaneGeometry = new THREE.PlaneGeometry(2000, 2000);
+            const shadowPlaneMaterial = new THREE.ShadowMaterial({ 
+                opacity: 0.1  // Adjust shadow darkness (0 = invisible, 1 = black)
+            });
+            const shadowPlane = new THREE.Mesh(shadowPlaneGeometry, shadowPlaneMaterial);
+            shadowPlane.rotation.x = -Math.PI / 2; // Lay flat
+            shadowPlane.position.y = 0;
+            shadowPlane.receiveShadow = true;
+            scene.add(shadowPlane);
+
+            // ===== CAR MODEL =====
+            // Built with 3D geometry for depth, but structured for easy texture replacement later
+            
+            const carGroup = new THREE.Group();
+
+            // Main body - lower chassis
+            const chassisGeometry = new THREE.BoxGeometry(20, 5, 40);
+            const chassisMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xCC3333,
+                roughness: 0.3,
+                metalness: 0.6
+            });
+            const chassis = new THREE.Mesh(chassisGeometry, chassisMaterial);
+            chassis.position.y = 5;
+            chassis.castShadow = true;
+            chassis.receiveShadow = true;
+            carGroup.add(chassis);
+
+            // Cabin / cockpit
+            const cabinGeometry = new THREE.BoxGeometry(16, 8, 20);
+            const cabinMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x252525,
+                roughness: 0.5,
+                metalness: 0.3
+            });
+            const cabin = new THREE.Mesh(cabinGeometry, cabinMaterial);
+            cabin.position.set(0, 11, -2);
+            cabin.castShadow = true;
+            carGroup.add(cabin);
+
+            // Front hood - sloped
+            const hoodGeometry = new THREE.BoxGeometry(18, 4, 12);
+            const textureLoader = new THREE.TextureLoader();
+            const hoodTexture = textureLoader.load('Hood.png');
+            const hoodMaterial = new THREE.MeshStandardMaterial({ 
+                map: hoodTexture,
+                roughness: 0.3,
+                metalness: 0.5
+            });
+            const hood = new THREE.Mesh(hoodGeometry, hoodMaterial);
+            hood.position.set(0, 6, 14);
+            hood.castShadow = true;
+            carGroup.add(hood);
+
+            // Rear trunk
+            const trunkGeometry = new THREE.BoxGeometry(18, 4, 8);
+            const trunk = new THREE.Mesh(trunkGeometry, hoodMaterial);
+            trunk.position.set(0, 6, -16);
+            trunk.castShadow = true;
+            carGroup.add(trunk);
+
+            // Wheels
+            const wheelGeometry = new THREE.CylinderGeometry(4, 4, 4, 16);
+            const wheelMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x111111,
+                roughness: 0.9,
+                metalness: 0.1
+            });
+
+            const wheelPositions = [
+                { x: -12, y: 4, z: 12, isFront: true },   // front-left
+                { x: 12, y: 4, z: 12, isFront: true },    // front-right
+                { x: -12, y: 4, z: -12, isFront: false }, // back-left
+                { x: 12, y: 4, z: -12, isFront: false }   // back-right
+            ];
+
+            const wheels = [];
+            const frontWheelPivots = [];
+            
+            wheelPositions.forEach(pos => {
+                const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                wheel.rotation.z = Math.PI / 2;
+                wheel.castShadow = true;
+                
+                if (pos.isFront) {
+                    // Front wheels: wrap in a pivot group for steering
+                    const pivot = new THREE.Group();
+                    pivot.position.set(pos.x, pos.y, pos.z);
+                    pivot.add(wheel);
+                    carGroup.add(pivot);
+                    frontWheelPivots.push(pivot);
+                    wheels.push(wheel);
+                } else {
+                    // Back wheels: add directly
+                    wheel.position.set(pos.x, pos.y, pos.z);
+                    carGroup.add(wheel);
+                    wheels.push(wheel);
+                }
+            });
+
+            // Headlights
+            const headlightGeometry = new THREE.BoxGeometry(3, 2, 1);
+            const headlightMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xFFFFCC,
+                emissive: 0xFFFFCC,
+                emissiveIntensity: 1.5
+            });
+
+            [-6, 6].forEach(x => {
+                const headlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+                headlight.position.set(x, 5, 20);
+                carGroup.add(headlight);
+            });
+
+            // Taillights
+            const taillightMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xFF0000,
+                emissive: 0xFF0000,
+                emissiveIntensity: 0.3
+            });
+
+            [-6, 6].forEach(x => {
+                const taillight = new THREE.Mesh(headlightGeometry, taillightMaterial);
+                taillight.position.set(x, 5, -20);
+                carGroup.add(taillight);
+            });
+
+            // Scale car (1.0 = original size)
+            carGroup.scale.set(1, 1, 1);
+            scene.add(carGroup);
+
+            // ===== CAR PHYSICS =====
+            // Start car in top-right of page
+            // Negative z = top of page, positive z = bottom
+            // Target position (where car should end up after intro)
+            const targetX = viewWidth - 100;
+            const targetZ = -(viewHeight - 150);
+            
+            const car = {
+                // Start off-screen: further right and above the viewport
+                x: viewWidth + 150,
+                z: -(viewHeight + 200),
+                rotation: -Math.PI * 0.6,              // Angled to drive toward target
+                speed: 0,
+                maxSpeed: 3,
+                acceleration: 0.08,
+                deceleration: 0.05,
+                turnSpeed: 0.04,
+                isAutoDriving: true                    // Auto-drive on load
+            };
+            
+            // Auto-drive settings
+            const autoDrive = {
+                speed: 2,
+                arrivalDistance: 40,
+                maxTurnRate: 0.03  // Max radians per frame to turn
+            };
+
+            // ===== CONTROLS =====
+            const keys = {
+                left: false,
+                right: false,
+                accelerate: false
+            };
+
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'ArrowLeft') {
+                    keys.left = true;
+                    e.preventDefault();
+                }
+                if (e.code === 'ArrowRight') {
+                    keys.right = true;
+                    e.preventDefault();
+                }
+                if (e.code === 'Space') {
+                    keys.accelerate = true;
+                    e.preventDefault();
+                }
+            });
+
+            document.addEventListener('keyup', (e) => {
+                if (e.code === 'ArrowLeft') keys.left = false;
+                if (e.code === 'ArrowRight') keys.right = false;
+                if (e.code === 'Space') keys.accelerate = false;
+            });
+
+            // ===== MOBILE TOUCH CONTROLS =====
+            const steerLeftBtn = document.querySelector('.steer-left');
+            const steerRightBtn = document.querySelector('.steer-right');
+            const accelerateBtn = document.querySelector('.accelerate-btn');
+
+            function setupTouchButton(button, keyName) {
+                if (!button) return;
+                
+                button.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    keys[keyName] = true;
+                    button.classList.add('active');
+                }, { passive: false });
+                
+                button.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    keys[keyName] = false;
+                    button.classList.remove('active');
+                }, { passive: false });
+                
+                button.addEventListener('touchcancel', (e) => {
+                    keys[keyName] = false;
+                    button.classList.remove('active');
+                });
+                
+                // Also support mouse for testing
+                button.addEventListener('mousedown', (e) => {
+                    keys[keyName] = true;
+                    button.classList.add('active');
+                });
+                
+                button.addEventListener('mouseup', (e) => {
+                    keys[keyName] = false;
+                    button.classList.remove('active');
+                });
+                
+                button.addEventListener('mouseleave', (e) => {
+                    keys[keyName] = false;
+                    button.classList.remove('active');
+                });
+            }
+
+            setupTouchButton(steerLeftBtn, 'left');
+            setupTouchButton(steerRightBtn, 'right');
+            setupTouchButton(accelerateBtn, 'accelerate');
+
+            // ===== TIRE TRACKS =====
+            const tireTracks = [];
+            const trackGeometry = new THREE.PlaneGeometry(3, 6);
+            const trackMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0x555555, 
+                transparent: true, 
+                opacity: 0.4,
+                side: THREE.DoubleSide
+            });
+            let lastTrackTime = 0;
+            const trackInterval = 30; // ms between tracks
+            const trackFadeTime = 5000; // ms to fully fade
+
+            function createTireTrack(x, z, rotation) {
+                const track = new THREE.Mesh(trackGeometry, trackMaterial.clone());
+                track.rotation.x = -Math.PI / 2; // Lay flat
+                track.rotation.z = rotation;
+                track.position.set(x, 0.5, z);
+                scene.add(track);
+                tireTracks.push({ mesh: track, createdAt: performance.now() });
+            }
+
+            function updateTireTracks() {
+                const now = performance.now();
+                for (let i = tireTracks.length - 1; i >= 0; i--) {
+                    const track = tireTracks[i];
+                    const age = now - track.createdAt;
+                    if (age > trackFadeTime) {
+                        scene.remove(track.mesh);
+                        track.mesh.geometry.dispose();
+                        track.mesh.material.dispose();
+                        tireTracks.splice(i, 1);
+                    } else {
+                        track.mesh.material.opacity = 0.4 * (1 - age / trackFadeTime);
+                    }
+                }
+            }
+
+            // ===== ANIMATION LOOP =====
+            let lastTime = 0;
+
+            function animate(time) {
+                requestAnimationFrame(animate);
+                
+                const deltaMs = time - lastTime;
+                const delta = Math.min(deltaMs / 16.67, 3); // Normalize to ~60fps
+                lastTime = time;
+
+                // Auto-drive logic
+                if (car.isAutoDriving) {
+                    const dx = targetX - car.x;
+                    const dz = targetZ - car.z;
+                    const distanceToTarget = Math.sqrt(dx * dx + dz * dz);
+                    
+                    if (distanceToTarget < autoDrive.arrivalDistance) {
+                        // Close to target - just stop auto-driving, no snap
+                        car.isAutoDriving = false;
+                        // Let normal deceleration bring it to a stop
+                    } else {
+                        // Calculate angle to target
+                        const targetAngle = Math.atan2(dx, dz);
+                        
+                        // Calculate shortest angle difference
+                        let angleDiff = targetAngle - car.rotation;
+                        while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                        while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+                        
+                        // Clamp turn rate to prevent spinning
+                        const maxTurn = autoDrive.maxTurnRate * delta;
+                        const turnAmount = Math.max(-maxTurn, Math.min(maxTurn, angleDiff));
+                        car.rotation += turnAmount;
+                        
+                        // Slow down as we approach
+                        const slowdownDistance = 100;
+                        if (distanceToTarget < slowdownDistance) {
+                            car.speed = autoDrive.speed * (distanceToTarget / slowdownDistance);
+                        } else {
+                            car.speed = autoDrive.speed;
+                        }
+                    }
+                } else {
+                    // Manual control - Acceleration
+                    if (keys.accelerate) {
+                        car.speed = Math.min(car.speed + car.acceleration * delta, car.maxSpeed);
+                    } else {
+                        // Decelerate when not accelerating
+                        car.speed = Math.max(0, car.speed - car.deceleration * delta);
+                    }
+
+                    // Steering (only when moving)
+                    if (car.speed > 0.1) {
+                        if (keys.left) {
+                            car.rotation += car.turnSpeed * delta;
+                        }
+                        if (keys.right) {
+                            car.rotation -= car.turnSpeed * delta;
+                        }
+                    }
+                }
+
+                // Movement
+                car.x += Math.sin(car.rotation) * car.speed * delta;
+                car.z += Math.cos(car.rotation) * car.speed * delta;
+
+                // Keep car within visible canvas bounds
+                const boundX = viewWidth - 20;  // Account for car width
+                const boundZ = viewHeight - 30; // Account for car length
+                car.x = Math.max(-boundX, Math.min(boundX, car.x));
+                car.z = Math.max(-boundZ, Math.min(boundZ, car.z));
+
+                // Update car position
+                carGroup.position.x = car.x;
+                carGroup.position.z = car.z;
+                carGroup.rotation.y = car.rotation;
+                
+                // Make light follow car so shadows stay visible
+                mainLight.position.set(car.x + 50, 100, car.z + 50);
+                mainLight.target.position.set(car.x, 0, car.z);
+
+                // Spin wheels based on speed
+                const wheelSpin = car.speed * 0.3 * delta;
+                wheels.forEach(wheel => {
+                    wheel.rotation.x += wheelSpin;
+                });
+                
+                // Turn front wheels based on steering input (using pivots)
+                const steerAngle = 0.4; // Max steering angle in radians
+                let frontWheelTurn = 0;
+                if (keys.left) frontWheelTurn = steerAngle;
+                if (keys.right) frontWheelTurn = -steerAngle;
+                frontWheelPivots.forEach(pivot => {
+                    pivot.rotation.y = frontWheelTurn;
+                });
+
+                // Create tire tracks when moving
+                if (Math.abs(car.speed) > 0.3 && time - lastTrackTime > trackInterval) {
+                    const cos = Math.cos(car.rotation);
+                    const sin = Math.sin(car.rotation);
+                    const backOffset = -12; // Distance to rear wheels
+                    const sideOffset = 12;  // Distance from center to wheels
+                    
+                    // Left rear wheel track
+                    const leftX = car.x + sin * backOffset - cos * sideOffset;
+                    const leftZ = car.z + cos * backOffset + sin * sideOffset;
+                    createTireTrack(leftX, leftZ, car.rotation);
+                    
+                    // Right rear wheel track
+                    const rightX = car.x + sin * backOffset + cos * sideOffset;
+                    const rightZ = car.z + cos * backOffset - sin * sideOffset;
+                    createTireTrack(rightX, rightZ, car.rotation);
+                    
+                    lastTrackTime = time;
+                }
+                
+                // Update and fade tire tracks
+                updateTireTracks();
+
+                renderer.render(scene, camera);
+            }
+
+            // Handle resize
+            function onResize() {
+                const width = window.innerWidth;
+                const height = getPageHeight();
+                
+                // Update canvas size
+                canvas.style.height = height + 'px';
+                
+                // Update camera frustum to match page size
+                viewWidth = width / 2;
+                viewHeight = height / 2;
+                camera.left = -viewWidth;
+                camera.right = viewWidth;
+                camera.top = viewHeight;
+                camera.bottom = -viewHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(width, height);
+            }
+
+            window.addEventListener('resize', onResize);
+            
+            // Initial resize to set correct dimensions
+            onResize();
+
+            // Start animation
+            requestAnimationFrame(animate);
+        })();
+    </script>
+
+    <script async defer src="https://scripts.withcabin.com/hello.js"></script>
+</body>
+</html>

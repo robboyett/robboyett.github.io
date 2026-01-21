@@ -6,7 +6,31 @@
         <link>https://robboyett.com</link>
         <atom:link href="https://robboyett.com/feed.xml" rel="self" type="application/rss+xml"/>
         <language>en-gb</language>
-        <lastBuildDate>Sat, 10 Jan 2026 00:00:00 +0000</lastBuildDate>
+        <lastBuildDate>Wed, 21 Jan 2026 00:00:00 +0000</lastBuildDate>
+        
+        <item>
+            <title>The Surface Trap</title>
+            <link>https://robboyett.com/journal/surface-trap/</link>
+            <guid>https://robboyett.com/journal/surface-trap/</guid>
+            <pubDate>Wed, 21 Jan 2026 00:00:00 +0000</pubDate>
+            <description>Why knowledge work feels exhausting and AI assistance underwhelming. We're locking our thinking into the wrong containers—surfaces that freeze insight into form instead of letting it compound.</description>
+        </item>
+        
+        <item>
+            <title>Pocket Money, Made Physical</title>
+            <link>https://robboyett.com/journal/m5-monzo-display/</link>
+            <guid>https://robboyett.com/journal/m5-monzo-display/</guid>
+            <pubDate>Wed, 14 Jan 2026 00:00:00 +0000</pubDate>
+            <description>Connecting an M5Stick to the Monzo Bank API to build a live, physical display of my kids' bank balances. What happens when financial data becomes ambient and tangible?</description>
+        </item>
+        
+        <item>
+            <title>Bringing Back the Fun</title>
+            <link>https://robboyett.com/journal/bringing-back-the-fun/</link>
+            <guid>https://robboyett.com/journal/bringing-back-the-fun/</guid>
+            <pubDate>Tue, 13 Jan 2026 00:00:00 +0000</pubDate>
+            <description>Why playfulness matters in digital craft, and a small experiment in making portfolios less static. Try the arrow keys.</description>
+        </item>
         
         <item>
             <title>Why can't I npm a design method yet?</title>

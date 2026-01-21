@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <journal>
     <entry>
+        <title>The Surface Trap</title>
+        <url>/journal/surface-trap/</url>
+        <preview>/journal/surface-trap/</preview>
+    </entry>
+    <entry>
+        <title>Bringing Back the Fun</title>
+        <url>/journal/bringing-back-the-fun/</url>
+        <preview>/journal/bringing-back-the-fun/</preview>
+    </entry>
+    <entry>
         <title>Why can't I npm a design method yet?</title>
         <url>/journal/npm-design-method/</url>
         <preview>/journal/npm-design-method/</preview>

@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Surface Trap | Rob Boyett</title>
+    <link rel="preload" href="https://rsms.me/inter/inter.css" as="style">
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+    
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="Rob Boyett's Journal" href="/feed.xml">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Hide content until fonts load to prevent FOUT */
+        html {
+            visibility: hidden;
+        }
+        
+        html.fonts-loaded {
+            visibility: visible;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #F1F1F1;
+            color: #1A1A1A;
+            min-height: 100vh;
+        }
+
+        .page {
+            padding: 66px 62px;
+            min-height: 100vh;
+        }
+
+        /* Dim content when dropdown is open */
+        .page.menu-open .article {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .article {
+            transition: opacity 0.3s ease;
+        }
+
+        /* Article Styles */
+        .article {
+            max-width: 680px;
+            margin: 0;
+        }
+
+        .article-header {
+            margin-bottom: 48px;
+        }
+
+        .article-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .article-title {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .article-subtitle {
+            font-size: 20px;
+            color: #555;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        /* Article Content */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #333;
+        }
+
+        .article-content p {
+            margin-bottom: 24px;
+        }
+
+        .article-content h2 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-top: 48px;
+            margin-bottom: 24px;
+        }
+
+        .article-content h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 36px;
+            margin-bottom: 16px;
+        }
+
+        .article-content ul,
+        .article-content ol {
+            margin-bottom: 24px;
+            padding-left: 24px;
+        }
+
+        .article-content li {
+            margin-bottom: 8px;
+        }
+
+        .article-content blockquote {
+            border-left: 3px solid #202020;
+            padding-left: 24px;
+            margin: 32px 0;
+            font-style: italic;
+            color: #555;
+        }
+
+        .article-content code {
+            background: #e8e8e8;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 16px;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .article-content a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+
+        .article-content a:hover {
+            color: #004499;
+        }
+
+        .article-content strong {
+            font-weight: 600;
+        }
+
+        /* Modes Table */
+        .modes-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+
+        .modes-table th {
+            background: #f8f8f8;
+            color: #666;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .modes-table td {
+            padding: 16px 20px;
+            color: #444;
+            font-size: 15px;
+            line-height: 1.5;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+        }
+
+        .modes-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .modes-table td:first-child {
+            font-weight: 600;
+            color: #1a1a1a;
+            width: 140px;
+        }
+
+        .modes-table td:nth-child(2) {
+            width: 280px;
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 32px;
+            margin: 32px 0;
+            overflow-x: auto;
+        }
+
+        .flow-diagram-inner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            min-width: 320px;
+        }
+
+        .flow-box {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 16px 24px;
+            text-align: center;
+            color: #333;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .flow-box.primary {
+            background: #e8f4fc;
+            border-color: #0066cc;
+            color: #0055aa;
+        }
+
+        .flow-box.secondary {
+            background: #e8f5e8;
+            border-color: #2d8a2d;
+            color: #1a6a1a;
+        }
+
+        .flow-box-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .flow-box-desc {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .flow-box.primary .flow-box-desc {
+            color: #4488bb;
+        }
+
+        .flow-box.secondary .flow-box-desc {
+            color: #4a8a4a;
+        }
+
+        .flow-arrow {
+            color: #999;
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        .flow-input {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .flow-input-label {
+            font-size: 12px;
+            color: #666;
+            text-align: right;
+            width: 100px;
+            flex-shrink: 0;
+        }
+
+        .flow-input-arrow {
+            color: #999;
+            font-size: 16px;
+        }
+
+        .flow-split {
+            display: flex;
+            gap: 24px;
+            width: 100%;
+            max-width: 400px;
+            justify-content: center;
+        }
+
+        .flow-split .flow-box {
+            width: 160px;
+            padding: 14px 16px;
+        }
+
+        .flow-split .flow-box-title {
+            font-size: 11px;
+        }
+
+        .flow-split .flow-box-desc {
+            font-size: 11px;
+        }
+
+        .flow-connector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .flow-connector-line {
+            width: 60px;
+            height: 1px;
+            background: #ccc;
+        }
+
+        .flow-key-insight {
+            background: #fff;
+            border: 2px solid #0066cc;
+            border-radius: 8px;
+            padding: 24px;
+            margin: 32px 0;
+        }
+
+        .flow-key-insight p {
+            font-size: 17px;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .flow-key-insight strong {
+            color: #0066cc;
+        }
+
+        /* Separator */
+        .section-separator {
+            height: 1px;
+            background: #ddd;
+            margin: 48px 0;
+            border: none;
+        }
+
+        /* Article Footer */
+        .article-footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid #ddd;
+        }
+
+        .article-footer p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page {
+                padding: 24px;
+            }
+
+            .article-title {
+                font-size: 32px;
+            }
+
+            .article-subtitle {
+                font-size: 18px;
+            }
+
+            .article-content {
+                font-size: 17px;
+            }
+
+            .article-content h2 {
+                font-size: 24px;
+            }
+
+            .article-content h3 {
+                font-size: 20px;
+            }
+
+            .modes-table {
+                font-size: 14px;
+            }
+
+            .modes-table th,
+            .modes-table td {
+                padding: 12px 14px;
+            }
+
+            .modes-table td:first-child {
+                width: auto;
+            }
+
+            .modes-table td:nth-child(2) {
+                width: auto;
+            }
+
+            .flow-diagram {
+                padding: 20px;
+            }
+
+            .flow-split {
+                flex-direction: column;
+                gap: 12px;
+                align-items: center;
+            }
+
+            .flow-split .flow-box {
+                width: 100%;
+                max-width: 200px;
+            }
+
+            .flow-input {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .flow-input-label {
+                text-align: center;
+                width: auto;
+            }
+        }
+    </style>
+    
+    <!-- Navigation Component -->
+    <script src="/components/site-nav.js"></script>
+</head>
+<body>
+    <div class="page">
+        <!-- Navigation -->
+        <site-nav></site-nav>
+
+        <!-- Article -->
+        <article class="article">
+            <header class="article-header">
+                <time class="article-date" datetime="2026-01-21">January 21, 2026</time>
+                <h1 class="article-title">The Surface Trap</h1>
+                <p class="article-subtitle">Good thinking should live beyond the deck. We are locking our thinking into the wrong containers.</p>
+            </header>
+
+            <div class="article-content">
+                <p>Why does knowledge work feel so exhausting, and why is AI assistance often underwhelming when we try to crush the backlog of real work? I want to try to sharpen a distinction that I think matters.</p>
+
+                <h2>Three distinct modes of handling information</h2>
+
+                <p>Day to day, we live in surfaces—these are the PowerPoint documents, Word files, and wikis that are at the coal face of knowledge work. For me in design, you can add Miro boards and Figma files, and still sometimes whiteboards. The problem isn't that we use these surfaces. Surfaces are essential. A well-crafted deck, a Miro board buzzing with stickies, a presentation that lands an argument—these are how humans actually think together, build narratives that win consensus, and generate novel connections. That's the work we're genuinely good at and enjoy.</p>
+
+                <p>The problem is that we do all three modes inside the surface today, and then we're stuck.</p>
+
+                <table class="modes-table">
+                    <thead>
+                        <tr>
+                            <th>Mode</th>
+                            <th>Purpose</th>
+                            <th>Character</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Ingestion</td>
+                            <td>Classify, extract, connect incoming material</td>
+                            <td>Reductive, structural, machine-readable</td>
+                        </tr>
+                        <tr>
+                            <td>Accumulation</td>
+                            <td>Store in a canonical, queryable form</td>
+                            <td>Persistent, versioned, boring</td>
+                        </tr>
+                        <tr>
+                            <td>Surface</td>
+                            <td>Package into human-consumable arguments and narratives</td>
+                            <td>Expressive, persuasive, disposable</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2>What happens when everything lives in surfaces</h2>
+
+                <p>When a deck is the research synthesis, when FigJam is the project memory, when the presentation is the strategy:</p>
+
+                <ol>
+                    <li><strong>Information becomes frozen in form.</strong> The insight is welded to the slide. To reuse it, someone has to watch the recording, read the PDF, and reverse-engineer what you meant.</li>
+                    <li><strong>Every handoff is an extraction task.</strong> The next person doesn't inherit understanding; they inherit a puzzle. They're forced to reconstruct your thinking from artefacts that were optimised for a moment, not for durability. They're also presented with the final form, and almost never with the decision-making that led to it.</li>
+                    <li><strong>Context doesn't compound.</strong> Each project starts from scratch. Stakeholder knowledge, research patterns, and decision rationale are all trapped in last quarter's SharePoint folder. This is where you get "keyman" issues: the one person who holds context because they've been around the longest, and then, unfortunately, they end up leaving. That's the glue between individual projects—not just the what but the why—has left the company.</li>
+                    <li><strong>AI struggles to help you.</strong> When your knowledge lives in a hundred scattered decks and Miro boards, there's no coherent context to feed a model. So you end up pasting fragments into an LLM and relying more heavily on its training data than on your accumulated specialised knowledge.</li>
+                </ol>
+
+                <h2>The separation I'm proposing</h2>
+
+                <p>I think the imperative now is for businesses to start recognizing these information-handling elements as separate pieces and to work on ways to share the essence of context as the business grows and projects develop. What I'm describing is a deliberate architecture:</p>
+
+                <div class="flow-diagram">
+                    <div class="flow-diagram-inner">
+                        <div class="flow-input">
+                            <span class="flow-input-label">Raw inputs<br><small style="color:#666">(transcripts, documents, notes)</small></span>
+                            <span class="flow-input-arrow">→</span>
+                            <div class="flow-box primary">
+                                <div class="flow-box-title">Ingestion</div>
+                                <div class="flow-box-desc">Extract, classify, connect</div>
+                            </div>
+                        </div>
+                        
+                        <span class="flow-arrow">↓</span>
+                        
+                        <div class="flow-box secondary">
+                            <div class="flow-box-title">Accumulation</div>
+                            <div class="flow-box-desc">Canonical store (markdown, structured, versioned)</div>
+                        </div>
+                        
+                        <span class="flow-arrow">↓</span>
+                        
+                        <div class="flow-split">
+                            <div class="flow-box">
+                                <div class="flow-box-title">Surface</div>
+                                <div class="flow-box-desc">FigJam board</div>
+                            </div>
+                            <div class="flow-box">
+                                <div class="flow-box-title">Surface</div>
+                                <div class="flow-box-desc">Client deck</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flow-connector">
+                            <span class="flow-connector-line"></span>
+                            <span>↓</span>
+                            <span class="flow-connector-line"></span>
+                        </div>
+                        
+                        <div class="flow-box secondary">
+                            <div class="flow-box-title">Accumulation</div>
+                            <div class="flow-box-desc">Outcomes flow back in</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flow-key-insight">
+                    <p><strong>The key insight:</strong> surfaces become views, not vaults.</p>
+                </div>
+
+                <p>You pull what you need into Miro or FigJam for a workshop. You generate a deck for a steering meeting. You sketch flows on a whiteboard. But the thinking doesn't live there. It flows back into the canonical store, connected to decisions, evidence, and context.</p>
+
+                <h2>Why this matters now</h2>
+
+                <p>This separation has always been theoretically desirable. What's changed is that it's now practical:</p>
+
+                <ul>
+                    <li><strong>LLMs can do the ingestion work.</strong> Transcripts become structured notes. Documents become extracted signals. The drudgery of classification becomes automatable.</li>
+                    <li><strong>LLMs can generate surfaces on demand.</strong> If your knowledge is well-structured, spinning up a weekly update, a stakeholder brief, or a workshop primer takes only minutes, not hours.</li>
+                    <li><strong>LLMs can query accumulated knowledge.</strong> "What do we know about this stakeholder's concerns?" "What decisions have we made about scope?" These questions become answerable instantly.</li>
+                </ul>
+
+                <p>But none of this works if your knowledge is locked inside a hundred PowerPoints. The AI has nothing coherent to work with.</p>
+
+                <h2>The human work that remains</h2>
+
+                <p>This isn't about automating thinking. It's about protecting it. When the aggregation burden lifts, when you don't have to spend two hours assembling context for a meeting, you get to spend that time on what actually matters:</p>
+
+                <ul>
+                    <li>Reading more deeply</li>
+                    <li>Questioning assumptions</li>
+                    <li>Making the unexpected connections between research and strategy</li>
+                    <li>Crafting the narrative that actually moves people</li>
+                </ul>
+
+                <p>The surfaces still matter. The deck that lands. The board that sparks a breakthrough. The story that shifts a stakeholder's position. These are irreducibly human outputs.</p>
+
+                <p>What changes is that you arrive at those surfaces already oriented, with the knowledge at hand, instead of scrambling to reconstruct what you collectively know.</p>
+
+                <h2>The design implication</h2>
+
+                <p>If you're building a practice, or a product, or a team capability around this idea, the key question becomes:</p>
+
+                <p><strong>What's the canonical layer?</strong></p>
+
+                <p>Not "what tool do we use for workshops" or "what's our deck template." Those are surface questions.</p>
+
+                <p>The harder question: where does understanding actually accumulate? How does it flow between projects, between people, between phases? And how do we make the transforms between that layer and our working surfaces as frictionless as possible?</p>
+
+                <p>That's the infrastructure that makes everything else possible.</p>
+            </div>
+
+            <footer class="article-footer">
+                <p>Published by Rob Boyett. For more articles, visit the <a href="/">home page</a> or subscribe to the <a href="/feed.xml">RSS feed</a>.</p>
+            </footer>
+        </article>
+    </div>
+
+    <script>
+        // Handle menu open/close events from site-nav component
+        const page = document.querySelector('.page');
+        const siteNav = document.querySelector('site-nav');
+
+        siteNav.addEventListener('menu-open', () => {
+            page.classList.add('menu-open');
+        });
+
+        siteNav.addEventListener('menu-close', () => {
+            page.classList.remove('menu-open');
+        });
+
+        // Wait for Inter font to load before showing page
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                document.documentElement.classList.add('fonts-loaded');
+            });
+        } else {
+            // Fallback for browsers without Font Loading API
+            document.documentElement.classList.add('fonts-loaded');
+        }
+    </script>
+
+    <!-- Analytics -->
+    <script async defer src="https://scripts.withcabin.com/hello.js"></script>
+</body>
+</html>

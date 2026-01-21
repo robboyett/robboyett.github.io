@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pocket Money, Made Physical | Rob Boyett</title>
+    <link rel="preload" href="https://rsms.me/inter/inter.css" as="style">
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+    
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="Rob Boyett's Journal" href="/feed.xml">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Hide content until fonts load to prevent FOUT */
+        html {
+            visibility: hidden;
+        }
+        
+        html.fonts-loaded {
+            visibility: visible;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #F1F1F1;
+            color: #1A1A1A;
+            min-height: 100vh;
+        }
+
+        .page {
+            padding: 66px 62px;
+            min-height: 100vh;
+        }
+
+        /* Dim content when dropdown is open */
+        .page.menu-open .article {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .article {
+            transition: opacity 0.3s ease;
+        }
+
+        /* Article Styles */
+        .article {
+            max-width: 680px;
+            margin: 0;
+        }
+
+        .article-header {
+            margin-bottom: 48px;
+        }
+
+        .article-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .article-title {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .article-subtitle {
+            font-size: 20px;
+            color: #555;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        /* Article Content */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #333;
+        }
+
+        .article-content p {
+            margin-bottom: 24px;
+        }
+
+        .article-content h2 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-top: 48px;
+            margin-bottom: 24px;
+        }
+
+        .article-content h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 36px;
+            margin-bottom: 16px;
+        }
+
+        .article-content ul,
+        .article-content ol {
+            margin-bottom: 24px;
+            padding-left: 24px;
+        }
+
+        .article-content li {
+            margin-bottom: 8px;
+        }
+
+        .article-content blockquote {
+            border-left: 3px solid #202020;
+            padding-left: 24px;
+            margin: 32px 0;
+            font-style: italic;
+            color: #555;
+        }
+
+        .article-content code {
+            background: #e8e8e8;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 16px;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .article-content pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 24px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 32px 0;
+        }
+
+        .article-content pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .article-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 32px 0;
+        }
+
+        .article-content a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+
+        .article-content a:hover {
+            color: #004499;
+        }
+
+        /* Article Footer */
+        .article-footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid #ddd;
+        }
+
+        .article-footer p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page {
+                padding: 24px;
+            }
+
+            .article-title {
+                font-size: 32px;
+            }
+
+            .article-subtitle {
+                font-size: 18px;
+            }
+
+            .article-content {
+                font-size: 17px;
+            }
+
+            .article-content h2 {
+                font-size: 24px;
+            }
+
+            .article-content h3 {
+                font-size: 20px;
+            }
+        }
+    </style>
+    
+    <!-- Navigation Component -->
+    <script src="/components/site-nav.js"></script>
+</head>
+<body>
+    <div class="page">
+        <!-- Navigation -->
+        <site-nav></site-nav>
+
+        <!-- Article -->
+        <article class="article">
+            <header class="article-header">
+                <time class="article-date" datetime="2026-01-14">January 14, 2026</time>
+                <h1 class="article-title">Pocket Money, Made Physical</h1>
+                <p class="article-subtitle">Connecting an M5Stick to the Monzo API to build a tangible display of my kids' bank balances.</p>
+            </header>
+
+            <div class="article-content">
+                <p>I just spent a couple of hours hooking an M5Stick device directly into the Monzo Bank API to build a live, physical display of my kids' bank balances.</p>
+
+                <p>No app. No dashboards. No login screens. Just a small object on the kitchen table that shows how their money is doing in real time.</p>
+
+                <p>It started as a hardware curiosity and turned into something more interesting: what happens when financial data becomes ambient and tangible instead of hidden behind adult interfaces?</p>
+
+                <img src="device-on-table.jpg" alt="M5Stick device sitting on a kitchen table, displaying a child's bank balance of £3.50">
+
+
+                <p>There's something fundamentally different about information that exists in your peripheral vision versus information you have to actively seek out. The balance isn't locked away in an app that requires authentication and navigation. It's just there, on the table, updating quietly.</p>
+
+                <p>For kids especially, this changes the relationship with money. It's not an abstract number they occasionally glimpse when a parent logs in. It's a physical presence in their environment, something they can glance at while eating breakfast or doing homework.</p>
+
+
+                <img src="hello-world.jpg" alt="M5Stick displaying Hello World message, confirming the device is connected">
+
+                <p>The M5Stick is a small ESP32-based device with a built-in screen, battery, and WiFi. Perfect for this kind of ambient display. The Monzo API is surprisingly accessible, once you've got OAuth sorted, pulling account balances is straightforward.</p>
+
+                <p>The whole thing took a couple of hours to get working. Most of that time was spent on the OAuth flow rather than the actual display logic. Once the authentication was in place, the rest was just formatting numbers and deciding on refresh intervals.</p>
+
+                <p>The most interesting part of this project isn't the technical implementation. It's what it says about how we design access to information. Financial apps are built around security, authentication, and comprehensive feature sets. All necessary, but they also create friction.</p>
+
+                <blockquote>What happens when financial data becomes ambient and tangible instead of hidden behind adult interfaces?</blockquote>
+
+                <img src="balance-display.jpg" alt="Close-up of the M5Stick showing Coco's balance of £20.43 with a small emoji icon">
+
+                <p>This tiny device does one thing: show a number. No transaction history, no spending categories, no budgeting tools. Just the balance, updated in real time. And that constraint is what makes it useful for its specific purpose.</p>
+
+                <p>This was inspired by <a href="https://www.linkedin.com/in/shaymoradi/">Shay Moradi's</a> recent LLM experiments with M5Stack devices. Seeing what he was building with these small, programmable screens got me thinking about other data sources that might benefit from physical, ambient representation.</p>
+
+                <p>There's a rich design space here. Somewhere between full-featured apps and the complete absence of information. Small, dedicated displays that surface specific data without the overhead of general-purpose interfaces.</p>
+
+                <div style="margin: 32px 0;">
+                    <iframe src="https://www.linkedin.com/embed/feed/update/urn:li:share:7415849236191477760" height="859" width="504" frameborder="0" allowfullscreen="" title="Embedded post"></iframe>
+                </div>
+            </div>
+
+            <footer class="article-footer">
+                <p>Published by Rob Boyett. For more articles, visit the <a href="/">home page</a> or subscribe to the <a href="/feed.xml">RSS feed</a>.</p>
+            </footer>
+        </article>
+    </div>
+
+    <script>
+        // Handle menu open/close events from site-nav component
+        const page = document.querySelector('.page');
+        const siteNav = document.querySelector('site-nav');
+
+        siteNav.addEventListener('menu-open', () => {
+            page.classList.add('menu-open');
+        });
+
+        siteNav.addEventListener('menu-close', () => {
+            page.classList.remove('menu-open');
+        });
+
+        // Wait for Inter font to load before showing page
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                document.documentElement.classList.add('fonts-loaded');
+            });
+        } else {
+            // Fallback for browsers without Font Loading API
+            document.documentElement.classList.add('fonts-loaded');
+        }
+    </script>
+
+    <!-- Analytics -->
+    <script async defer src="https://scripts.withcabin.com/hello.js"></script>
+</body>
+</html>
