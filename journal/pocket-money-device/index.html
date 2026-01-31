@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Am I a bank now? Building a pocket-sized money device for my kids | Rob Boyett</title>
+    <link rel="preload" href="https://rsms.me/inter/inter.css" as="style">
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+    
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="Rob Boyett's Journal" href="/feed.xml">
+    
+    <!-- Prism.js syntax highlighting (Arduino/C++) -->
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Hide content until fonts load to prevent FOUT */
+        html {
+            visibility: hidden;
+        }
+        
+        html.fonts-loaded {
+            visibility: visible;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-feature-settings:
+                'liga' 1,   /* Standard ligatures */
+                'dlig' 1,   /* Discretionary ligatures */
+                'calt' 1,   /* Contextual alternates */
+                'zero' 1,   /* Slashed zero */
+                'kern' 1,   /* Kerning */
+                'ss01' 1,   /* Alternate digits */
+                'ss02' 0,   /* Disambiguate between similar-looking characters */
+                'ss03' 1,   /* Round quotes & commas */
+                'cv01' 1,   /* Alternate 1 */
+                'cv03' 1,   /* Open six */
+                'cv04' 1,   /* Open nine */
+                'cv06' 1,   /* Simplified u */
+                'cv07' 1,   /* Alternate 6 */
+                'cv09' 1,   /* Alternate 8 */
+                'cv10' 0,   /* Capital G with spur */
+                'cv11' 1,   /* Single-story a */
+                'tnum' 1;   /* Tabular figures */
+            background-color: #F1F1F1;
+            color: #1A1A1A;
+            min-height: 100vh;
+        }
+
+        @supports (font-variation-settings: normal) {
+            body {
+                font-family: 'Inter var', 'InterVariable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            }
+        }
+
+        .page {
+            padding: 66px 62px;
+            min-height: 100vh;
+        }
+
+        /* Dim content when dropdown is open */
+        .page.menu-open .article {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .article {
+            transition: opacity 0.3s ease;
+        }
+
+        /* Article Styles */
+        .article {
+            max-width: 680px;
+            margin: 0;
+        }
+
+        .article-header {
+            margin-bottom: 48px;
+        }
+
+        .article-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .article-title {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .article-subtitle {
+            font-size: 20px;
+            color: #555;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        /* Article Content */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #333;
+        }
+
+        .article-content p {
+            margin-bottom: 24px;
+        }
+
+        .article-content h2 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-top: 48px;
+            margin-bottom: 24px;
+        }
+
+        .article-content h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 36px;
+            margin-bottom: 16px;
+        }
+
+        .article-content ul,
+        .article-content ol {
+            margin-bottom: 24px;
+            padding-left: 24px;
+        }
+
+        .article-content li {
+            margin-bottom: 8px;
+        }
+
+        .article-content blockquote {
+            border-left: 3px solid #202020;
+            padding-left: 24px;
+            margin: 32px 0;
+            font-style: italic;
+            color: #555;
+        }
+
+        .article-content code {
+            background: #e8e8e8;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 16px;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .article-content pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 24px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 32px 0;
+        }
+
+        .article-content pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        /* Keep article spacing for Prism code blocks */
+        .article-content pre[class*="language-"] {
+            padding: 24px;
+            border-radius: 8px;
+            margin: 32px 0;
+        }
+
+        .article-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 32px 0;
+        }
+
+        .article-content a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+
+        .article-content a:hover {
+            color: #004499;
+        }
+
+        /* Code download blocks */
+        .code-downloads {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 24px 0;
+        }
+
+        .code-download-block {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 16px 20px;
+            background: #f8f8f8;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            text-decoration: none;
+            color: inherit;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .code-download-block,
+        .code-download-block .code-download-block__link {
+            text-decoration: none;
+        }
+
+        .code-download-block:hover {
+            background: #f0f0f0;
+            border-color: #d0d0d0;
+        }
+
+        .code-download-block__icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e8e8e8;
+            border-radius: 6px;
+            color: #555;
+        }
+
+        .code-download-block:hover .code-download-block__icon {
+            background: #ddd;
+            color: #333;
+        }
+
+        .code-download-block__icon svg {
+            width: 22px;
+            height: 26px;
+        }
+
+        .code-download-block__body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .code-download-block__title {
+            font-weight: 600;
+            font-size: 17px;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+
+        .code-download-block__desc {
+            font-size: 15px;
+            line-height: 1.5;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .code-download-block__link {
+            font-size: 14px;
+            font-family: 'SF Mono', Monaco, monospace;
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        .code-download-block:hover .code-download-block__link {
+            color: #004499;
+        }
+
+        /* LinkedIn post card */
+        .linkedin-card {
+            display: block;
+            padding: 20px 24px;
+            margin: 28px 0;
+            background: #f3f6f8;
+            border: 1px solid #e0e5e9;
+            border-radius: 8px;
+            text-decoration: none;
+            color: inherit;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .linkedin-card:hover {
+            background: #e8eef2;
+            border-color: #cfd9e0;
+        }
+
+        .linkedin-card__intro {
+            font-size: 15px;
+            line-height: 1.5;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .linkedin-card__stats {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 12px;
+        }
+
+        .linkedin-card__stats span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .linkedin-card__cta {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0a66c2;
+        }
+
+        .linkedin-card:hover .linkedin-card__cta {
+            color: #004182;
+            text-decoration: underline;
+        }
+
+        /* Article Footer */
+        .article-footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid #ddd;
+        }
+
+        .article-footer p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page {
+                padding: 24px;
+            }
+
+            .article-title {
+                font-size: 32px;
+            }
+
+            .article-subtitle {
+                font-size: 18px;
+            }
+
+            .article-content {
+                font-size: 17px;
+            }
+
+            .article-content h2 {
+                font-size: 24px;
+            }
+
+            .article-content h3 {
+                font-size: 20px;
+            }
+        }
+    </style>
+    
+    <!-- Navigation Component -->
+    <script src="/components/site-nav.js"></script>
+</head>
+<body>
+    <div class="page">
+        <!-- Navigation -->
+        <site-nav></site-nav>
+
+        <!-- Article -->
+        <article class="article">
+            <header class="article-header">
+                <time class="article-date" datetime="2026-01-30">January 30, 2026</time>
+                <h1 class="article-title">Am I a bank now? Building a pocket-sized way for my kids to see their money — that's not a smartphone</h1>
+                <p class="article-subtitle">From a balance display to a local ledger: how an M5Stick and a Raspberry Pi became a mini bank for sibling transfers.</p>
+            </header>
+
+            <div class="article-content">
+                <p>We're raising the first generation to grow up entirely cashless while simultaneously restricting their access to the devices where money now lives. Parents who got burned by social media are delaying smartphones. Schools are banning phones. But we've also stopped using cash; in 2014, 55% of UK payments were cash. Now it's 12%.</p>
+
+                <p>This creates an impossible situation; we want children to understand money, but we've removed both the traditional tools (physical cash) and the modern tools (banking apps on smartphones).</p>
+
+                <p>So I prototyped a little device.</p>
+
+                <a href="https://www.linkedin.com/posts/robboyett_am-i-a-bank-now-weekend-before-last-i-activity-7418944094112092160-b2MV" target="_blank" rel="noopener" class="linkedin-card">
+                    <p class="linkedin-card__intro">When I shared this on LinkedIn it sparked a lot of discussion — ideas for savings goals, mini loans, and whether I'm basically running a household fintech now.</p>
+                    <div class="linkedin-card__stats">
+                        <span>👍 4,690 reactions</span>
+                        <span>💬 261 comments</span>
+                    </div>
+                    <span class="linkedin-card__cta">View post on LinkedIn →</span>
+                </a>
+
+                <img src="animation.gif" alt="Animation of the device showing the balance of each child" width="640" height="360">
+
+                <h2>Version 1: Just let them see their balance</h2>
+
+                <p>My kids have Monzo accounts. To check their balance, they had to ask me to open my phone, authenticate, switch accounts, and read them a number. This happened multiple times a day.</p>
+
+                <p>The first version was simple: an M5StickC Plus (a tiny ESP32 device with a screen) that connects to WiFi, hits the Monzo API, and displays each child's balance. Click the button, cycle through kids.</p>
+
+                <pre><code class="language-cpp">struct Child {
+  const char* name;
+  float balance;
+};
+
+Child children[3] = {
+  {"Felix", 0},
+  {"Juno", 0},
+  {"Coco", 0}
+};</code></pre>
+
+                <p>Each kid gets their own colour, cyan for Felix, magenta for Juno, green for Coco, and a little face drawn with basic primitives:</p>
+
+                <pre><code class="language-cpp">// Felix: classic smile + freckles
+void drawFaceFelix(int x, int y, uint16_t accent) {
+  M5.Lcd.drawCircle(x + 12, y + 12, 12, accent);  // head
+  M5.Lcd.fillCircle(x + 8,  y + 10, 2, WHITE);    // eyes
+  M5.Lcd.fillCircle(x + 16, y + 10, 2, WHITE);
+  // smile (simple chevron)
+  M5.Lcd.drawLine(x + 7,  y + 16, x + 12, y + 18, WHITE);
+  M5.Lcd.drawLine(x + 12, y + 18, x + 17, y + 16, WHITE);
+}</code></pre>
+
+                <p>The device polls Monzo every 5 minutes. A row of dots at the top shows how long until the next refresh, a small touch that stops them asking "is it up to date?"</p>
+
+                <img src="1045064B-EE49-47E1-B847-FEF551E41E82_1_105_c.webp" alt="Device showing Felix's balance (£1.07) with 'next kid' and 'menu' options" width="680" height="906">
+
+                <p>This worked. They could check their own money without involving me. But then they wanted more.</p>
+
+                <h2>Version 2: The mini bank</h2>
+
+                <p>Siblings and money = they're constantly bartering. "I'll give you 50p if you swap desserts." "You owe me a pound from yesterday." Monzo doesn't let individuals make transfers via their available API.</p>
+
+                <p>So I built a local ledger.</p>
+
+                <p>The M5Stick now talks to a Raspberry Pi running on my home network. The Pi maintains a ledger of balances that syncs with Monzo for the "base truth" but allows peer-to-peer transfers between the kids. When Felix sends Juno £2, it happens instantly on the device. Later, I reconcile with actual Monzo transfers from an admin screen.</p>
+
+                <img src="admin-screen.webp" alt="Kids Ledger admin interface: balances for Coco, Felix and Juno; pending transfers; reconciliation; Monzo integration with link kids to accounts and sync balances" width="680" height="815">
+
+                <img src="DCE392E3-9151-4482-9FD1-1D8D4F65DDA9_1_105_c.webp" alt="Raspberry Pi in rainbow case running the ledger server" width="680" height="906">
+
+                <img src="024D91BE-DABC-4FFD-BCDC-D2185F6E040E_1_105_c.webp" alt="Device menu: Accept money, Transfer money, Back" width="680" height="906">
+
+                <h3>The transfer flow</h3>
+
+                <p>Building an amount on a tiny screen with two buttons is a UX challenge. I went with a "chip stack" approach: you select denominations (£1, 50p, 20p, 10p, 5p, 1p) and keep adding them. First you pick who you're sending to:</p>
+
+                <img src="D1073043-9D9C-4663-8D9F-10B9883E3C49_1_105_c.webp" alt="Felix sending to… Juno selected from list (Juno, Coco, Back)" width="680" height="906">
+
+                <pre><code class="language-cpp">static const int CHIP_VALUES_PENCE[] = {100, 50, 20, 10, 5, 1};
+static const char *CHIP_LABELS[] = {"1", "50p", "20p", "10p", "5p", "1p"};
+
+void pushChip(int pence) {
+    if (chipStackLen >= STACK_MAX) return;
+    chipStack[chipStackLen++] = pence;
+    transferTotalPence += pence;
+}
+
+void undoChip() {
+    if (chipStackLen <= 0) return;
+    int last = chipStack[--chipStackLen];
+    transferTotalPence -= last;
+}</code></pre>
+
+                <p>Hold the button and chips repeat-add, so you can quickly build £5 by holding on the £1 chip. The power button undoes the last chip. It feels tactile, like stacking real coins.</p>
+
+                <img src="C295A4ED-A9B8-42A1-BB97-BF5FD1313D6D_1_105_c.webp" alt="Amount entry: Felix to Juno, £1.00 with chip options (B next, A select, C undo)" width="680" height="906">
+                <img src="3F06A389-8B73-4B98-8F40-A14C0E86D520_1_105_c.webp" alt="Ready to send: Felix to Juno £1.00 with Send selected" width="680" height="906">
+
+                <h3>Pending money</h3>
+
+                <p>When someone receives a transfer, the money doesn't appear immediately. It sits in a "pending" state until the recipient explicitly accepts it. This was partly a design choice (to make receiving money feel like an event) and partly practical (to stop one kid from silently draining another's account).</p>
+
+                <pre><code class="language-cpp">bool acceptPendingForKid(int idx, int &fromP, int &toP) {
+    // POST to server to accept pending money
+    // Returns the before/after balances for animation
+    ...
+}
+
+void animateAcceptCountUp(int fromPence, int toPence) {
+    const int steps = 16;
+    const int totalMs = 800;
+    for (int i = 0; i <= steps; i++) {
+        int v = fromPence + (int)((long)(toPence - fromPence) * i / steps);
+        kids[currentKid].visiblePence = v;
+        drawMain();
+        delay(stepDelay);
+    }
+}</code></pre>
+
+                <p>The balance counts up from old to new. It's a small thing, but they love watching their money tick upward.</p>
+
+                <img src="4F70FA88-2611-403F-BBFB-7430CF3F8FAB_1_105_c.webp" alt="Juno's balance screen (£19.10) after receiving money" width="680" height="906">
+
+                <h3>Sleep and wake</h3>
+
+                <p>Kids leave things on. The screen dims after 90 seconds of inactivity to save battery, then wakes on any button press:</p>
+
+                <pre><code class="language-cpp">static const unsigned long SLEEP_AFTER_MS = 90000;
+
+void goToSleepScreenOnly() {
+    screenSleeping = true;
+    M5.Axp.ScreenBreath(SCREEN_BRIGHTNESS_DIM);
+}</code></pre>
+
+                <h3>The sneaky behaviour problem</h3>
+
+                <p>I mentioned in my original post that I'd noticed "some sneaky behaviour", kids sending money from other people's accounts to their own. The current version doesn't yet have PIN codes. That's next.</p>
+
+                <p>The interesting thing is that this is exactly the kind of financial behaviour you want them to encounter in a safe environment. Better they learn about account security from a sibling who takes their pocket money than from a scammer who takes their savings.</p>
+
+                <h2>What I learned</h2>
+
+                <p>Money is more tangible when you have to do something to see it. The act of picking up a device, pressing a button, and reading a screen makes money more real than a number in an app you never open.</p>
+
+                <p>Peer-to-peer matters more than parent-to-child. Most of my kids' financial activity is between each other. The bartering, the loans, the "I'll pay you back" promises — that's where they're actually learning.</p>
+
+                <p>Small screens force clarity. You can't hide behind feature complexity on a 135×240 pixel display. Every piece of information has to earn its place.</p>
+
+                <h2>The code</h2>
+
+                <p>The full source for both versions is below. You'll need:</p>
+
+                <ul>
+                    <li>An M5StickC Plus (or similar ESP32 device with display)</li>
+                    <li>Arduino IDE with M5StickCPlus library</li>
+                    <li>For V2: a Raspberry Pi (or any server) running the ledger API</li>
+                    <li>Monzo developer API access (for reading balances)</li>
+                </ul>
+
+                <div class="code-downloads">
+                    <a href="M5Stick-code-v1.md" class="code-download-block">
+                        <span class="code-download-block__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="8" y1="14" x2="16" y2="14"/>
+                                <line x1="8" y1="18" x2="16" y2="18"/>
+                                <line x1="8" y1="22" x2="12" y2="22"/>
+                            </svg>
+                        </span>
+                        <span class="code-download-block__body">
+                            <span class="code-download-block__title">V1: Direct to Monzo</span>
+                            <span class="code-download-block__desc">M5Stick talks to the Monzo API, polls balances, and displays them.</span>
+                            <span class="code-download-block__link">M5Stick-code-v1.md</span>
+                        </span>
+                    </a>
+                    <a href="M5Stick-code-v2.md" class="code-download-block">
+                        <span class="code-download-block__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="8" y1="14" x2="16" y2="14"/>
+                                <line x1="8" y1="18" x2="16" y2="18"/>
+                                <line x1="8" y1="22" x2="12" y2="22"/>
+                            </svg>
+                        </span>
+                        <span class="code-download-block__body">
+                            <span class="code-download-block__title">V2: Local ledger with transfers</span>
+                            <span class="code-download-block__desc">Balance display, menu, recipient picker, chip-stack amount builder, send, and accept-with-count-up.</span>
+                            <span class="code-download-block__link">M5Stick-code-v2.md</span>
+                        </span>
+                    </a>
+                </div>
+
+                <h2>What's next</h2>
+
+                <ul>
+                    <li><strong>PIN codes</strong> — obvious requirement</li>
+                    <li><strong>Savings goals</strong> — visual progress toward something they're saving for</li>
+                </ul>
+            </div>
+
+            <footer class="article-footer">
+                <p>Published by Rob Boyett. For more articles, visit the <a href="/">home page</a> or subscribe to the <a href="/feed.xml">RSS feed</a>.</p>
+            </footer>
+        </article>
+    </div>
+
+    <script>
+        // Handle menu open/close events from site-nav component
+        const page = document.querySelector('.page');
+        const siteNav = document.querySelector('site-nav');
+
+        siteNav.addEventListener('menu-open', () => {
+            page.classList.add('menu-open');
+        });
+
+        siteNav.addEventListener('menu-close', () => {
+            page.classList.remove('menu-open');
+        });
+
+        // Wait for Inter font to load before showing page
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                document.documentElement.classList.add('fonts-loaded');
+            });
+        } else {
+            // Fallback for browsers without Font Loading API
+            document.documentElement.classList.add('fonts-loaded');
+        }
+    </script>
+
+    <!-- Prism.js syntax highlighting -->
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-cpp.min.js"></script>
+    <script>Prism.highlightAll();</script>
+
+    <!-- Analytics -->
+    <script async defer src="https://scripts.withcabin.com/hello.js"></script>
+</body>
+</html>

@@ -41,6 +41,16 @@ class SiteNav extends HTMLElement {
                 :host {
                     display: block;
                     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                    font-feature-settings:
+                        'liga' 1, 'dlig' 1, 'calt' 1, 'zero' 1, 'kern' 1,
+                        'ss01' 1, 'ss02' 0, 'ss03' 1,
+                        'cv01' 1, 'cv03' 1, 'cv04' 1, 'cv06' 1, 'cv07' 1, 'cv09' 1, 'cv10' 0, 'cv11' 1,
+                        'tnum' 1;
+                }
+                @supports (font-variation-settings: normal) {
+                    :host {
+                        font-family: 'Inter var', 'InterVariable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                    }
                 }
 
                 .nav {

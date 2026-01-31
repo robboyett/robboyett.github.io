@@ -31,9 +31,33 @@
         
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-feature-settings:
+                'liga' 1,   /* Standard ligatures */
+                'dlig' 1,   /* Discretionary ligatures */
+                'calt' 1,   /* Contextual alternates */
+                'zero' 1,   /* Slashed zero */
+                'kern' 1,   /* Kerning */
+                'ss01' 1,   /* Alternate digits */
+                'ss02' 0,   /* Disambiguate between similar-looking characters */
+                'ss03' 1,   /* Round quotes & commas */
+                'cv01' 1,   /* Alternate 1 */
+                'cv03' 1,   /* Open six */
+                'cv04' 1,   /* Open nine */
+                'cv06' 1,   /* Simplified u */
+                'cv07' 1,   /* Alternate 6 */
+                'cv09' 1,   /* Alternate 8 */
+                'cv10' 0,   /* Capital G with spur */
+                'cv11' 1,   /* Single-story a */
+                'tnum' 1;   /* Tabular figures */
             background: transparent;
             color: #1A1A1A;
             min-height: 100vh;
+        }
+
+        @supports (font-variation-settings: normal) {
+            body {
+                font-family: 'Inter var', 'InterVariable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            }
         }
         
         .page {

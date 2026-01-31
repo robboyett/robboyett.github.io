@@ -1,0 +1,1 @@
+cd /Users/robertboyett/Documents/GitHub/robboyett.github.io && python3 -m http.server 8000

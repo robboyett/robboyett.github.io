@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>£51 million and no receipts: is AI generated research the cost effective speedy option it seems? | Rob Boyett</title>
+    <link rel="preload" href="https://rsms.me/inter/inter.css" as="style">
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+    
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="Rob Boyett's Journal" href="/feed.xml">
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Hide content until fonts load to prevent FOUT */
+        html {
+            visibility: hidden;
+        }
+        
+        html.fonts-loaded {
+            visibility: visible;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-feature-settings:
+                'liga' 1,   /* Standard ligatures */
+                'dlig' 1,   /* Discretionary ligatures */
+                'calt' 1,   /* Contextual alternates */
+                'zero' 1,   /* Slashed zero */
+                'kern' 1,   /* Kerning */
+                'ss01' 1,   /* Alternate digits */
+                'ss02' 0,   /* Disambiguate between similar-looking characters */
+                'ss03' 1,   /* Round quotes & commas */
+                'cv01' 1,   /* Alternate 1 */
+                'cv03' 1,   /* Open six */
+                'cv04' 1,   /* Open nine */
+                'cv06' 1,   /* Simplified u */
+                'cv07' 1,   /* Alternate 6 */
+                'cv09' 1,   /* Alternate 8 */
+                'cv10' 0,   /* Capital G with spur */
+                'cv11' 1,   /* Single-story a */
+                'tnum' 1;   /* Tabular figures */
+            background-color: #F1F1F1;
+            color: #1A1A1A;
+            min-height: 100vh;
+        }
+
+        @supports (font-variation-settings: normal) {
+            body {
+                font-family: 'Inter var', 'InterVariable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            }
+        }
+
+        .page {
+            padding: 66px 62px;
+            min-height: 100vh;
+        }
+
+        /* Dim content when dropdown is open */
+        .page.menu-open .article {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .article {
+            transition: opacity 0.3s ease;
+        }
+
+        /* Article Styles */
+        .article {
+            max-width: 680px;
+            margin: 0;
+        }
+
+        .article-header {
+            margin-bottom: 48px;
+        }
+
+        .article-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .article-title {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .article-subtitle {
+            font-size: 20px;
+            color: #555;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        /* Article Content */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #333;
+        }
+
+        .article-content p {
+            margin-bottom: 24px;
+        }
+
+        .article-content h2 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-top: 48px;
+            margin-bottom: 24px;
+        }
+
+        .article-content h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 36px;
+            margin-bottom: 16px;
+        }
+
+        .article-content h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 24px;
+            margin-bottom: 12px;
+        }
+
+        .article-content ul,
+        .article-content ol {
+            margin-bottom: 24px;
+            padding-left: 24px;
+        }
+
+        .article-content li {
+            margin-bottom: 8px;
+        }
+
+        .article-content blockquote {
+            border-left: 3px solid #202020;
+            padding-left: 24px;
+            margin: 32px 0;
+            font-style: italic;
+            color: #555;
+        }
+
+        .article-content code {
+            background: #e8e8e8;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 16px;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .article-content pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 24px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 32px 0;
+        }
+
+        .article-content pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .article-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 32px 0;
+        }
+
+        .article-content a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+
+        .article-content a:hover {
+            color: #004499;
+        }
+
+        .article-content .references-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .article-content .references-list li {
+            margin-bottom: 12px;
+            padding-left: 0;
+        }
+
+        .article-content .references-list .ref-label {
+            font-weight: 600;
+            color: #1A1A1A;
+        }
+
+        .chart-wrap {
+            margin: 32px 0;
+            max-width: 100%;
+        }
+
+        .chart-wrap figure {
+            margin: 0;
+        }
+
+        .chart-wrap .chart-container {
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            padding: 20px;
+            margin-bottom: 8px;
+        }
+
+        .chart-wrap .chart-container--radar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: visible;
+        }
+
+        .chart-wrap .chart-container--radar svg {
+            overflow: visible;
+        }
+
+        .chart-figcaption {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+            margin-top: 8px;
+            padding-bottom: 2px;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .chart-legend span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chart-legend .swatch {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        .chart-legend .swatch--human { background: #3b82f6; }
+        .chart-legend .swatch--synthetic { background: #ef4444; }
+
+        /* Article Footer */
+        .article-footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid #ddd;
+        }
+
+        .article-footer p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page {
+                padding: 24px;
+            }
+
+            .article-title {
+                font-size: 32px;
+            }
+
+            .article-subtitle {
+                font-size: 18px;
+            }
+
+            .article-content {
+                font-size: 17px;
+            }
+
+            .article-content h2 {
+                font-size: 24px;
+            }
+
+            .article-content h3 {
+                font-size: 20px;
+            }
+        }
+    </style>
+    
+    <!-- Navigation Component -->
+    <script src="/components/site-nav.js"></script>
+</head>
+<body>
+    <div class="page">
+        <!-- Navigation -->
+        <site-nav></site-nav>
+
+        <!-- Article -->
+        <article class="article">
+            <header class="article-header">
+                <time class="article-date" datetime="2026-01-29">January 29, 2026</time>
+                <h1 class="article-title">£51 million and no receipts: is AI generated research the cost effective speedy option it seems?</h1>
+                <p class="article-subtitle">Venture capital is pouring into synthetic research tools. I ran a parallel study—human vs synthetic—and the findings complicate the simple narratives on both sides.</p>
+            </header>
+
+            <div class="article-content">
+                <p>Over the past eighteen months, venture capital has poured into tools promising to transform how we understand users. Outset AI alone has raised £51 million across two funding rounds. Synthetic Users claims Gartner recognition and enterprise clients. Microsoft, Nestlé, Uber, and HubSpot are buying in. The pitch is seductive: "Get the depth of qualitative interviews at the speed and scale of a survey." One person doing the work of an entire research team. Eight times faster. Eighty-one per cent cheaper.</p>
+
+                <p>And yet, for all this investment and adoption, something is conspicuously absent from the conversation. There are no documented case studies of product decisions that went wrong because of synthetic research. No post-mortems. No longitudinal validation tracking whether AI-generated insights actually led to better outcomes. The industry is adopting at a pace while flying blind.</p>
+
+                <p>Can synthetic interviews give us something useful in the early stages of understanding a problem space? Not as a gimmick or a replacement for real conversations, but as a practical part of shaping hypotheses. Recently, I had the right conditions to test this, and the findings complicate the simple narratives on both sides. <a href="/synthetic-vs-human-evaluation/">The full research report—methodology, codebook, and detailed analysis—is available here</a> if you want to go deeper.</p>
+
+                <h2>The discourse is stuck</h2>
+
+                <p>The public conversation around synthetic research has calcified into predictable positions. On one side, vendors promise "democratisation" and "depth at scale." Synthetic Users markets itself with the line "user research without the headaches" and claims their AI participants are "human, with cognitive quirks and kinks." Greylock, the VC firm, declares that "research is no longer bottlenecked by calendars, bandwidth, or headcount."</p>
+
+                <p>On the other side, respected practitioners have drawn hard lines. Erika Hall, co-founder of Mule Design and author of Just Enough Research, calls it "unethical, indefensible, and also unnecessary, to create a product or service that affects other people, without having conversations with representatives of those populations." Jared Spool describes synthetic user technology as "absolutely the wrong direction for UX professionals to go." Greg Nudelman, writing in his UX for AI newsletter, suggests the whole category "should be abandoned on the trash heap of history."</p>
+
+                <p>Nielsen Norman Group has produced the closest thing to an independent evaluation, testing Synthetic Users and ChatGPT against real user studies. Their conclusion lands somewhere cautious: synthetic users might be acceptable for "desk research and generating hypotheses" but are "incredibly risky" for validation. They found that synthetic responses "felt one-dimensional" and noted a troubling pattern: "Real people care about some things more than others. Synthetic users seem to care about everything. This is not helpful for feature prioritisation."</p>
+
+                <p>What's missing from both camps is actual evidence from practitioners testing, in real conditions, with real comparisons, and honest limitations. The vendors cite impressive-sounding statistics, without publishing methodology. The critics argue from principle, which is valid, but principle doesn't tell you what to do when the budget won't stretch to twenty interviews, and the roadmap decision is due next week.</p>
+
+                <h2>Why I built my own rig</h2>
+
+                <p>To explore this, rather than using one of the existing platforms I built my own setup using code, folders, and an LLM. I wanted to get my fingers into the soil, understand what's actually happening behind the curtain. The SaaS tools are effectively black boxes. You feed in a brief, you get back transcripts or insights, and somewhere in the middle... what, exactly? How much rigour is in there? How much complexity? Or is it just a language model with a nice interface and another monthly subscription?</p>
+
+                <p>Going DIY meant I could plan and observe the steps. I could iterate on the prompts, adjust the persona construction, and understand where the process was robust and where it was fragile. Design is a problem-fitting exercise, the value of a flexible setup that adapts to different research questions felt higher than convenience, so long as I could prove it generates something useful.</p>
+
+                <p>As luck would have it, I recently delivered a round of qualitative design research with real human participants, 10 interviews exploring how people manage their money. Providing enough background material to build credible synthetic personas. So I created a parallel track: the same discussion guide, run through synthetic participant interviews. Two studies side by side. One human, one simulated.</p>
+
+                <h2>The 85% finding</h2>
+
+                <p>At the end of the process, I had two sets of transcripts — ten human, ten synthetic — analysed against the same topic codebook. How closely do they align? Where do they overlap, and where do they diverge? To explore that, I built a composite fidelity score measuring four dimensions: thematic coverage (do they surface the same topics?), sentiment (do they express similar emotional tones?), specificity (do they include concrete details rather than vague generalisations?), and linguistic authenticity (do they sound like real conversation?).</p>
+
+                <p>The overall fidelity score was 85.1 out of 100. That number sits in uncomfortable territory: too high to dismiss, too imperfect to trust blindly.</p>
+
+                <p>Breaking it down reveals where synthetic research tracks closely and where it falls apart.</p>
+
+                <div class="chart-wrap">
+                    <figure>
+                        <div id="theme-correlation-chart" class="chart-container chart-container--radar"></div>
+                        <div class="chart-legend">
+                            <span><span class="swatch swatch--human"></span> Human</span>
+                            <span><span class="swatch swatch--synthetic"></span> Synthetic</span>
+                        </div>
+                        <figcaption class="chart-figcaption">Theme prevalence correlation: prevalence of each theme across human vs synthetic transcripts. Where the shapes overlap, alignment is strong; where they diverge (e.g. Cash Flow, Rate Chasing), synthetic under- or over-represents. <strong>Theme correlation: 0.80</strong>. Data from the same evaluation as the <a href="/journal/synthetic-vs-human-evaluation/">full report</a>.</figcaption>
+                    </figure>
+                </div>
+
+                <p><strong>Theme correlation:</strong> 0.80, a strong positive correlation. Synthetic interviews identified the same core topics that emerged naturally in human conversations. Sixteen of eighteen themes appeared in both corpora. For initial exploration of a problem space, this suggests synthetic research could reliably surface the territory you'll want to investigate further.</p>
+
+                <p><strong>Sentiment:</strong> nearly identical; human transcripts averaged 0.15 on a scale from -1 (negative) to +1 (positive); synthetic transcripts averaged 0.14. Neither source was artificially positive or skewed neutral. This challenges the common criticism that AI-generated responses exhibit sycophancy, a tendency to please that produces unrealistically favourable feedback. In this study, at least, that pattern didn't emerge.</p>
+
+                <p><strong>Specificity:</strong> comparable, both sources scored above 9 out of 10 for concrete detail. Synthetic responses included named entities, specific examples, and personal anecdotes at rates comparable to those of human participants. They weren't vague generalisations dressed up as insight.</p>
+
+                <p>But then the gaps.</p>
+
+                <p><strong>Hesitation markers:</strong> 4x deficit, human transcripts contained an average of 168 hesitation markers per interview (um, uh, you know, sort of, I mean). Synthetic transcripts averaged 40. This isn't trivial. The hesitations, contradictions, and false starts in human speech aren't noise to be cleaned up; they're often where the insight lives. The pause before answering a question about money. The "well, actually..." that reveals someone is about to contradict what they just said. The tangent that surfaces an emotional undercurrent, the discussion guide never anticipated.</p>
+
+                <p>The synthetic interviews are confident, fluent, and tidy. Real people are contradictory, uncertain, and occasionally messy. That messiness is a signal.</p>
+
+                <div class="chart-wrap">
+                    <figure>
+                        <div id="hesitation-chart" class="chart-container"></div>
+                        <div class="chart-legend">
+                            <span><span class="swatch swatch--human"></span> Human</span>
+                            <span><span class="swatch swatch--synthetic"></span> Synthetic</span>
+                        </div>
+                        <figcaption class="chart-figcaption">Hesitation markers per interview (um, uh, you know, sort of, I mean). Human transcripts averaged 168; synthetic averaged 40—a 4× deficit where much of the emotional signal lives.</figcaption>
+                    </figure>
+                </div>
+
+                <p><strong>Generational perspectives:</strong> completely absent; 20% of human transcripts surfaced intergenerational financial model shifts. How parents and grandparents handled money. How expectations have changed. This theme appeared in zero synthetic transcripts. The personas were detailed, but they existed in a kind of eternal present, without the lived texture of family history and generational comparison.</p>
+
+                <p><strong>Cash flow urgency:</strong> significantly underrepresented; 70% of human participants discussed timing and cash flow pressures. Only 30% of synthetic responses addressed this theme. The real-world stress of when money arrives versus when bills are due, the juggling, the anxiety, the coping strategies, didn't come through with anything like the same intensity.</p>
+
+                <div class="chart-wrap">
+                    <figure>
+                        <div id="gaps-chart" class="chart-container"></div>
+                        <div class="chart-legend">
+                            <span><span class="swatch swatch--human"></span> Human</span>
+                            <span><span class="swatch swatch--synthetic"></span> Synthetic</span>
+                        </div>
+                        <figcaption class="chart-figcaption">Where synthetic research falls short: percentage of transcripts that surfaced each theme. Generational perspectives and cash flow urgency are under-represented in synthetic responses.</figcaption>
+                    </figure>
+                </div>
+
+                <h2>What the texture difference tells us</h2>
+
+                <p>These gaps point to something important about what synthetic research can and cannot do. It's not that synthetic interviews are wrong, exactly. The themes are real. The structure is sound. But the texture, the quality of lived experience that makes qualitative research valuable, is flattened.</p>
+
+                <p>Consider what the hesitation markers represent. When someone says, "I mean, it's not like I'm bad with money, but..." and trails off, that pause contains information. Maybe shame. Maybe a story they're deciding whether to tell. Maybe a contradiction between how they see themselves and how they actually behave. A synthetic response will give you the content, the theme of financial self-perception, but not the weight of it.</p>
+
+                <p>Or consider the generational absence. When a human participant mentions that their dad kept cash in envelopes for different purposes, and they've tried to recreate that system digitally, you're getting a window into how financial behaviour is transmitted and adapted across generations. Synthetic personas, however detailed, don't have parents. They don't have memories of watching someone else manage money. They exist fully-formed, without the sedimentary layers that shape how real people think about these things.</p>
+
+                <p>This isn't a failure of the technology, exactly. It's a category difference. Synthetic research gives you the structure of a problem space. Human research gives you the texture. The question isn't which is "right" but whether your research question needs structure, texture, or both.</p>
+
+                <h2>So what are you paying for?</h2>
+
+                <p>When you subscribe to a synthetic research tool, you're buying a black box. The marketing promises "most human-like AI participants" and "depth at scale." The testimonials cite impressive alignment percentages. But you can't see the prompts. You can't examine how the personas are constructed. You can't verify whether the analysis pipeline introduces its own biases. You get outputs, and you're asked to trust them.</p>
+
+                <p>My experiment produced an 85% fidelity score. That's genuinely useful for certain purposes. But I also know where that number comes from, what it measures, and, crucially, where the gaps are. I know that generational context is missing. I know the urgency of cash flow is underrepresented. I know the hesitation markers that signal emotional weight are smoothed away.</p>
+
+                <p>If I were using a commercial platform, would I know any of that? Would the tool tell me that 20% of human transcripts surface intergenerational themes and 0% of synthetic ones do? Or would it just give me confident, fluent insights and leave me to assume they're complete?</p>
+
+                <p>This is the position designers and researchers increasingly find themselves in. The budget is tight. The timeline is compressed. The stakeholders want answers. And here's a tool that promises qual at quant speed for a fraction of the cost. The pressure to reach for it is real.</p>
+
+                <p>But without transparency about what's happening under the hood, without knowing what the 85% includes and what the missing 15% might contain, how do you make an informed decision about where synthetic research fits in your organisation? How do you know when you're accelerating insight and when you're just generating plausible-sounding text?</p>
+
+                <h2>The accountability question</h2>
+
+                <p>Here's what concerns me. Fifty-one million pounds has been invested in Outset alone. Enterprise adoption is accelerating, and Microsoft's Head of Research for AI publicly endorses "AI-augmented research" as "here." The vendor claims are confident: "8x faster," "81% less expensive," "comparable insights."</p>
+
+                <p>But no one is tracking outcomes.</p>
+
+                <p>There's a conspicuous absence in the discourse around synthetic research: no one is systematically measuring whether decisions made on the basis of AI-generated insights turn out to be good decisions. No longitudinal validation studies. No failure post-mortems. No accountability frameworks for when synthetic research leads product teams astray.</p>
+
+                <p>The NN/g evaluation is widely cited, but it's a methodological assessment, not an outcome study. It tells you how synthetic responses compare to human responses in structure and content. It doesn't tell you whether teams that used synthetic research shipped better products, avoided more mistakes, or understood their users more accurately over time.</p>
+
+                <p>This matters because the "good enough" argument only holds if we know what "good enough" means in practice. The claim that synthetic research can replace some percentage of human research assumes we can identify which percentage, for which questions, in which contexts. Without outcome data, we're guessing.</p>
+
+                <p>My experiment is one data point. Small sample, ten transcripts per group. Specific domain, personal finance and banking. Acknowledged limitations. But it's more than most vendors are offering. And it suggests that the answer to "can synthetic research work?" is more nuanced than either the enthusiasts or the critics allow.</p>
+
+                <h2>What the industry needs</h2>
+
+                <p>If synthetic research is going to mature as a methodology, and the investment suggests it will, regardless of practitioner scepticism, the field needs several things it currently lacks.</p>
+
+                <p><strong>Published failure cases.</strong> Every methodology has failure modes. Surveys can mislead. Ethnography can miss the forest for the trees. Usability testing can optimise for the wrong thing. We learn from documented mistakes. Where are the post-mortems from teams that relied on synthetic research and got burned? Either they don't exist, which would be remarkable given the adoption rate, or no one is publishing them, which suggests a transparency problem.</p>
+
+                <p><strong>Longitudinal validation.</strong> Do synthetic-informed decisions hold up? If you use AI-generated insights to prioritise a roadmap, does that roadmap perform better than one prioritised without them? This is the basic question, and no one seems to be asking it systematically.</p>
+
+                <p><strong>Reporting standards.</strong> Qualitative research has established frameworks for methodological transparency, the Standards for Reporting Qualitative Research (SRQR), for instance. Synthetic research has nothing comparable. What constitutes adequate persona construction? How should synthetic findings be labelled when presented to stakeholders? What confidence adjustments should apply? The field operates without guardrails.</p>
+
+                <p><strong>Honest conversation about power.</strong> "Democratisation" is framed as unambiguously positive by every vendor in this space. But democratisation of what, exactly, and for whom? If synthetic research makes it easier for product managers to bypass research teams, is that democratisation or deskilling? If junior researchers never learn to sit with awkward silences in real interviews because AI handles "the busywork," what happens to design intuition over time? These questions aren't being asked.</p>
+
+                <h2>The interesting question</h2>
+
+                <p>The debate has been stuck on "can synthetic replace human?" That's the wrong question. It assumes a binary that doesn't match how research actually works in practice.</p>
+
+                <p>The more useful question is: what mix gets us to better design decisions sooner?</p>
+
+                <p>My data suggest that synthetic research closely tracks human research in terms of structure, themes, topics, and the broad territory of a problem space. It falls short on texture, hesitations, generational context, and the emotional weight that distinguishes urgent problems from merely interesting ones.</p>
+
+                <p>A layered approach might look like this: synthetic research to map the territory, sharpen your hypotheses, and identify the questions worth asking. Human research to understand what it actually feels like to live with the problem you're trying to solve. Neither replaces the other. The proportions shift depending on what you're trying to learn.</p>
+
+                <p>That's a more modest claim than the vendors are making. It's also a more optimistic one than the critics allow. But until someone starts tracking outcomes, until we have evidence about what actually works, not just arguments about what should work, we're all still guessing.</p>
+
+                <blockquote>The £51 million deserves some receipts.</blockquote>
+
+                <h2>References</h2>
+
+                <ul class="references-list">
+                    <li><span class="ref-label">Outset AI funding ($51M total)</span><br>
+                        Series A ($17M, June 2025): <a href="https://www.globenewswire.com/news-release/2025/06/11/3097668/0/en/Startup-Outset-Raises-17M-Series-A-to-Help-Enterprises-Scale-Accelerate-Customer-Research-with-AI-Agent-led-Interviews.html" target="_blank" rel="noopener">GlobeNewswire</a><br>
+                        Series B ($30M, December 2025): <a href="https://www.globenewswire.com/news-release/2025/12/10/3203401/0/en/Outset-Secures-30-Million-Series-B-to-Launch-the-World-s-First-AI-Native-Customer-Experience-Management-Platform.html" target="_blank" rel="noopener">GlobeNewswire</a>
+                    </li>
+                    <li><span class="ref-label">Outset marketing claims ("8x faster," "81% less expensive," "10x more reach")</span><br>
+                        <a href="https://venturebeat.com/ai/outset-raises-17m-to-replace-human-interviewers-with-ai-agents-for-enterprise-research" target="_blank" rel="noopener">VentureBeat, October 2025</a>
+                    </li>
+                    <li><span class="ref-label">Microsoft endorsement (Jess Holbrook quote: "AI-augmented research is here")</span><br>
+                        <a href="https://www.globenewswire.com/news-release/2025/06/11/3097668/0/en/Startup-Outset-Raises-17M-Series-A-to-Help-Enterprises-Scale-Accelerate-Customer-Research-with-AI-Agent-led-Interviews.html" target="_blank" rel="noopener">Outset Series A announcement, June 2025</a>
+                    </li>
+                    <li><span class="ref-label">Synthetic Users marketing ("user research without the headaches," "human, with cognitive quirks and kinks")</span><br>
+                        <a href="https://www.syntheticusers.com/" target="_blank" rel="noopener">Synthetic Users website</a>
+                    </li>
+                    <li><span class="ref-label">Greylock quote ("research is no longer bottlenecked by calendars, bandwidth, or headcount")</span><br>
+                        <a href="https://greylock.com/greymatter/ai-user-research/" target="_blank" rel="noopener">Greylock, "The Rise of AI-Native User Research," June 2025</a>
+                    </li>
+                    <li><span class="ref-label">Erika Hall quote ("unethical, indefensible, and also unnecessary")</span><br>
+                        <a href="https://urbinaconsulting.com/ai/synthetic-users-vs-persona-simulations/" target="_blank" rel="noopener">Urbina Consulting</a>
+                    </li>
+                    <li><span class="ref-label">Jared Spool quote ("absolutely the wrong direction for UX professionals to go")</span><br>
+                        <a href="https://urbinaconsulting.com/ai/synthetic-users-vs-persona-simulations/" target="_blank" rel="noopener">Urbina Consulting, "Synthetic users vs persona simulations," June 2025</a>
+                    </li>
+                    <li><span class="ref-label">Greg Nudelman quote ("abandoned on the trash heap of history")</span><br>
+                        <a href="https://www.uxforai.com/p/navigating-the-abyss-the-dark-side-of-synthetic-ai-user-research-tools" target="_blank" rel="noopener">UX for AI Substack, February 2024</a>
+                    </li>
+                    <li><span class="ref-label">Nielsen Norman Group evaluation ("desk research and generating hypotheses," "incredibly risky," "felt one-dimensional")</span><br>
+                        <a href="https://www.nngroup.com/articles/synthetic-users/" target="_blank" rel="noopener">NN/g, "Synthetic Users: If, When, and How to Use AI-Generated 'Research,'" June 2024</a>
+                    </li>
+                    <li><span class="ref-label">Søren Rosenbak quote ("terribly problematic, lazy, and misguided")</span><br>
+                        <a href="https://www.linkedin.com/posts/srosenbak_synthetic-users-user-research-without-the-activity-7097134046710747136-iuHI" target="_blank" rel="noopener">LinkedIn post, August 2023</a>
+                    </li>
+                    <li><span class="ref-label">James Bailey quote ("Synthetic users don't have problems as they're not real people")</span><br>
+                        <a href="https://www.linkedin.com/posts/jbailey14_synthetic-users-user-research-without-the-activity-7075875613537918976-KUkY" target="_blank" rel="noopener">LinkedIn post, June 2023</a>
+                    </li>
+                    <li><span class="ref-label">Richa Mehta quote ("fundamentally rewriting the operating system for customer understanding")</span><br>
+                        <a href="https://www.globenewswire.com/news-release/2025/12/10/3203401/0/en/Outset-Secures-30-Million-Series-B-to-Launch-the-World-s-First-AI-Native-Customer-Experience-Management-Platform.html" target="_blank" rel="noopener">Outset Series B announcement, December 2025</a>
+                    </li>
+                </ul>
+            </div>
+
+            <footer class="article-footer">
+                <p>Published by Rob Boyett. For more articles, visit the <a href="/">home page</a> or subscribe to the <a href="/feed.xml">RSS feed</a>.</p>
+            </footer>
+        </article>
+    </div>
+
+    <script>
+        // Handle menu open/close events from site-nav component
+        const page = document.querySelector('.page');
+        const siteNav = document.querySelector('site-nav');
+
+        siteNav.addEventListener('menu-open', () => {
+            page.classList.add('menu-open');
+        });
+
+        siteNav.addEventListener('menu-close', () => {
+            page.classList.remove('menu-open');
+        });
+
+        // Wait for Inter font to load before showing page
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                document.documentElement.classList.add('fonts-loaded');
+            });
+        } else {
+            document.documentElement.classList.add('fonts-loaded');
+        }
+    </script>
+
+    <script>
+        (function() {
+            const humanColor = '#3b82f6';
+            const syntheticColor = '#ef4444';
+            const margin = { top: 24, right: 24, bottom: 40, left: 44 };
+            const chartWidth = 620;
+            const chartHeight = 340;
+
+            // Theme prevalence correlation (radar chart) – human vs synthetic prevalence per theme
+            const radarThemes = ['Multi-Account', 'Mobile Banking', 'Customisation', 'Time Horizon', 'Purpose-Based', 'Cash Flow', 'Detailed Control', 'Rate Chasing', 'Visual Models', 'Psychological'];
+            const humanRadar = [100, 100, 90, 90, 80, 70, 70, 60, 60, 60];
+            const syntheticRadar = [100, 80, 100, 90, 100, 30, 70, 40, 80, 100];
+
+            const themeEl = document.getElementById('theme-correlation-chart');
+            if (themeEl) {
+                const padding = 100;
+                const size = 520;
+                const innerSize = size - padding * 2;
+                const cx = size / 2;
+                const cy = size / 2;
+                const radius = (innerSize / 2) - 8;
+                const numAxes = radarThemes.length;
+                const angleStep = (2 * Math.PI) / numAxes;
+                const rScale = d3.scaleLinear().domain([0, 100]).range([0, radius]);
+
+                const toPoint = (angle, value) => {
+                    const r = rScale(value);
+                    return [cx + r * Math.sin(angle), cy - r * Math.cos(angle)];
+                };
+
+                const humanPoints = humanRadar.map((v, i) => toPoint(i * angleStep, v));
+                const syntheticPoints = syntheticRadar.map((v, i) => toPoint(i * angleStep, v));
+                humanPoints.push(humanPoints[0]);
+                syntheticPoints.push(syntheticPoints[0]);
+
+                const line = d3.line().curve(d3.curveLinearClosed);
+                const labelRadius = radius + 22;
+
+                const svg = d3.select(themeEl)
+                    .append('svg')
+                    .attr('viewBox', `0 0 ${size} ${size}`)
+                    .attr('width', '100%')
+                    .attr('height', 'auto')
+                    .style('max-width', 'min(100%, 560px)')
+                    .style('margin', '0 auto')
+                    .style('display', 'block');
+
+                const g = svg.append('g');
+
+                for (let level = 20; level <= 100; level += 20) {
+                    const ring = Array.from({ length: numAxes + 1 }, (_, i) => toPoint(i * angleStep, level));
+                    g.append('path')
+                        .attr('d', line(ring))
+                        .attr('fill', 'none')
+                        .attr('stroke', '#e5e7eb')
+                        .attr('stroke-width', 1);
+                }
+                radarThemes.forEach((_, i) => {
+                    const a = i * angleStep;
+                    const end = toPoint(a, 100);
+                    g.append('line')
+                        .attr('x1', cx).attr('y1', cy)
+                        .attr('x2', end[0]).attr('y2', end[1])
+                        .attr('stroke', '#e5e7eb').attr('stroke-width', 1);
+                });
+
+                g.append('path').attr('d', line(humanPoints)).attr('fill', humanColor).attr('fill-opacity', 0.35).attr('stroke', humanColor).attr('stroke-width', 2);
+                g.append('path').attr('d', line(syntheticPoints)).attr('fill', syntheticColor).attr('fill-opacity', 0.35).attr('stroke', syntheticColor).attr('stroke-width', 2);
+
+                g.selectAll('.axis-label')
+                    .data(radarThemes)
+                    .join('text')
+                    .attr('class', 'axis-label')
+                    .attr('x', (_, i) => cx + labelRadius * Math.sin(i * angleStep))
+                    .attr('y', (_, i) => cy - labelRadius * Math.cos(i * angleStep))
+                    .attr('text-anchor', (_, i) => {
+                        const a = i * angleStep;
+                        if (Math.abs(a) < 0.01 || Math.abs(a - Math.PI) < 0.01) return 'middle';
+                        if (a > 0 && a < Math.PI) return 'start';
+                        return 'end';
+                    })
+                    .attr('dominant-baseline', (_, i) => {
+                        const a = i * angleStep;
+                        if (a > -0.01 && a < 0.01) return 'auto';
+                        if (a > Math.PI / 2 - 0.01 && a < Math.PI / 2 + 0.01) return 'auto';
+                        if (a > Math.PI - 0.01 && a < Math.PI + 0.01) return 'middle';
+                        if (a > (3 * Math.PI) / 2 - 0.01 && a < (3 * Math.PI) / 2 + 0.01) return 'auto';
+                        return 'middle';
+                    })
+                    .attr('font-size', 11)
+                    .attr('fill', '#374151')
+                    .text(d => d);
+
+                [20, 40, 60, 80, 100].forEach(level => {
+                    const pt = toPoint(-angleStep / 2, level);
+                    g.append('text').attr('x', pt[0] - 6).attr('y', pt[1] + 4).attr('text-anchor', 'end').attr('font-size', 9).attr('fill', '#9ca3af').text(level + '%');
+                });
+            }
+
+            // Hesitation markers bar chart
+            const hesitationEl = document.getElementById('hesitation-chart');
+            if (hesitationEl) {
+                const data = [
+                    { label: 'Human', value: 168, color: humanColor },
+                    { label: 'Synthetic', value: 40, color: syntheticColor }
+                ];
+                const w = chartWidth - margin.left - margin.right;
+                const h = 120;
+                const xScaleBar = d3.scaleBand().domain(data.map(d => d.label)).range([0, w]).padding(0.35);
+                const yScaleBar = d3.scaleLinear().domain([0, 180]).range([h, 0]);
+
+                const svg2 = d3.select(hesitationEl)
+                    .append('svg')
+                    .attr('viewBox', `0 0 ${chartWidth} ${h + margin.top + margin.bottom}`)
+                    .attr('width', '100%')
+                    .style('max-width', chartWidth + 'px');
+
+                const g2 = svg2.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+                g2.selectAll('rect')
+                    .data(data)
+                    .join('rect')
+                    .attr('x', d => xScaleBar(d.label))
+                    .attr('y', d => yScaleBar(d.value))
+                    .attr('width', xScaleBar.bandwidth())
+                    .attr('height', d => h - yScaleBar(d.value))
+                    .attr('fill', d => d.color)
+                    .attr('rx', 4);
+
+                g2.selectAll('text.value')
+                    .data(data)
+                    .join('text')
+                    .attr('class', 'value')
+                    .attr('x', d => xScaleBar(d.label) + xScaleBar.bandwidth() / 2)
+                    .attr('y', d => yScaleBar(d.value) - 6)
+                    .attr('text-anchor', 'middle')
+                    .attr('font-size', 14)
+                    .attr('font-weight', 600)
+                    .attr('fill', '#1f2937')
+                    .text(d => d.value);
+
+                g2.append('g').attr('transform', `translate(0,${h})`).call(d3.axisBottom(xScaleBar)).attr('font-size', 12);
+                g2.append('g').call(d3.axisLeft(yScaleBar).ticks(5)).attr('font-size', 11);
+            }
+
+            // Gaps chart (Generational, Cash flow)
+            const gapsEl = document.getElementById('gaps-chart');
+            if (gapsEl) {
+                const gapsData = [
+                    { theme: 'Generational perspectives', short: 'Generational', human: 20, synthetic: 0 },
+                    { theme: 'Cash flow urgency', short: 'Cash flow', human: 70, synthetic: 30 }
+                ];
+                const w = chartWidth - margin.left - margin.right;
+                const h = 140;
+                const x0 = d3.scaleBand().domain(gapsData.map(d => d.short)).range([0, w]).padding(0.35);
+                const x1 = d3.scaleBand().domain(['human', 'synthetic']).range([0, x0.bandwidth()]).padding(0.1);
+                const yGap = d3.scaleLinear().domain([0, 80]).range([h, 0]);
+
+                const svg3 = d3.select(gapsEl)
+                    .append('svg')
+                    .attr('viewBox', `0 0 ${chartWidth} ${h + margin.top + margin.bottom}`)
+                    .attr('width', '100%')
+                    .style('max-width', chartWidth + 'px');
+
+                const g3 = svg3.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+                gapsData.forEach(d => {
+                    const grp = g3.append('g').attr('transform', `translate(${x0(d.short)},0)`);
+                    grp.append('rect')
+                        .attr('x', x1('human'))
+                        .attr('y', yGap(d.human))
+                        .attr('width', x1.bandwidth())
+                        .attr('height', h - yGap(d.human))
+                        .attr('fill', humanColor)
+                        .attr('rx', 4);
+                    grp.append('text').attr('x', x1('human') + x1.bandwidth() / 2).attr('y', yGap(d.human) - 4).attr('text-anchor', 'middle').attr('font-size', 12).attr('font-weight', 600).attr('fill', '#1f2937').text(d.human + '%');
+                    grp.append('rect')
+                        .attr('x', x1('synthetic'))
+                        .attr('y', yGap(d.synthetic))
+                        .attr('width', x1.bandwidth())
+                        .attr('height', h - yGap(d.synthetic))
+                        .attr('fill', syntheticColor)
+                        .attr('rx', 4);
+                    grp.append('text').attr('x', x1('synthetic') + x1.bandwidth() / 2).attr('y', yGap(d.synthetic) - 4).attr('text-anchor', 'middle').attr('font-size', 12).attr('font-weight', 600).attr('fill', '#1f2937').text(d.synthetic + '%');
+                });
+
+                g3.append('g').attr('transform', `translate(0,${h})`).call(d3.axisBottom(x0)).attr('font-size', 11).selectAll('text').attr('transform', 'rotate(-18)').style('text-anchor', 'end');
+                g3.append('g').call(d3.axisLeft(yGap).ticks(5).tickFormat(d => d + '%')).attr('font-size', 11);
+            }
+        })();
+    </script>
+
+    <!-- Analytics -->
+    <script async defer src="https://scripts.withcabin.com/hello.js"></script>
+</body>
+</html>
