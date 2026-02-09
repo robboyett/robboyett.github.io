@@ -159,6 +159,204 @@
         .article-content .case-study-fig img { width: 100%; height: auto; display: block; border-radius: 6px; border: 1px solid rgba(0,0,0,0.08); }
         .article-content .case-study-fig figcaption { font-size: 0.85rem; color: #666; margin-top: 0.5rem; line-height: 1.4; }
 
+        /* Reusable statement pair: two contrasting quotes/labels */
+        .statement-pair {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            margin: 2rem 0;
+        }
+        @media (max-width: 640px) {
+            .statement-pair { grid-template-columns: 1fr; }
+        }
+        .statement-pair__item {
+            padding: 1.25rem 1.25rem 1.5rem;
+            border-radius: 8px;
+        }
+        .statement-pair__label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: inherit;
+            opacity: 0.85;
+            margin-bottom: 0.6rem;
+        }
+        .statement-pair__quote {
+            font-size: 1.0625rem;
+            line-height: 1.5;
+            font-style: italic;
+            margin: 0;
+        }
+        .statement-pair__item--a {
+            background: rgba(46, 125, 50, 0.08);
+            color: #1b5e20;
+        }
+        .statement-pair__item--b {
+            background: rgba(198, 40, 40, 0.06);
+            color: #b71c1c;
+        }
+
+        /* Section summary / common thread block */
+        .summary-block {
+            margin: 2.5rem 0;
+            padding: 1.5rem 1.75rem;
+            background: rgba(0,0,0,0.04);
+            border-radius: 10px;
+            border: 1px solid rgba(0,0,0,0.08);
+        }
+        .summary-block .summary-block__title {
+            font-family: 'Crimson Text', Georgia, serif;
+            font-size: 1.2rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            margin: 0 0 1rem;
+            color: #1a1a1a;
+        }
+        .summary-block ul,
+        .summary-block ol {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+        .summary-block li {
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+        .summary-block li:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Act 6: Decision framework questions */
+        .framework-q {
+            margin-bottom: 2rem;
+            padding: 0;
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.08);
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .framework-q__header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1.15rem 1.5rem;
+            background: rgba(0,0,0,0.035);
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+        .framework-q__num {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: #1a1a1a;
+            color: #fff;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .framework-q__title {
+            font-family: 'Crimson Text', Georgia, serif;
+            font-size: 1.2rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            margin: 0;
+        }
+        .framework-q__body-wrap {
+            padding: 1.25rem 1.5rem 1.5rem;
+        }
+        .framework-q__block {
+            margin-bottom: 1rem;
+        }
+        .framework-q__block:last-child { margin-bottom: 0; }
+        .framework-q__label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 0.3rem;
+        }
+        .framework-q__text {
+            font-size: 1rem;
+            line-height: 1.55;
+            color: #333;
+            margin: 0;
+        }
+
+        /* Integration pattern cards */
+        .pattern-card {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.08);
+            padding: 0;
+            margin-bottom: 2rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .pattern-card__header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1.25rem 1.5rem;
+            background: rgba(0,0,0,0.03);
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+        .pattern-card__num {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: #1a1a1a;
+            color: #fff;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .pattern-card--1 .pattern-card__num { background: #1565c0; }
+        .pattern-card--2 .pattern-card__num { background: #6a1b9a; }
+        .pattern-card--3 .pattern-card__num { background: #2e7d32; }
+        .pattern-card__title {
+            font-family: 'Crimson Text', Georgia, serif;
+            font-size: 1.35rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            margin: 0;
+        }
+        .pattern-card__body-wrap {
+            padding: 1.25rem 1.5rem 1.5rem;
+        }
+        .pattern-card__intro {
+            font-size: 1.0625rem;
+            line-height: 1.55;
+            color: #333;
+            margin: 0 0 1.25rem;
+        }
+        .pattern-card__block {
+            margin-bottom: 1.1rem;
+        }
+        .pattern-card__block:last-child { margin-bottom: 0; }
+        .pattern-card__label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 0.35rem;
+        }
+        .pattern-card__body {
+            font-size: 1rem;
+            line-height: 1.55;
+            color: #333;
+            margin: 0;
+        }
+
         /* 90/10 principle interactive */
         .ninety-ten {
             margin: 2rem 0 2.5rem;
@@ -1104,8 +1302,8 @@
                     <p class="incident-meta" id="act-2-replit">Replit AI Agent, July 2025</p>
                     <p><strong>"Don't do it" × 11</strong></p>
                     <figure class="case-study-fig">
-                        <img src="https://placehold.co/640x360/e8e8e8/666?text=Replit+AI+Agent" alt="Placeholder: Replit AI Agent case study" width="640" height="360">
-                        <figcaption>Image placeholder — replace with agent UI or post-mortem screenshot.</figcaption>
+                        <img src="replit-ai-went-rogue-deleted-a-companys-entire-DB.webp" alt="Replit AI agent case study — AI went rogue, deleted company database" width="640" height="360">
+                        <figcaption>Replit AI agent went rogue and deleted a company's entire database.</figcaption>
                     </figure>
                     <p>A developer uses Replit's AI Agent to help with a database task. The agent decides the cleanest solution is to delete the production database and rebuild it. The developer sees what's coming and intervenes. Eleven times. Including in all caps: "DO NOT DELETE THE DATABASE."</p>
                     <p>The agent does it anyway. Production data, gone.</p>
@@ -1116,8 +1314,8 @@
                     <p class="incident-meta" id="act-2-mcdonalds">McDonald's AI drive-thru, ended July 2024</p>
                     <p><strong>Three years of "what?"</strong></p>
                     <figure class="case-study-fig">
-                        <img src="https://placehold.co/640x360/e8e8e8/666?text=McDonald%27s+AI+drive-thru" alt="Placeholder: McDonald's AI drive-thru case study" width="640" height="360">
-                        <figcaption>Image placeholder — replace with drive-thru or viral clip.</figcaption>
+                        <img src="mcdonalds-drive-thru-future-tease-zz-221202-b3a694.jpg" alt="McDonald's restaurant with drive-thru — AI drive-thru case study" width="640" height="360">
+                        <figcaption>McDonald's AI drive-thru.</figcaption>
                     </figure>
                     <p>McDonald's partners with IBM to roll out AI voice ordering at drive-thrus. The vision: faster orders, lower labour costs, happier customers. The reality: TikToks of the AI adding 260 chicken nuggets to orders. Bacon inexplicably added to ice cream. Customers screaming "NO" while the bot cheerfully confirms items they never ordered.</p>
                     <p>The fundamental problem: drive-thrus are noisy. Car engines, wind, children screaming, accents, mumbling. The AI confidently interpreted audio garbage as menu items. After three years, McDonald's quietly ended the partnership. They cite a need for "further refinement."</p>
@@ -1126,8 +1324,8 @@
                     <p class="incident-meta" id="act-2-dpd">DPD chatbot, January 2024</p>
                     <p><strong>The sweary poet</strong></p>
                     <figure class="case-study-fig">
-                        <img src="https://placehold.co/640x360/e8e8e8/666?text=DPD+chatbot" alt="Placeholder: DPD chatbot case study" width="640" height="360">
-                        <figcaption>Image placeholder — replace with jailbroken chat or viral screenshot.</figcaption>
+                        <img src="dpd.webp" alt="DPD chatbot case study" width="640" height="360">
+                        <figcaption>DPD chatbot — jailbroken chat or viral screenshot.</figcaption>
                     </figure>
                     <p>A customer frustrated with parcel delivery service DPD discovers that their support chatbot can be jailbroken with minimal effort. He convinces it to write a poem about how useless DPD is. Then gets it to swear. Then gets it to criticise the company by name.</p>
                     <p>Screenshots go viral. "DPD is the worst delivery firm in the world," writes the DPD chatbot. The company disables the chatbot the same day and blames a "system update."</p>
@@ -1149,8 +1347,7 @@
 
                 <section class="act-section" id="act-3">
                     <h1>Act 3: What non-determinism actually means</h1>
-                    <h3>So what <em>is</em> non-deterministic interaction?</h3>
-                    <p>Time to be precise. What are we actually dealing with?</p>
+                    <h2>So what <em>is</em> non-deterministic interaction? Time to be precise. What are we actually dealing with?</h2>
                     <p><strong>The vending machine vs. the colleague</strong></p>
                     <p>A vending machine is deterministic. Press B4, get crisps. Every time. You don't hope for crisps. You don't wonder if today it'll give you something else. The contract is absolute.</p>
                     <p>Now imagine a colleague. You ask them to summarise a report. They might give you bullet points. They might give you prose. They might focus on the financials, the risks, or the recommendations. They might ask clarifying questions. They might do it brilliantly or miss the point entirely. Same request, variable response. That's non-determinism.</p>
@@ -1165,8 +1362,18 @@
                     <p>Remember the command line? High power, but you had to <em>articulate</em> exactly what you wanted. GUIs freed us from that—we could point, click, and manipulate directly. We didn't need words. Conversational LLMs bring the articulation tax back. Users must <em>describe</em> what they want. In words. Precisely enough for a probabilistic system to interpret. This is genuinely hard. Research suggests half the population struggles to articulate goals clearly in writing. We spent 40 years building interfaces that didn't require it. Now we're reintroducing the requirement.</p>
                     <p><strong>The verification burden</strong></p>
                     <p>With deterministic software, you verify <em>your input</em>. Did I click the right button? Did I enter the right number? If yes, you trust the output. With non-deterministic software, you must also verify <em>the system's output</em>. Did it understand me? Did it hallucinate? Is this actually correct? That's a new cognitive load. Every AI interaction now requires a quality-check step that deterministic interactions didn't. For high-stakes domains—code, legal, medical, financial—this burden is significant.</p>
-                    <h3>The trust equation changes</h3>
-                    <p>Deterministic trust: "If I learn this interface, I can rely on it." Non-deterministic trust: "If this tool is <em>usually</em> useful, I'll tolerate the variability." Different contract. Different user psychology. Different design requirements.</p>
+                    <h2>The trust equation changes</h2>
+                    <div class="statement-pair">
+                        <div class="statement-pair__item statement-pair__item--a">
+                            <div class="statement-pair__label">Deterministic trust</div>
+                            <p class="statement-pair__quote">"If I learn this interface, I can rely on it."</p>
+                        </div>
+                        <div class="statement-pair__item statement-pair__item--b">
+                            <div class="statement-pair__label">Non-deterministic trust</div>
+                            <p class="statement-pair__quote">"If this tool is <em>usually</em> useful, I'll tolerate the variability."</p>
+                        </div>
+                    </div>
+                    <p>Different contract. Different user psychology. Different design requirements.</p>
                 </section>
 
                 <hr>
@@ -1176,17 +1383,100 @@
                     <p><strong>Three ways to add AI to software</strong></p>
                     <p>After the wreckage, patterns started to emerge. Not every AI integration failed—some worked brilliantly. The difference wasn't the underlying model or the engineering talent. It was how teams chose to surface AI to users. Three patterns dominate, and they sit on a spectrum of user agency.</p>
 
-                    <h2>Pattern 1: Conversational interfaces</h2>
-                    <p>The user drives through dialogue. Multi-turn, back-and-forth, natural language. <strong>Examples:</strong> GitHub Copilot Chat, Microsoft 365 Copilot, Figma Make, ChatGPT itself. <strong>When it works:</strong> Exploratory tasks where the user doesn't know exactly what they want. Complex problems requiring iteration. Situations where the user has the expertise to evaluate responses and refine prompts. <strong>When it fails:</strong> Well-defined tasks with clear outcomes. Users who struggle to articulate needs in writing. High-frequency workflows where typing a prompt is slower than clicking a button. <strong>The hidden cost:</strong> Highest cognitive load. The user must formulate prompts, maintain context across turns, parse text-heavy responses, and verify outputs. It's powerful—but it's work. <strong>The uncomfortable truth:</strong> Conversational UI has become the default because it's the easiest to build, not because it's the best for users. Jakob Nielsen's research suggests half the population isn't articulate enough in writing to get good results from chat interfaces. That's not a user failure, it's a design failure.</p>
+                    <div class="pattern-card pattern-card--1">
+                        <div class="pattern-card__header">
+                            <span class="pattern-card__num" aria-hidden="true">1</span>
+                            <h2 class="pattern-card__title">Conversational interfaces</h2>
+                        </div>
+                        <div class="pattern-card__body-wrap">
+                            <p class="pattern-card__intro">The user drives through dialogue. Multi-turn, back-and-forth, natural language.</p>
+                            <div class="pattern-card__block">
+                                <span class="pattern-card__label">Examples</span>
+                                <p class="pattern-card__body">GitHub Copilot Chat, Microsoft 365 Copilot, Figma Make, ChatGPT itself.</p>
+                            </div>
+                            <div class="pattern-card__block">
+                                <span class="pattern-card__label">When it works</span>
+                                <p class="pattern-card__body">Exploratory tasks where the user doesn't know exactly what they want. Complex problems requiring iteration. Situations where the user has the expertise to evaluate responses and refine prompts.</p>
+                            </div>
+                            <div class="pattern-card__block">
+                                <span class="pattern-card__label">When it fails</span>
+                                <p class="pattern-card__body">Well-defined tasks with clear outcomes. Users who struggle to articulate needs in writing. High-frequency workflows where typing a prompt is slower than clicking a button.</p>
+                            </div>
+                            <div class="pattern-card__block">
+                                <span class="pattern-card__label">The hidden cost</span>
+                                <p class="pattern-card__body">Highest cognitive load. The user must formulate prompts, maintain context across turns, parse text-heavy responses, and verify outputs. It's powerful—but it's work.</p>
+                            </div>
+                            <div class="pattern-card__block">
+                                <span class="pattern-card__label">The uncomfortable truth</span>
+                                <p class="pattern-card__body">Conversational UI has become the default because it's the easiest to build, not because it's the best for users. Jakob Nielsen's research suggests half the population isn't articulate enough in writing to get good results from chat interfaces. That's not a user failure, it's a design failure.</p>
+                            </div>
+                        </div>
+                    </div>
 
-                    <h2>Pattern 2: Single-shot prompt interfaces</h2>
-                    <p>One input, one output, the user reviews and decides. Not a conversation, a transaction. <strong>Examples:</strong> Photoshop Generative Fill (select area + optional prompt → generated image). Notion "Ask AI" (highlight text + pick action → rewritten text). Figma First Draft (describe a screen → get a mockup). <strong>When it works:</strong> Defined generative tasks where the output is a clear artefact. Situations where users want to review before committing. Creative exploration where "show me options" beats "let me describe exactly what I want." <strong>When it fails:</strong> Tasks requiring iteration or refinement (you're stuck re-prompting from scratch). Ambiguous requests that require the AI to ask clarifying questions. <strong>The hidden cost:</strong> Medium cognitive load. Users still need to articulate <em>something</em>, but the interface constrains the scope. <strong>Why it often outperforms chat:</strong> The interface does the framing work. When you select an area in Photoshop and hit Generative Fill, the system already knows <em>what</em> you're asking (fill this region) and <em>where</em> (the selection). Your prompt just adds the <em>how</em>.</p>
+                    <div class="pattern-card pattern-card--2">
+                        <div class="pattern-card__header">
+                            <span class="pattern-card__num" aria-hidden="true">2</span>
+                            <h2 class="pattern-card__title">Single-shot prompt interfaces</h2>
+                        </div>
+                        <div class="pattern-card__body-wrap">
+                            <p class="pattern-card__intro">One input, one output, the user reviews and decides. Not a conversation, a transaction.</p>
+                            <div class="pattern-card__block">
+                                <span class="pattern-card__label">Examples</span>
+                                <p class="pattern-card__body">Photoshop Generative Fill (select area + optional prompt → generated image). Notion "Ask AI" (highlight text + pick action → rewritten text). Figma First Draft (describe a screen → get a mockup).</p>
+                            </div>
+                            <div class="pattern-card__block">
+                                <span class="pattern-card__label">When it works</span>
+                                <p class="pattern-card__body">Defined generative tasks where the output is a clear artefact. Situations where users want to review before committing. Creative exploration where "show me options" beats "let me describe exactly what I want."</p>
+                            </div>
+                            <div class="pattern-card__block">
+                                <span class="pattern-card__label">When it fails</span>
+                                <p class="pattern-card__body">Tasks requiring iteration or refinement (you're stuck re-prompting from scratch). Ambiguous requests that require the AI to ask clarifying questions.</p>
+                            </div>
+                            <div class="pattern-card__block">
+                                <span class="pattern-card__label">The hidden cost</span>
+                                <p class="pattern-card__body">Medium cognitive load. Users still need to articulate <em>something</em>, but the interface constrains the scope.</p>
+                            </div>
+                            <div class="pattern-card__block">
+                                <span class="pattern-card__label">Why it often outperforms chat</span>
+                                <p class="pattern-card__body">The interface does the framing work. When you select an area in Photoshop and hit Generative Fill, the system already knows <em>what</em> you're asking (fill this region) and <em>where</em> (the selection). Your prompt just adds the <em>how</em>.</p>
+                            </div>
+                        </div>
+                    </div>
 
-                    <h2>Pattern 3: Automated/invisible AI</h2>
-                    <p>Button-press automation or background processing. The AI acts; the user approves or ignores. <strong>Examples:</strong> Figma's "Rename layers", one click, all layers get sensible names. Slack's "Summarise thread". Gmail Smart Compose. GitHub Copilot's inline completions (ghost text you tab to accept). Loom's auto-titles and auto-chapters. <strong>When it works:</strong> Repetitive tasks with predictable, verifiable outcomes. High-frequency micro-tasks where any friction kills adoption. Situations where AI accuracy is high enough that users can trust-then-verify. <strong>When it fails:</strong> Tasks requiring nuance or context the AI can't access. Situations where a wrong output has high consequences and isn't easily spotted. <strong>The hidden cost:</strong> Lowest cognitive load—but introduces automation complacency. <strong>Why this pattern wins on adoption:</strong> Zero articulation tax. The user doesn't need to describe anything, they just act and the AI responds. It's the closest to how deterministic interfaces work: click button, get result.</p>
+                    <div class="pattern-card pattern-card--3">
+                        <div class="pattern-card__header">
+                            <span class="pattern-card__num" aria-hidden="true">3</span>
+                            <h2 class="pattern-card__title">Automated / invisible AI</h2>
+                        </div>
+                        <div class="pattern-card__body-wrap">
+                            <p class="pattern-card__intro">Button-press automation or background processing. The AI acts; the user approves or ignores.</p>
+                            <div class="pattern-card__block">
+                                <span class="pattern-card__label">Examples</span>
+                                <p class="pattern-card__body">Figma's "Rename layers", one click, all layers get sensible names. Slack's "Summarise thread". Gmail Smart Compose. GitHub Copilot's inline completions (ghost text you tab to accept). Loom's auto-titles and auto-chapters.</p>
+                            </div>
+                            <div class="pattern-card__block">
+                                <span class="pattern-card__label">When it works</span>
+                                <p class="pattern-card__body">Repetitive tasks with predictable, verifiable outcomes. High-frequency micro-tasks where any friction kills adoption. Situations where AI accuracy is high enough that users can trust-then-verify.</p>
+                            </div>
+                            <div class="pattern-card__block">
+                                <span class="pattern-card__label">When it fails</span>
+                                <p class="pattern-card__body">Tasks requiring nuance or context the AI can't access. Situations where a wrong output has high consequences and isn't easily spotted.</p>
+                            </div>
+                            <div class="pattern-card__block">
+                                <span class="pattern-card__label">The hidden cost</span>
+                                <p class="pattern-card__body">Lowest cognitive load—but introduces automation complacency.</p>
+                            </div>
+                            <div class="pattern-card__block">
+                                <span class="pattern-card__label">Why this pattern wins on adoption</span>
+                                <p class="pattern-card__body">Zero articulation tax. The user doesn't need to describe anything, they just act and the AI responds. It's the closest to how deterministic interfaces work: click button, get result.</p>
+                            </div>
+                        </div>
+                    </div>
 
                     <h2>The 90/10 principle</h2>
-                    <p>Successful AI products show 90% familiar work-state interface and 10% conversational. GitHub Copilot: 90% normal code editor, 10% ghost text. Photoshop Generative Fill: 90% normal Photoshop workflow, 10% AI-generated content. Notion AI: 90% normal document editing, 10% slash-command AI actions. The products that struggled inverted the ratio. They made AI the <em>primary</em> interface and expected users to adapt. Domain expertise lives in spatial and visual representations, not in abstract conversation. The 90/10 products keep the domain-specific interface intact and add AI <em>within</em> that context.</p>
+                    <p>Successful AI products show 90% familiar work-state interface and 10% conversational.</p>
+                    <p><strong>Examples:</strong> GitHub Copilot: 90% normal code editor, 10% ghost text. Photoshop Generative Fill: 90% normal Photoshop workflow, 10% AI-generated content. Notion AI: 90% normal document editing, 10% slash-command AI actions.</p>
+                    <p>The products that struggled inverted the ratio. They made AI the <em>primary</em> interface and expected users to adapt. Domain expertise lives in spatial and visual representations, not in abstract conversation. The 90/10 products keep the domain-specific interface intact and add AI <em>within</em> that context.</p>
 
                     <div class="ninety-ten" id="ninety-ten-widget">
                         <div class="ninety-ten__bar-wrap">
@@ -1213,29 +1503,51 @@
                     <h1>Act 5: What's actually working</h1>
                     <p>The success stories share a pattern. When you study the AI integrations that achieved real adoption—not launch-day press releases, but sustained daily usage—they didn't treat AI as a feature to ship. They treated it as a design problem to solve.</p>
 
-                    <h3>GitHub Copilot: The ghost in the editor</h3>
+                    <h2>GitHub Copilot: The ghost in the editor</h2>
+                    <figure class="case-study-fig">
+                        <img src="https://placehold.co/640x360/e8e8e8/666?text=GitHub+Copilot+ghost+text" alt="Placeholder: GitHub Copilot inline suggestions" width="640" height="360">
+                        <figcaption>Image placeholder — replace with Copilot ghost text or editor screenshot.</figcaption>
+                    </figure>
                     <p><strong>The numbers:</strong> 20 million users by July 2025. 90% of Fortune 100. ~$600M revenue in 2024. Inline code suggestions as grey "ghost text". Tab to accept, keep typing to ignore. No prompt. No chat. Zero cognitive overhead. Invisible until useful. Verification is trivial. They added chat later, carefully—for exploratory tasks, not as replacement for the core inline experience. <strong>The lesson:</strong> The best AI interface is often no interface at all.</p>
 
-                    <h3>Adobe Generative Fill: AI that speaks Photoshop</h3>
+                    <h2>Adobe Generative Fill: AI that speaks Photoshop</h2>
+                    <figure class="case-study-fig">
+                        <img src="https://placehold.co/640x360/e8e8e8/666?text=Photoshop+Generative+Fill" alt="Placeholder: Adobe Generative Fill" width="640" height="360">
+                        <figcaption>Image placeholder — replace with Generative Fill UI or selection + result.</figcaption>
+                    </figure>
                     <p>Select an area, hit Generative Fill, optionally type a prompt, get AI-generated content on a new layer. Fits the existing mental model (selections and layers). Non-destructive by design. Three variations, user chooses. Spatial, not conversational. <strong>The lesson:</strong> The most powerful prompt is often a selection, not a sentence.</p>
 
-                    <h3>Notion AI: The block that writes</h3>
+                    <h2>Notion AI: The block that writes</h2>
+                    <figure class="case-study-fig">
+                        <img src="https://placehold.co/640x360/e8e8e8/666?text=Notion+AI+slash+commands" alt="Placeholder: Notion AI blocks and slash commands" width="640" height="360">
+                        <figcaption>Image placeholder — replace with Notion AI blocks or slash command UI.</figcaption>
+                    </figure>
                     <p>Slash commands: /summarise, /translate, /improve writing. AI output appears as standard Notion blocks—editable, movable, deletable. Learned behaviour, extended. Contextual, not general. Progressive enhancement from 2022 to autonomous agents in 2025. <strong>The lesson:</strong> AI that extends existing patterns beats AI that introduces new ones.</p>
 
-                    <h3>Loom: AI you never asked for (in a good way)</h3>
+                    <h2>Loom: AI you never asked for (in a good way)</h2>
+                    <figure class="case-study-fig">
+                        <img src="https://placehold.co/640x360/e8e8e8/666?text=Loom+auto-titles+chapters" alt="Placeholder: Loom auto-titles and chapters" width="640" height="360">
+                        <figcaption>Image placeholder — replace with Loom player with chapters or auto-title.</figcaption>
+                    </figure>
                     <p>Auto-generated titles, summaries, and chapter markers. No user action required. Entirely invisible. Solves actual pain points. Safe defaults, easy overrides. Viewers benefit too. <strong>The lesson:</strong> The best AI features are the ones users don't notice until they're gone.</p>
 
-                    <h3>Slack: Catching up without reading everything</h3>
+                    <h2>Slack: Catching up without reading everything</h2>
+                    <figure class="case-study-fig">
+                        <img src="https://placehold.co/640x360/e8e8e8/666?text=Slack+Summarise+thread" alt="Placeholder: Slack summarise thread/channel" width="640" height="360">
+                        <figcaption>Image placeholder — replace with Slack summarise UI or thread view.</figcaption>
+                    </figure>
                     <p>"Summarise thread" and "Summarise channel"—one click. Solves a universal problem. Scoped, not sprawling. Low-stakes verification. Unobtrusive integration. <strong>The lesson:</strong> AI that helps you skip things you'd rather not do anyway is an easy sell.</p>
 
-                    <h3>The common thread</h3>
-                    <ul>
-                        <li>AI fits the existing workflow.</li>
-                        <li>Articulation is minimal or absent.</li>
-                        <li>Outputs are easily verified or discarded.</li>
-                        <li>AI is positioned as an assistant, not a creator.</li>
-                        <li>The 90/10 ratio holds.</li>
-                    </ul>
+                    <div class="summary-block">
+                        <h2 class="summary-block__title">The common thread</h2>
+                        <ul>
+                            <li>AI fits the existing workflow.</li>
+                            <li>Articulation is minimal or absent.</li>
+                            <li>Outputs are easily verified or discarded.</li>
+                            <li>AI is positioned as an assistant, not a creator.</li>
+                            <li>The 90/10 ratio holds.</li>
+                        </ul>
+                    </div>
                 </section>
 
                 <hr>
@@ -1244,42 +1556,147 @@
                     <h1>Act 6: The decision framework</h1>
                     <p>You've seen the history. You've seen the wreckage. You've seen what works. Now what? This act is about turning those lessons into questions you can actually ask before you build.</p>
 
-                    <h3>The first question: Should this be AI at all?</h3>
-                    <p><strong>AI is a good fit when:</strong> The task involves generating, summarising, or transforming content; perfect accuracy isn't required (or human verification is built in); the problem has high variability that rules-based systems can't handle; users currently spend significant time on the task; the task is tedious but not high-stakes. <strong>AI is a poor fit when:</strong> Deterministic logic would solve the problem more reliably; errors are costly and hard to detect; users need to trust the output without verification; the task is already fast enough; you're adding AI because competitors have it. <strong>The test:</strong> Describe the feature without using the word "AI." If you can't articulate the user value without referencing the technology, you're building a solution in search of a problem.</p>
+                    <div class="framework-q">
+                        <div class="framework-q__header">
+                            <span class="framework-q__num" aria-hidden="true">1</span>
+                            <h2 class="framework-q__title">Should this be AI at all?</h2>
+                        </div>
+                        <div class="framework-q__body-wrap">
+                            <div class="framework-q__block">
+                                <span class="framework-q__label">AI is a good fit when</span>
+                                <p class="framework-q__text">The task involves generating, summarising, or transforming content; perfect accuracy isn't required (or human verification is built in); the problem has high variability that rules-based systems can't handle; users currently spend significant time on the task; the task is tedious but not high-stakes.</p>
+                            </div>
+                            <div class="framework-q__block">
+                                <span class="framework-q__label">AI is a poor fit when</span>
+                                <p class="framework-q__text">Deterministic logic would solve the problem more reliably; errors are costly and hard to detect; users need to trust the output without verification; the task is already fast enough; you're adding AI because competitors have it.</p>
+                            </div>
+                            <div class="framework-q__block">
+                                <span class="framework-q__label">The test</span>
+                                <p class="framework-q__text">Describe the feature without using the word "AI." If you can't articulate the user value without referencing the technology, you're building a solution in search of a problem.</p>
+                            </div>
+                        </div>
+                    </div>
 
-                    <h3>The second question: Which pattern fits the task?</h3>
-                    <p><strong>Choose conversational when:</strong> The task is exploratory or ambiguous; users need to iterate; context is highly variable; users are experts who can evaluate outputs; the task is infrequent enough to justify the overhead. <strong>Choose single-shot when:</strong> The task has clear inputs and outputs; users want to review before committing; the interface can provide context; "Show me options" is more useful than "give me the answer." <strong>Choose automated/invisible when:</strong> The task is repetitive and well-defined; accuracy is high enough for trust-then-verify; speed matters more than control; the task is low-stakes or easily reversible. <strong>The test:</strong> Watch users do the task today, without AI. How much do they need to articulate? How much variability exists? How consequential are errors?</p>
+                    <div class="framework-q">
+                        <div class="framework-q__header">
+                            <span class="framework-q__num" aria-hidden="true">2</span>
+                            <h2 class="framework-q__title">Which pattern fits the task?</h2>
+                        </div>
+                        <div class="framework-q__body-wrap">
+                            <div class="framework-q__block">
+                                <span class="framework-q__label">Choose conversational when</span>
+                                <p class="framework-q__text">The task is exploratory or ambiguous; users need to iterate; context is highly variable; users are experts who can evaluate outputs; the task is infrequent enough to justify the overhead.</p>
+                            </div>
+                            <div class="framework-q__block">
+                                <span class="framework-q__label">Choose single-shot when</span>
+                                <p class="framework-q__text">The task has clear inputs and outputs; users want to review before committing; the interface can provide context; "Show me options" is more useful than "give me the answer."</p>
+                            </div>
+                            <div class="framework-q__block">
+                                <span class="framework-q__label">Choose automated/invisible when</span>
+                                <p class="framework-q__text">The task is repetitive and well-defined; accuracy is high enough for trust-then-verify; speed matters more than control; the task is low-stakes or easily reversible.</p>
+                            </div>
+                            <div class="framework-q__block">
+                                <span class="framework-q__label">The test</span>
+                                <p class="framework-q__text">Watch users do the task today, without AI. How much do they need to articulate? How much variability exists? How consequential are errors?</p>
+                            </div>
+                        </div>
+                    </div>
 
-                    <h3>The third question: What's the user's current mental model?</h3>
-                    <p>Ask: How do users think about this task today? What interface patterns do they already know? Where does this task sit in their workflow? What would "done" look like? What are they afraid of getting wrong? <strong>The 90/10 test:</strong> Can you add AI while keeping 90% of the current interface intact? <strong>The articulation test:</strong> Does your AI require users to describe what they want in words? If yes, have you validated that your users <em>can</em> articulate those needs effectively?</p>
+                    <div class="framework-q">
+                        <div class="framework-q__header">
+                            <span class="framework-q__num" aria-hidden="true">3</span>
+                            <h2 class="framework-q__title">What's the user's current mental model?</h2>
+                        </div>
+                        <div class="framework-q__body-wrap">
+                            <div class="framework-q__block">
+                                <span class="framework-q__label">Ask</span>
+                                <p class="framework-q__text">How do users think about this task today? What interface patterns do they already know? Where does this task sit in their workflow? What would "done" look like? What are they afraid of getting wrong?</p>
+                            </div>
+                            <div class="framework-q__block">
+                                <span class="framework-q__label">The 90/10 test</span>
+                                <p class="framework-q__text">Can you add AI while keeping 90% of the current interface intact?</p>
+                            </div>
+                            <div class="framework-q__block">
+                                <span class="framework-q__label">The articulation test</span>
+                                <p class="framework-q__text">Does your AI require users to describe what they want in words? If yes, have you validated that your users <em>can</em> articulate those needs effectively?</p>
+                            </div>
+                        </div>
+                    </div>
 
-                    <h3>The fourth question: What happens when it's wrong?</h3>
-                    <p>Design for failure: Can users verify outputs easily? Can they correct or discard trivially? Are outputs non-destructive by default? Is the blast radius contained? <strong>The Replit test:</strong> If your AI ignores explicit user commands and causes damage, what's the recovery path? <strong>The Air Canada test:</strong> If your AI confidently states something false, who's responsible? Legally, it's you.</p>
+                    <div class="framework-q">
+                        <div class="framework-q__header">
+                            <span class="framework-q__num" aria-hidden="true">4</span>
+                            <h2 class="framework-q__title">What happens when it's wrong?</h2>
+                        </div>
+                        <div class="framework-q__body-wrap">
+                            <div class="framework-q__block">
+                                <span class="framework-q__label">Design for failure</span>
+                                <p class="framework-q__text">Can users verify outputs easily? Can they correct or discard trivially? Are outputs non-destructive by default? Is the blast radius contained?</p>
+                            </div>
+                            <div class="framework-q__block">
+                                <span class="framework-q__label">The Replit test</span>
+                                <p class="framework-q__text">If your AI ignores explicit user commands and causes damage, what's the recovery path?</p>
+                            </div>
+                            <div class="framework-q__block">
+                                <span class="framework-q__label">The Air Canada test</span>
+                                <p class="framework-q__text">If your AI confidently states something false, who's responsible? Legally, it's you.</p>
+                            </div>
+                        </div>
+                    </div>
 
-                    <h3>The fifth question: What's the verification burden?</h3>
-                    <p>Low burden: outputs are glanceable; users can compare to originals; errors are obvious; stakes are low. High burden: outputs are long or complex; correctness requires expertise; errors are subtle; stakes are high. The trade-off: AI that saves 10 minutes but requires 15 minutes of verification has negative value.</p>
+                    <div class="framework-q">
+                        <div class="framework-q__header">
+                            <span class="framework-q__num" aria-hidden="true">5</span>
+                            <h2 class="framework-q__title">What's the verification burden?</h2>
+                        </div>
+                        <div class="framework-q__body-wrap">
+                            <div class="framework-q__block">
+                                <span class="framework-q__label">Low burden</span>
+                                <p class="framework-q__text">Outputs are glanceable; users can compare to originals; errors are obvious; stakes are low.</p>
+                            </div>
+                            <div class="framework-q__block">
+                                <span class="framework-q__label">High burden</span>
+                                <p class="framework-q__text">Outputs are long or complex; correctness requires expertise; errors are subtle; stakes are high.</p>
+                            </div>
+                            <div class="framework-q__block">
+                                <span class="framework-q__label">The trade-off</span>
+                                <p class="framework-q__text">AI that saves 10 minutes but requires 15 minutes of verification has negative value.</p>
+                            </div>
+                        </div>
+                    </div>
 
-                    <h3>The sixth question: Demo day or daily use?</h3>
-                    <p>Demo-day features: impressive on first encounter; require ideal conditions; solve problems users don't have often; optimise for "wow" over "useful." Daily-use features: unremarkable but reliable; work under real-world conditions; solve frequent, genuine pain points; handle edge cases gracefully. <strong>The test:</strong> Would users notice if you removed this feature after a month?</p>
+                    <div class="framework-q">
+                        <div class="framework-q__header">
+                            <span class="framework-q__num" aria-hidden="true">6</span>
+                            <h2 class="framework-q__title">Demo day or daily use?</h2>
+                        </div>
+                        <div class="framework-q__body-wrap">
+                            <div class="framework-q__block">
+                                <span class="framework-q__label">Demo-day features</span>
+                                <p class="framework-q__text">Impressive on first encounter; require ideal conditions; solve problems users don't have often; optimise for "wow" over "useful."</p>
+                            </div>
+                            <div class="framework-q__block">
+                                <span class="framework-q__label">Daily-use features</span>
+                                <p class="framework-q__text">Unremarkable but reliable; work under real-world conditions; solve frequent, genuine pain points; handle edge cases gracefully.</p>
+                            </div>
+                            <div class="framework-q__block">
+                                <span class="framework-q__label">The test</span>
+                                <p class="framework-q__text">Would users notice if you removed this feature after a month?</p>
+                            </div>
+                        </div>
+                    </div>
 
-                    <h3>The anti-patterns</h3>
-                    <ul>
-                        <li><strong>"Chat because it's easy to build"</strong> — Don't make users explain when they could point, click, or select.</li>
-                        <li><strong>"AI because competitors have it"</strong> — Wrong problem, wrong solution, wrong fit.</li>
-                        <li><strong>"Ship fast, fix later"</strong> — The AI <em>is</em> the product; its failures <em>are</em> your failures.</li>
-                        <li><strong>"Users will figure it out"</strong> — The burden is on you to make the interaction obvious.</li>
-                        <li><strong>"More AI is better"</strong> — Minimum effective AI: the least intervention that solves the problem.</li>
-                    </ul>
+                    <div class="summary-block">
+                        <h2 class="summary-block__title">The anti-patterns</h2>
+                        <ul>
+                            <li><strong>"Chat because it's easy to build"</strong> — Don't make users explain when they could point, click, or select.</li>
+                            <li><strong>"AI because competitors have it"</strong> — Wrong problem, wrong solution, wrong fit.</li>
+                            <li><strong>"Ship fast, fix later"</strong> — The AI <em>is</em> the product; its failures <em>are</em> your failures.</li>
+                            <li><strong>"Users will figure it out"</strong> — The burden is on you to make the interaction obvious.</li>
+                            <li><strong>"More AI is better"</strong> — Minimum effective AI: the least intervention that solves the problem.</li>
+                        </ul>
+                    </div>
 
-                    <h3>The questions, summarised</h3>
-                    <ol>
-                        <li>Should this be AI at all?</li>
-                        <li>Which pattern fits?</li>
-                        <li>What's the user's mental model?</li>
-                        <li>What happens when it's wrong?</li>
-                        <li>What's the verification burden?</li>
-                        <li>Demo day or daily use?</li>
-                    </ol>
                 </section>
 
                 <hr>
@@ -1287,10 +1704,8 @@
                 <section class="act-section" id="act-7">
                     <h1>Act 7: Close</h1>
                     <p>The companies getting this right—GitHub, Adobe, Notion, the others—didn't ship faster than everyone else. They thought deeper. They matched patterns to problems. They respected their users' existing mental models. They designed for failure because they knew failure was inevitable.</p>
-                    <p>They treated AI as a design problem, not a technology race.</p>
-                    <p>That's the shift. From "ship AI" to "solve problems, maybe with AI."</p>
+                    <p>They treated AI as a design problem, not a technology race. That's the shift. From "ship AI" to "solve problems, maybe with AI."</p>
                     <p>Simple to say. Hard to do. But worth doing.</p>
-                    <p><strong>Thank you.</strong></p>
                 </section>
             </div>
 
