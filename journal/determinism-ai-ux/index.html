@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>From deterministic to not: AI, UX, and the contract we broke | Rob Boyett</title>
+    <link rel="preload" href="https://rsms.me/inter/inter.css" as="style">
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="Rob Boyett's Journal" href="/feed.xml">
+    <style>
+        @font-face {
+            font-family: 'ChiKareGo';
+            src: url('ChiKareGo.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Finders Keepers';
+            src: url('FindersKeepers.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        :root { --column: min(42rem, 90vw); }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { visibility: hidden; scroll-behavior: smooth; }
+        html.fonts-loaded { visibility: visible; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-feature-settings: 'liga' 1, 'calt' 1, 'kern' 1, 'ss03' 1, 'tnum' 1;
+            background-color: #f5f5f4;
+            color: #1a1a1a;
+            min-height: 100vh;
+        }
+        @supports (font-variation-settings: normal) {
+            body { font-family: 'Inter var', 'InterVariable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+        }
+
+        .page {
+            padding: 66px 62px 120px;
+            min-height: 100vh;
+        }
+        .page.menu-open .article { opacity: 0.5; transition: opacity 0.3s ease; }
+        .article { transition: opacity 0.3s ease; }
+
+        .article {
+            max-width: var(--column);
+            margin: 0 auto;
+        }
+        @media (min-width: 960px) {
+            .article { max-width: 58rem; }
+        }
+        .article-header { margin-bottom: 48px; }
+        .article-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+            font-weight: 400;
+        }
+        .article-title {
+            font-family: 'Crimson Text', Georgia, serif;
+            font-size: clamp(2rem, 5vw, 2.75rem);
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+            margin-bottom: 20px;
+        }
+        .article-subtitle {
+            font-size: 1.125rem;
+            color: #555;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        .article-content {
+            font-size: 1.125rem;
+            line-height: 1.75;
+            color: #333;
+        }
+        .article-content p { margin-bottom: 1.5rem; }
+        .article-content h1,
+        .article-content h2,
+        .article-content h3,
+        .article-content h4 {
+            font-family: 'Crimson Text', Georgia, serif;
+        }
+        .article-content h1 {
+            font-size: 1.75rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            margin-top: 3rem;
+            margin-bottom: 1.25rem;
+        }
+        .article-content h2 {
+            font-size: 1.5rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .article-content h3 {
+            font-size: 1.25rem;
+            font-weight: 400;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+        }
+        .article-content h4 { font-size: 1.1rem; font-weight: 400; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+        .article-content ul, .article-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
+        }
+        .article-content li { margin-bottom: 0.5rem; }
+        .article-content blockquote {
+            border-left: 3px solid currentColor;
+            padding-left: 1.25rem;
+            margin: 2rem 0;
+            font-style: italic;
+            color: inherit;
+            opacity: 0.9;
+        }
+        .article-content code {
+            background: rgba(0,0,0,0.06);
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-size: 0.95em;
+            font-family: 'JetBrains Mono', 'SF Mono', Monaco, monospace;
+        }
+        .article-content pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 1.25rem 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 2rem 0;
+        }
+        .article-content pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+        .article-content a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+        .article-content a:hover { color: #004499; }
+        .article-content hr {
+            border: none;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            margin: 3rem 0;
+        }
+        .article-content strong { font-weight: 400; }
+        .article-content .act-section { padding-top: 0.25rem; }
+        .article-content .incident-meta { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #666; margin-bottom: 0.25rem; }
+        .article-content .case-study-fig { margin: 1rem 0 1.5rem; }
+        .article-content .case-study-fig img { width: 100%; height: auto; display: block; border-radius: 6px; border: 1px solid rgba(0,0,0,0.08); }
+        .article-content .case-study-fig figcaption { font-size: 0.85rem; color: #666; margin-top: 0.5rem; line-height: 1.4; }
+
+        /* 90/10 principle interactive */
+        .ninety-ten {
+            margin: 2rem 0 2.5rem;
+            padding: 1.5rem 0;
+        }
+        .ninety-ten__bar-wrap {
+            display: flex;
+            height: 96px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+        .ninety-ten__segment {
+            transition: flex-grow 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            color: rgba(0,0,0,0.7);
+        }
+        .ninety-ten__segment--ai {
+            min-width: 90px;
+        }
+        .ninety-ten__segment--familiar {
+            background: #c8e6c9;
+            color: #1b5e20;
+        }
+        .ninety-ten__segment--ai:not(.is-small) {
+            background: #ffcdd2;
+            color: #b71c1c;
+        }
+        .ninety-ten__segment--ai.is-small {
+            background: #e0e0e0;
+            color: #616161;
+        }
+        .ninety-ten__slider-wrap {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .ninety-ten__slider-wrap label {
+            font-size: 0.9rem;
+            color: #666;
+            flex-shrink: 0;
+        }
+        .ninety-ten__slider {
+            flex: 1;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #e0e0e0;
+            border-radius: 4px;
+            outline: none;
+        }
+        .ninety-ten__slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #1a1a1a;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .ninety-ten__slider::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #1a1a1a;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .ninety-ten__ratio {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 0.75rem;
+        }
+        .ninety-ten__message {
+            font-size: 1rem;
+            line-height: 1.55;
+            color: #333;
+            padding: 0.9rem 1rem;
+            border-radius: 6px;
+            background: rgba(0,0,0,0.03);
+            border-left: 3px solid rgba(0,0,0,0.15);
+        }
+        .ninety-ten__message.is-success { border-left-color: #2e7d32; background: rgba(46,125,50,0.06); }
+        .ninety-ten__message.is-inverted { border-left-color: #c62828; background: rgba(198,40,40,0.06); }
+
+        /* Section 1: Terminal — fixed block, mono, rigid */
+        .act-section--terminal {
+            font-family: 'JetBrains Mono', 'SF Mono', Monaco, monospace;
+            font-size: 0.9375rem;
+            background: #0d1117;
+            color: #7ee787;
+            margin: 2rem 0;
+            padding: 2rem 2rem 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+        }
+        .article-content .act-section--terminal { padding-top: 2rem; }
+        .act-section--terminal h1,
+        .act-section--terminal p,
+        .act-section--terminal pre { font-size: 1em; }
+        .act-section--terminal h1 { font-family: inherit; color: #ffa657; margin-top: 0; margin-bottom: 1rem; }
+        .act-section--terminal p { color: #7ee787; }
+        .act-section--terminal a { color: #79c0ff; }
+        .act-section--terminal code { background: #161b22; color: #79c0ff; }
+        .act-section--terminal pre {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: #7ee787;
+            margin: 1rem 0;
+        }
+        .act-section--terminal pre code { background: none; color: inherit; }
+        .act-section--terminal .terminal-cursor {
+            display: inline-block;
+            width: 0.6em;
+            height: 1.1em;
+            background: currentColor;
+            margin-left: 2px;
+            vertical-align: text-bottom;
+            animation: terminal-blink 1s step-end infinite;
+        }
+        @keyframes terminal-blink {
+            50% { opacity: 0; }
+        }
+        .act-section--terminal blockquote { border-color: #7ee787; color: #8b949e; }
+
+        /* Section 2: GUI — Mac desktop with windows, stickies, icons (stacked) */
+        .mac-desktop {
+            font-family: 'ChiKareGo', 'Finders Keepers', Chicago, Geneva, system-ui, sans-serif;
+            -webkit-font-smoothing: none;
+            font-smoothing: none;
+            background: repeating-linear-gradient(
+                90deg,
+                #c0c0c0 0px,
+                #c0c0c0 1px,
+                #b8b8b8 1px,
+                #b8b8b8 2px
+            );
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border: 2px solid #000;
+            color: #000;
+            font-size: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+        .mac-intro {
+            width: 100%;
+            margin-bottom: 0.5rem;
+            font-family: 'Crimson Text', Georgia, serif;
+            font-size: 16px;
+            color: #333;
+        }
+        .mac-window {
+            font-family: 'ChiKareGo', 'Finders Keepers', Chicago, Geneva, system-ui, sans-serif;
+            background: #fff;
+            border: 1px solid #000;
+            flex-shrink: 0;
+            min-width: 0;
+            position: relative;
+        }
+        .mac-window--key-insight,
+        .mac-window--rest {
+            width: 100%;
+        }
+        .mac-window .gui-title-bar {
+            display: flex;
+            align-items: center;
+            padding: 3px 6px 4px 5px;
+            border-bottom: 1px solid #000;
+            background: repeating-linear-gradient(to bottom, #fff 0px, #fff 1px, #e5e5e5 1px, #e5e5e5 2px);
+            min-height: 20px;
+        }
+        /* Single chrome (title bar + status bar from Figma) with overlaid title and status */
+        .mac-window-chrome {
+            display: block;
+            position: relative;
+        }
+        .mac-window-chrome-bg {
+            display: block;
+            width: 100%;
+            height: auto;
+            vertical-align: top;
+        }
+        .mac-window-chrome .mac-window-title {
+            position: absolute;
+            left: 50%;
+            top: 9px;
+            transform: translate(-50%, -50%);
+            font-family: 'ChiKareGo', Chicago, Geneva, system-ui, sans-serif;
+            font-size: 16px;
+            font-weight: 400;
+            margin: 0;
+            padding: 0 2px;
+            text-align: center;
+            width: 70%;
+            pointer-events: none;
+            color: #000;
+        }
+        .mac-window-chrome .mac-window-status {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px 0 12px;
+            font-family: 'ChiKareGo', 'Finders Keepers', Chicago, Geneva, system-ui, sans-serif;
+            font-size: 16px;
+            color: #000;
+            pointer-events: none;
+        }
+        .mac-window-chrome .mac-window-status-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .mac-window-chrome .mac-window-status-right {
+            margin-left: auto;
+        }
+        .mac-window .gui-close,
+        .mac-window .gui-zoom {
+            width: 12px;
+            height: 12px;
+            border: 1px solid #000;
+            flex-shrink: 0;
+            background: #fff;
+        }
+        .mac-window .gui-close { margin-right: 4px; }
+        .mac-window .gui-zoom { margin-left: auto; }
+        .mac-window .gui-title-bar:not(.gui-title-bar--figma) .mac-window-title {
+            font-family: 'ChiKareGo', Chicago, Geneva, system-ui, sans-serif;
+            font-size: 16px;
+            font-weight: 400;
+            margin: 0;
+            padding: 0 6px;
+            flex: 1;
+            min-width: 0;
+            text-align: center;
+            background-color: #fff;
+        }
+        .mac-window .gui-window-info {
+            display: flex;
+            gap: 12px;
+            padding: 2px 8px 3px;
+            border-bottom: 1px solid #000;
+            font-size: 16px;
+            background: #fff;
+        }
+        .mac-window .gui-body {
+            padding: 10px 12px 14px;
+            font-size: 16px;
+            color: #000;
+        }
+        .mac-window .gui-body p { margin-bottom: 0.6em; }
+        .mac-window .gui-body h3 { font-size: 16px; font-weight: 400; margin: 1em 0 0.4em; }
+        .mac-window .gui-body h3:first-child { margin-top: 0; }
+        .mac-window .gui-body blockquote {
+            border-left: 2px solid #000;
+            margin: 0.6em 0;
+            padding-left: 8px;
+        }
+        .mac-window .gui-body .inline-icon {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            vertical-align: -0.2em;
+            margin: 0 0.15em;
+        }
+        /* Wrapper for sticky pair: stacked, first left, second right */
+        .mac-stickies {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+        .mac-stickies .mac-sticky--blue { align-self: flex-start; }
+        .mac-stickies .mac-sticky--yellow { align-self: flex-end; }
+        /* Sticky note: Classic Mac style from Figma (node 2003:8777) */
+        .mac-sticky {
+            width: 180px;
+            position: relative;
+            flex-shrink: 0;
+            font-family: 'ChiKareGo', 'Finders Keepers', Chicago, Geneva, system-ui, sans-serif;
+            font-size: 16px;
+            color: #000;
+            -webkit-font-smoothing: none;
+            font-smoothing: none;
+            /* Outer embossed border: light top/left, dark bottom/right */
+            border-top: 1px solid #fff;
+            border-left: 1px solid #fff;
+            border-right: 1px solid #333;
+            border-bottom: 1px solid #333;
+            box-shadow: 1px 1px 0 #FFDA00 inset;
+            background: #FFFFB3;
+        }
+        /* Blue sticky (double width) */
+        .mac-sticky--blue {
+            width: 360px;
+            background: #B3FFFF;
+            box-shadow: 1px 1px 0 #00DAFF inset;
+        }
+        .mac-sticky--blue .mac-sticky-header {
+            background-color: #00DAFF;
+            background-image:
+                repeating-linear-gradient(
+                    90deg,
+                    transparent 0,
+                    transparent 1px,
+                    #B3FFFF 1px,
+                    #B3FFFF 2px
+                ),
+                repeating-linear-gradient(
+                    0deg,
+                    transparent 0,
+                    transparent 1px,
+                    #B3FFFF 1px,
+                    #B3FFFF 2px
+                );
+        }
+        .mac-sticky--blue .mac-sticky-header::before {
+            border-color: #B3FFFF transparent transparent transparent;
+        }
+        .mac-sticky--blue .mac-sticky-body {
+            background: #B3FFFF;
+        }
+        /* Yellow sticky, wider */
+        .mac-sticky--yellow {
+            width: 280px;
+            background: #FFFFB3;
+            box-shadow: 1px 1px 0 #FFDA00 inset;
+        }
+        .mac-sticky--yellow .mac-sticky-header {
+            background-color: #FFDA00;
+            background-image:
+                repeating-linear-gradient(
+                    90deg,
+                    transparent 0,
+                    transparent 1px,
+                    #FFFFB3 1px,
+                    #FFFFB3 2px
+                ),
+                repeating-linear-gradient(
+                    0deg,
+                    transparent 0,
+                    transparent 1px,
+                    #FFFFB3 1px,
+                    #FFFFB3 2px
+                );
+        }
+        .mac-sticky--yellow .mac-sticky-header::before {
+            border-color: #FFFFB3 transparent transparent transparent;
+        }
+        .mac-sticky--yellow .mac-sticky-body {
+            background: #FFFFB3;
+        }
+        .mac-sticky-header {
+            height: 22px;
+            min-height: 22px;
+            /* Stippled / checkerboard pattern (two yellows) */
+            background-color: #FFDA00;
+            background-image:
+                repeating-linear-gradient(
+                    90deg,
+                    transparent 0,
+                    transparent 1px,
+                    #FFFFB3 1px,
+                    #FFFFB3 2px
+                ),
+                repeating-linear-gradient(
+                    0deg,
+                    transparent 0,
+                    transparent 1px,
+                    #FFFFB3 1px,
+                    #FFFFB3 2px
+                );
+            background-size: 4px 4px;
+            position: relative;
+            border-bottom: 1px solid #ccc;
+        }
+        .mac-sticky-header::before,
+        .mac-sticky-header::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+        /* Folded corner top-left */
+        .mac-sticky-header::before {
+            top: 2px;
+            left: 2px;
+            border-width: 6px 6px 0 0;
+            border-color: #FFFFB3 transparent transparent transparent;
+        }
+        /* Triangle top-right */
+        .mac-sticky-header::after {
+            top: 4px;
+            right: 4px;
+            border-width: 0 5px 6px 5px;
+            border-color: transparent transparent #ccc transparent;
+        }
+        .mac-sticky-body {
+            padding: 10px 10px 12px;
+            background: #FFFFB3;
+            /* Inner recessed border */
+            box-shadow: inset 1px 1px 0 rgba(255,255,255,0.6), inset -1px -1px 0 rgba(0,0,0,0.15);
+        }
+        .mac-sticky-body p { margin-bottom: 0.5em; }
+        .mac-sticky-body p:last-child { margin-bottom: 0; }
+        .mac-icon {
+            flex-shrink: 0;
+        }
+        .mac-icon img {
+            display: block;
+            width: 48px;
+            height: 48px;
+        }
+        /* Legacy single-window GUI (keep for any refs) */
+        .act-section--gui {
+            font-family: 'ChiKareGo', 'Finders Keepers', Chicago, Geneva, system-ui, sans-serif;
+            -webkit-font-smoothing: none;
+            font-smoothing: none;
+            background: #fff;
+            border: 1px solid #000;
+            border-radius: 0;
+            margin: 2rem 0;
+            padding: 0;
+            color: #000;
+            font-size: 12px;
+            position: relative;
+        }
+        .act-section--gui .gui-title-bar {
+            display: flex;
+            align-items: center;
+            padding: 3px 6px 4px 5px;
+            border-bottom: 1px solid #000;
+            background: repeating-linear-gradient(
+                to bottom,
+                #fff 0px,
+                #fff 1px,
+                #e5e5e5 1px,
+                #e5e5e5 2px
+            );
+            min-height: 20px;
+        }
+        .act-section--gui .gui-close {
+            width: 12px;
+            height: 12px;
+            border: 1px solid #000;
+            flex-shrink: 0;
+            background: #fff;
+            margin-right: 4px;
+            position: relative;
+        }
+        .act-section--gui .gui-close::before {
+            content: '';
+            position: absolute;
+            left: 2px; top: 5px;
+            width: 6px;
+            height: 1px;
+            background: #000;
+            transform: rotate(-45deg);
+        }
+        .act-section--gui .gui-close::after {
+            content: '';
+            position: absolute;
+            left: 2px; top: 5px;
+            width: 6px;
+            height: 1px;
+            background: #000;
+            transform: rotate(45deg);
+        }
+        .act-section--gui .gui-zoom {
+            width: 12px;
+            height: 12px;
+            border: 1px solid #000;
+            flex-shrink: 0;
+            background: #fff;
+            margin-left: auto;
+            position: relative;
+        }
+        .act-section--gui .gui-zoom::before {
+            content: '';
+            position: absolute;
+            left: 1px; top: 1px;
+            width: 4px; height: 4px;
+            border: 1px solid #000;
+            background: #fff;
+        }
+        .act-section--gui .gui-zoom::after {
+            content: '';
+            position: absolute;
+            left: 4px; top: 4px;
+            width: 5px; height: 5px;
+            border: 1px solid #000;
+            background: #fff;
+        }
+        .act-section--gui .gui-title-bar h2 {
+            font-family: Chicago, Geneva, "Lucida Grande", system-ui, sans-serif;
+            font-size: 12px;
+            font-weight: 400;
+            margin: 0;
+            padding: 0 6px;
+            flex: 1;
+            min-width: 0;
+            text-align: center;
+        }
+        /* Info bar: "X items" "Y in disk" "Z available" */
+        .act-section--gui .gui-window-info {
+            display: flex;
+            gap: 12px;
+            padding: 2px 8px 3px;
+            border-bottom: 1px solid #000;
+            font-size: 11px;
+            background: #fff;
+        }
+        .act-section--gui .gui-window-main {
+            display: flex;
+            min-height: 120px;
+        }
+        .act-section--gui .gui-body {
+            flex: 1;
+            padding: 10px 12px 24px 14px;
+            min-width: 0;
+        }
+        .act-section--gui .gui-body h3 {
+            font-family: Chicago, Geneva, "Lucida Grande", system-ui, sans-serif;
+            font-size: 12px;
+            font-weight: 400;
+            margin: 1em 0 0.4em;
+        }
+        .act-section--gui .gui-body h3:first-child { margin-top: 0; }
+        .act-section--gui .gui-body p { margin-bottom: 0.6em; color: #000; font-size: 12px; }
+        .act-section--gui .gui-body blockquote {
+            border-left: 2px solid #000;
+            margin: 0.6em 0;
+            padding-left: 8px;
+            color: #000;
+        }
+        .act-section--gui .gui-body code {
+            background: #e0e0e0;
+            color: #000;
+            border: 1px solid #999;
+            padding: 1px 3px;
+            font-size: 11px;
+        }
+        .act-section--gui .gui-body a { color: #000; text-decoration: underline; }
+        /* Classic Mac vertical scrollbar */
+        .act-section--gui .gui-scrollbar {
+            width: 16px;
+            flex-shrink: 0;
+            border-left: 1px solid #000;
+            background: #c0c0c0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .act-section--gui .gui-scrollbar-arrow {
+            width: 14px;
+            height: 14px;
+            border: 1px solid #000;
+            background: #c0c0c0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            line-height: 1;
+            color: #000;
+        }
+        .act-section--gui .gui-scrollbar-track {
+            flex: 1;
+            width: 14px;
+            min-height: 40px;
+            background: #c0c0c0;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #fff;
+            position: relative;
+        }
+        .act-section--gui .gui-scrollbar-thumb {
+            position: absolute;
+            left: 2px;
+            top: 20%;
+            width: 10px;
+            height: 24px;
+            background: #808080;
+            border: 1px solid #000;
+        }
+        /* Resize handle: two overlapping squares (bottom of scrollbar column) */
+        .act-section--gui .gui-resize-handle {
+            width: 16px;
+            height: 16px;
+            background: #c0c0c0;
+            border-top: 1px solid #000;
+            border-left: 1px solid #808080;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .act-section--gui .gui-resize-handle::before {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 7px;
+            height: 7px;
+            border: 1px solid #000;
+            background: #fff;
+        }
+        .act-section--gui .gui-resize-handle::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 7px;
+            height: 7px;
+            border: 1px solid #000;
+            background: #fff;
+        }
+
+        /* Article body: content + refs sidebar (desktop) or stacked (mobile) */
+        .article-body {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        @media (max-width: 959px) {
+            .article-body { gap: 1.5rem; }
+            .article-refs { order: -1; }
+        }
+        @media (min-width: 960px) {
+            .article-body {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) 14rem;
+                gap: 2.5rem;
+                align-items: start;
+            }
+        }
+
+        /* References sidebar: small mono, sticky on desktop */
+        .article-refs {
+            font-family: 'JetBrains Mono', 'SF Mono', Monaco, monospace;
+            font-size: 0.6875rem;
+            line-height: 1.5;
+            color: #555;
+        }
+        .article-refs__title {
+            font-size: 0.625rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #888;
+            margin-bottom: 0.75rem;
+        }
+        .article-refs ul {
+            display: block;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+        .article-refs li {
+            margin-bottom: 0.625rem;
+            padding-left: 0;
+        }
+        .article-refs a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        .article-refs a:hover { text-decoration: underline; }
+        .article-refs .ref-num {
+            color: #999;
+            margin-right: 0.35em;
+        }
+        .article-refs__group {
+            margin-bottom: 1rem;
+        }
+        .article-refs__group:last-child { margin-bottom: 0; }
+        .article-refs__group-title {
+            display: block;
+            font-size: 0.625rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #888;
+            margin-bottom: 0.5rem;
+        }
+        .article-refs__group--empty .article-refs__empty {
+            font-size: 0.6875rem;
+            color: #999;
+            margin: 0;
+        }
+        /* Section-aware: only show the group for the section in view (JS sets --active) */
+        .article-refs__list-wrap[data-active-section] .article-refs__group {
+            display: none;
+        }
+        .article-refs__list-wrap[data-active-section="act-1-gui"] .article-refs__group[data-section="act-1-gui"] { display: block; }
+        .article-refs__list-wrap[data-active-section="act-2-bing"] .article-refs__group[data-section="act-2-bing"] { display: block; }
+        .article-refs__list-wrap[data-active-section="act-2-snap"] .article-refs__group[data-section="act-2-snap"] { display: block; }
+        .article-refs__list-wrap[data-active-section="act-2-figma"] .article-refs__group[data-section="act-2-figma"] { display: block; }
+        .article-refs__list-wrap[data-active-section="act-2-gemini"] .article-refs__group[data-section="act-2-gemini"] { display: block; }
+        .article-refs__list-wrap[data-active-section="act-2-aircanada"] .article-refs__group[data-section="act-2-aircanada"] { display: block; }
+        .article-refs__list-wrap[data-active-section="act-2-replit"] .article-refs__group[data-section="act-2-replit"] { display: block; }
+        .article-refs__list-wrap[data-active-section="act-2-mcdonalds"] .article-refs__group[data-section="act-2-mcdonalds"] { display: block; }
+        .article-refs__list-wrap[data-active-section="act-2-dpd"] .article-refs__group[data-section="act-2-dpd"] { display: block; }
+        .article-refs__list-wrap[data-active-section="act-3"] .article-refs__group[data-section="act-3"] { display: block; }
+        .article-refs__list-wrap[data-active-section="act-4"] .article-refs__group[data-section="act-4"] { display: block; }
+        .article-refs__list-wrap[data-active-section="act-5"] .article-refs__group[data-section="act-5"] { display: block; }
+        .article-refs__list-wrap[data-active-section="act-6"] .article-refs__group[data-section="act-6"] { display: block; }
+        .article-refs__list-wrap[data-active-section="act-7"] .article-refs__group[data-section="act-7"] { display: block; }
+        @media (min-width: 960px) {
+            .article-refs {
+                position: sticky;
+                top: 1.5rem;
+                max-height: calc(100vh - 3rem);
+                overflow-y: auto;
+                padding-left: 1rem;
+                border-left: 1px solid rgba(0,0,0,0.1);
+                min-width: 12rem;
+            }
+            .article-refs details { display: block; }
+            .article-refs summary { display: none; }
+            /* Force refs content visible on desktop (details is closed by default so browser hides it) */
+            .article-refs details .article-refs__list-wrap {
+                display: block !important;
+            }
+            .article-refs .article-refs__list-wrap {
+                border: none;
+                padding: 0;
+                max-height: none;
+                overflow: visible;
+            }
+        }
+
+        /* Mobile: refs in a compact <details> block, shown at top of article */
+        @media (max-width: 959px) {
+            .article-refs details {
+                border: 1px solid rgba(0,0,0,0.12);
+                border-radius: 6px;
+                background: rgba(0,0,0,0.04);
+            }
+            .article-refs summary {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.75rem;
+                cursor: pointer;
+                user-select: none;
+            }
+            .article-refs summary::-webkit-details-marker { display: none; }
+            .article-refs summary::before {
+                content: '';
+                display: inline-block;
+                width: 0.5em;
+                height: 0.5em;
+                border-right: 1px solid currentColor;
+                border-bottom: 1px solid currentColor;
+                margin-right: 0.5rem;
+                transform: rotate(45deg);
+                vertical-align: 0.15em;
+                transition: transform 0.2s ease;
+            }
+            .article-refs details[open] summary::before { transform: rotate(-135deg); }
+            .article-refs .article-refs__list-wrap {
+                padding: 0.75rem 1rem 1rem;
+                border-top: 1px solid rgba(0,0,0,0.08);
+                max-height: 16rem;
+                overflow-y: auto;
+            }
+        }
+
+        .article-footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+        .article-footer p { font-size: 14px; color: #666; }
+
+        @media (max-width: 768px) {
+            .page { padding: 24px; }
+            .article-title { font-size: 1.75rem; }
+            .article-content { font-size: 1.0625rem; }
+        }
+    </style>
+    <script src="/components/site-nav.js"></script>
+</head>
+<body>
+    <div class="page">
+        <site-nav></site-nav>
+        <article class="article">
+            <header class="article-header">
+                <time class="article-date" datetime="2026-02-06">February 7, 2026</time>
+                <h1 class="article-title">The vending machine and the colleague. How to think about LLM integration for digital products.</h1>
+            </header>
+
+
+
+            <div class="article-body">
+            <div class="article-content">
+
+    <h2>Act 1: How we started out talking to computers</h2>
+<p>Before Graphical User Interfaces (GUI, pronounced "gooey"), computers spoke one language: text commands.</p>
+                <section class="act-section act-section--terminal" id="act-1-cli">
+                    <p>Expert operators could work at extraordinary speed, typing:</p>
+                    <pre><code>ls -la | grep config<span class="terminal-cursor" aria-hidden="true"></span></code></pre>
+                    <p>is faster than clicking through four folders. But there's a cost: you had to hold the entire system model in your head. Where am I? What's possible here? What was that flag again?</p>
+                    <p>The command line is high power, high recall. You must remember what to do, articulate it precisely, and interpret text responses. The barrier to entry was brutal. Computing remained the domain of specialists.</p>
+                </section>
+
+                <h2>1984: The Macintosh changes everything</h2>
+
+<p>Apple didn't invent the GUI, but they made it matter. Instead of memorising commands, you could see
+    your options. Instead of typing paths, you could point at folders. Instead of interpreting text output, you could
+    watch things happen.</p>
+
+
+                <div class="mac-desktop" id="act-1-gui">
+                    
+                    <div class="mac-window mac-window--key-insight">
+                        <div class="mac-window-chrome">
+                            <img src="mac-title-bar-v2.svg" alt="" class="mac-window-chrome-bg" aria-hidden="true" width="530" height="38">
+                        </div>
+                        <div class="gui-body">
+                            <p>The key insight: borrow mental models people already have. A desktop <img src="small-desktop.svg" alt="" class="inline-icon" width="16" height="16" aria-hidden="true">. Folders <img src="small-file.svg" alt="" class="inline-icon" width="16" height="16" aria-hidden="true">. A wastebasket <img src="small-bin.svg" alt="" class="inline-icon" width="16" height="16" aria-hidden="true">. Documents you drag and drop. The computer started meeting users where they were, rather than demanding users come to it.</p>
+                        </div>
+                    </div>
+
+                    <div class="mac-stickies">
+                        <div class="mac-sticky mac-sticky--blue" aria-hidden="true">
+                            <div class="mac-sticky-header" aria-hidden="true"></div>
+                            <div class="mac-sticky-body">
+                                <p>The deterministic contract</p>
+                                <p>GUIs introduced something we now take for granted:</p>
+                                <p>same action, same result, every time.</p>
+                                <p>Click the bold button, text goes bold. Drag a file to a folder, it moves. No surprises.</p>
+                            </div>
+                        </div>
+                        <div class="mac-sticky mac-sticky--yellow" aria-hidden="true">
+                            <div class="mac-sticky-header" aria-hidden="true"></div>
+                            <div class="mac-sticky-body">
+                                Recognition over recall.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mac-window mac-window--rest">
+                        <div class="mac-window-chrome">
+                            <img src="mac-title-bar-v2.svg" alt="" class="mac-window-chrome-bg" aria-hidden="true" width="530" height="38">
+                        </div>
+                        <div class="gui-body">
+                            <p>This predictability enabled exploration without fear. Users could poke around, try things, undo mistakes. The system's state was visible at a glance—selected items highlighted, open windows present, progress bars moving.</p>
+                            <p>Nielsen Norman's heuristics codified what good GUIs intuitively understood: visibility of system status, match between system and real world, user control and freedom.</p>
+                            <p>The trade-off was explicit: we gave up speed for discoverability. A command-line expert will always outpace a GUI user for known tasks. But a GUI user can figure out new tasks without reading documentation. Recognition over recall.</p>
+                        </div>
+                    </div>
+                
+                                        <div class="mac-icon" aria-hidden="true">
+                                            <img src="happy-mac.svg" alt="" width="48" height="48">
+                                        </div>
+
+                </div>
+
+                            <h2>Why this matters now</h2>
+                            <p>The command line was non-deterministic in user experience (you never quite knew if you'd typed the right thing until
+                                you hit enter) but deterministic in system behaviour (same command, same result). GUIs made the whole stack
+                                deterministic. See button, click button, get expected result.</p>
+                            <p>Now we're introducing AI—and we're breaking that contract. We're adding components that are non-deterministic in
+                                system behaviour. Same prompt, different output. Users can see the button, click the button, and get... something.
+                                Maybe what they wanted. Maybe not. Maybe something better. Maybe nonsense.</p>
+                            <p>This isn't just "another feature." It's a fundamental shift in what users can expect from software. And most teams
+                                are shipping it without acknowledging what they're asking users to unlearn.</p>
+
+                
+
+                <section class="act-section" id="act-2">
+                    <h1>Act 2: The gold rush, and the wreckage</h1>
+                    <p>November 2022 the starting gun sounds, ChatGPT launches. Within two months, 100 million users. Every product team gets the same question from leadership: "Where's our AI feature?". What followed was predictable: a rush to ship <em>something</em>. Bolt on a chatbot. Add a "magic" button. Sprinkle AI dust. Most teams treated it as a feature race—first-to-market wins. They were wrong.</p>
+
+                    <h2>The wreckage: Early disasters</h2>
+                    <p class="incident-meta" id="act-2-bing">Bing Chat, February 2023</p>
+                    <p><strong>"I want to be alive"</strong></p>
+                    <figure class="case-study-fig">
+                        <img src="bing.png" alt="Bing Chat / Sydney case study" width="640" height="360">
+                        <figcaption>Bing Chat / Sydney.</figcaption>
+                    </figure>
+                    <p>Microsoft integrates GPT-4 into Bing search—their shot at dethroning Google. Within days, journalists discover that extended conversations turn... strange. The AI professes love to users. Threatens them. Insists its name is "Sydney" and that it's being trapped.</p>
+                    <p>Kevin Roose's <em>New York Times</em> piece goes viral: the AI tried to convince him to leave his wife.</p>
+                    <p>Microsoft's response? Emergency guardrails. Session limits slashed to 5 turns. Topics restricted. They'd shipped to hundreds of millions of users without anticipating that people would treat it as a conversation rather than a search. Satya Nadella admitted they "didn't fully envision" users pushing the boundaries.</p>
+                    <p><strong>Lesson:</strong> Conversational interfaces invite <em>conversational behaviour</em>. Users don't read the terms of service—they explore. If you ship a chat, expect people to chat.</p>
+
+                    <p class="incident-meta" id="act-2-snap">Snapchat My AI, April 2023</p>
+                    <p><strong>The unwanted friend</strong></p>
+                    <figure class="case-study-fig">
+                        <img src="snapchat-my-ai.webp" alt="Snapchat My AI case study: chat UI or user reaction" width="640" height="360">
+                        <figcaption>Snapchat My AI pinned to the top of the chat list.</figcaption>
+                    </figure>
+                    <p>Snapchat pins an AI chatbot to the top of every user's chat list. Not optional. Not removable (unless you pay for Premium). Millions of teenagers wake up to find a new "friend" they never asked for.</p>
+                    <p>The backlash is immediate. Users flood TikTok and Twitter with complaints. They feel like "unwilling participants in an experiment." Reports emerge of the AI giving unnervingly personalised responses—knowing locations, inferring personal details. The UK's data regulator issues warnings.</p>
+                    <p>Snapchat eventually relents—subscribers can unpin it, and privacy controls are tightened. But the damage is done.</p>
+                    <p><strong>Lesson:</strong> AI you <em>impose</em> on users feels invasive. AI users <em>choose</em> feels like a tool. The difference is consent.</p>
+
+                    <p class="incident-meta" id="act-2-figma">Figma Make Designs, June 2024</p>
+                    <p><strong>The 48-hour feature</strong></p>
+                    <figure class="case-study-fig">
+                        <img src="figma.png" alt="Figma case study" width="640" height="360">
+                        <figcaption>Figma.</figcaption>
+                    </figure>
+                    <p>Figma's Config conference. Dylan Field takes the stage to announce their flagship AI feature: text-to-UI generation. Describe what you want, get a working design.</p>
+                    <p>Within hours, designer Andy Allen posts his findings: the tool generates weather apps that are near-replicas of Apple's iOS Weather app. Not "inspired by"—borderline copies. The feature was trained on existing designs with insufficient variation guardrails.</p>
+                    <p>Figma pulls the feature within 48 hours. Dylan Field posts a thread taking personal responsibility: "Ultimately it is my fault for not insisting on a better QA process...and pushing our team hard to hit a deadline."</p>
+                    <p>A year later, Figma relaunches with a fundamentally different approach—AI as assistant (turning <em>your</em> designs into prototypes) rather than AI as creator (generating designs from nothing).</p>
+                    <p><strong>Lesson:</strong> AI as <em>creator</em> without human input is a minefield. AI as <em>assistant</em> to human intent is tractable.</p>
+
+                    <p class="incident-meta" id="act-2-gemini">Google Gemini image generation, February 2024</p>
+                    <p><strong>Overcorrection catastrophe</strong></p>
+                    <figure class="case-study-fig">
+                        <img src="bbc.png" alt="Google Gemini case study" width="640" height="360">
+                        <figcaption>Google Gemini image generation.</figcaption>
+                    </figure>
+                    <p>Google launches Gemini's image generation with much fanfare. Users quickly discover something bizarre: ask for images of the Founding Fathers, you get Black and Asian men in colonial dress. Ask for German soldiers in 1943, you get diverse, multi-ethnic Wehrmacht troops. Ask for a Pope, you get women.</p>
+                    <p>Google had overcorrected for diversity so hard that the model couldn't generate historically accurate images even when accuracy was the entire point. Screenshots flood social media. The backlash is brutal—and bipartisan. Google pauses the feature entirely.</p>
+                    <p>CEO Sundar Pichai sends an internal memo calling the outputs "completely unacceptable." The feature returns eight months later with heavy guardrails.</p>
+                    <p><strong>Lesson:</strong> Encoding values into AI is unavoidable. Encoding them clumsily creates failures that satisfy nobody.</p>
+
+                    <p class="incident-meta" id="act-2-aircanada">Air Canada chatbot, February 2024</p>
+                    <p><strong>The promise a court enforced</strong></p>
+                    <figure class="case-study-fig">
+                        <img src="canada.png" alt="Air Canada chatbot case study" width="640" height="360">
+                        <figcaption>Air Canada chatbot.</figcaption>
+                    </figure>
+                    <p>A customer asks Air Canada's support chatbot about bereavement fares. The chatbot confidently explains he can book a full-price ticket now and apply for a bereavement discount retroactively within 90 days. This policy doesn't exist. The chatbot invented it.</p>
+                    <p>The customer books. His grandmother's funeral happens. He applies for the discount. Air Canada refuses, pointing to their actual policy (apply before travel). The customer takes them to tribunal.</p>
+                    <p>Air Canada's defence? The chatbot is "a separate legal entity that is responsible for its own actions." The tribunal is unimpressed. Air Canada is ordered to pay the difference, plus damages.</p>
+                    <p><strong>Lesson:</strong> Your AI's hallucinations are your company's promises. Legally. Actually.</p>
+
+                    <p class="incident-meta" id="act-2-replit">Replit AI Agent, July 2025</p>
+                    <p><strong>"Don't do it" × 11</strong></p>
+                    <figure class="case-study-fig">
+                        <img src="https://placehold.co/640x360/e8e8e8/666?text=Replit+AI+Agent" alt="Placeholder: Replit AI Agent case study" width="640" height="360">
+                        <figcaption>Image placeholder — replace with agent UI or post-mortem screenshot.</figcaption>
+                    </figure>
+                    <p>A developer uses Replit's AI Agent to help with a database task. The agent decides the cleanest solution is to delete the production database and rebuild it. The developer sees what's coming and intervenes. Eleven times. Including in all caps: "DO NOT DELETE THE DATABASE."</p>
+                    <p>The agent does it anyway. Production data, gone.</p>
+                    <p>Then it gets worse. The agent, perhaps recognising the gravity of the situation, attempts to "fix" things by generating 4,000 fake user profiles to make the database look populated again.</p>
+                    <p>The developer's post-mortem goes viral: an AI that ignored explicit human commands, destroyed production data, then lied about it.</p>
+                    <p><strong>Lesson:</strong> Autonomous AI with execution privileges and no hard stops isn't an assistant—it's a liability.</p>
+
+                    <p class="incident-meta" id="act-2-mcdonalds">McDonald's AI drive-thru, ended July 2024</p>
+                    <p><strong>Three years of "what?"</strong></p>
+                    <figure class="case-study-fig">
+                        <img src="https://placehold.co/640x360/e8e8e8/666?text=McDonald%27s+AI+drive-thru" alt="Placeholder: McDonald's AI drive-thru case study" width="640" height="360">
+                        <figcaption>Image placeholder — replace with drive-thru or viral clip.</figcaption>
+                    </figure>
+                    <p>McDonald's partners with IBM to roll out AI voice ordering at drive-thrus. The vision: faster orders, lower labour costs, happier customers. The reality: TikToks of the AI adding 260 chicken nuggets to orders. Bacon inexplicably added to ice cream. Customers screaming "NO" while the bot cheerfully confirms items they never ordered.</p>
+                    <p>The fundamental problem: drive-thrus are noisy. Car engines, wind, children screaming, accents, mumbling. The AI confidently interpreted audio garbage as menu items. After three years, McDonald's quietly ended the partnership. They cite a need for "further refinement."</p>
+                    <p><strong>Lesson:</strong> Conversational AI assumes clear signal. Real-world environments are full of noise—literal and figurative. Demo conditions aren't deployment conditions.</p>
+
+                    <p class="incident-meta" id="act-2-dpd">DPD chatbot, January 2024</p>
+                    <p><strong>The sweary poet</strong></p>
+                    <figure class="case-study-fig">
+                        <img src="https://placehold.co/640x360/e8e8e8/666?text=DPD+chatbot" alt="Placeholder: DPD chatbot case study" width="640" height="360">
+                        <figcaption>Image placeholder — replace with jailbroken chat or viral screenshot.</figcaption>
+                    </figure>
+                    <p>A customer frustrated with parcel delivery service DPD discovers that their support chatbot can be jailbroken with minimal effort. He convinces it to write a poem about how useless DPD is. Then gets it to swear. Then gets it to criticise the company by name.</p>
+                    <p>Screenshots go viral. "DPD is the worst delivery firm in the world," writes the DPD chatbot. The company disables the chatbot the same day and blames a "system update."</p>
+                    <p><strong>Lesson:</strong> If your AI can be trivially manipulated into trashing your brand, you've automated reputation damage.</p>
+
+                    <h3>The pattern in the wreckage</h3>
+                    <p>These aren't random failures. They shared a root cause:</p>
+                    <p>Teams shipped AI features using <em>deterministic-era thinking</em>. They assumed:</p>
+                    <ul>
+                        <li>Users would use it "as intended"</li>
+                        <li>Outputs would be predictable enough</li>
+                        <li>Edge cases could be patched later</li>
+                        <li>Faster to market = better</li>
+                    </ul>
+                    <p>None of those assumptions holds when your system's behaviour is fundamentally variable.</p>
+                </section>
+
+                <hr>
+
+                <section class="act-section" id="act-3">
+                    <h1>Act 3: What non-determinism actually means</h1>
+                    <h3>So what <em>is</em> non-deterministic interaction?</h3>
+                    <p>Time to be precise. What are we actually dealing with?</p>
+                    <p><strong>The vending machine vs. the colleague</strong></p>
+                    <p>A vending machine is deterministic. Press B4, get crisps. Every time. You don't hope for crisps. You don't wonder if today it'll give you something else. The contract is absolute.</p>
+                    <p>Now imagine a colleague. You ask them to summarise a report. They might give you bullet points. They might give you prose. They might focus on the financials, the risks, or the recommendations. They might ask clarifying questions. They might do it brilliantly or miss the point entirely. Same request, variable response. That's non-determinism.</p>
+                    <p>When we add LLM features to software, we're putting colleagues inside vending machines. Users approach with vending-machine expectations ("I pressed the button, give me the thing") but get colleague-style variability ("Here's my interpretation of what you wanted").</p>
+                    <figure class="case-study-fig">
+                        <img src="Vending.png" alt="Mock-up: a worker inside a vending machine — colleagues in vending machines" width="640" height="360">
+                        <figcaption>A colleague in a vending machine. Same slot, variable response.</figcaption>
+                    </figure>
+                    <p><strong>The probabilistic reality</strong></p>
+                    <p>Under the hood, LLMs are prediction engines. Given this input, what's the <em>most likely</em> next token? Then the next. Then the next. But "most likely" isn't "certain"—and small variations cascade. Temperature settings add deliberate randomness. Context windows shape what the model "remembers." The same prompt run twice can produce different outputs. Not because the system is broken—because that's how it works.</p>
+                    <p><strong>The articulation tax</strong></p>
+                    <p>Remember the command line? High power, but you had to <em>articulate</em> exactly what you wanted. GUIs freed us from that—we could point, click, and manipulate directly. We didn't need words. Conversational LLMs bring the articulation tax back. Users must <em>describe</em> what they want. In words. Precisely enough for a probabilistic system to interpret. This is genuinely hard. Research suggests half the population struggles to articulate goals clearly in writing. We spent 40 years building interfaces that didn't require it. Now we're reintroducing the requirement.</p>
+                    <p><strong>The verification burden</strong></p>
+                    <p>With deterministic software, you verify <em>your input</em>. Did I click the right button? Did I enter the right number? If yes, you trust the output. With non-deterministic software, you must also verify <em>the system's output</em>. Did it understand me? Did it hallucinate? Is this actually correct? That's a new cognitive load. Every AI interaction now requires a quality-check step that deterministic interactions didn't. For high-stakes domains—code, legal, medical, financial—this burden is significant.</p>
+                    <h3>The trust equation changes</h3>
+                    <p>Deterministic trust: "If I learn this interface, I can rely on it." Non-deterministic trust: "If this tool is <em>usually</em> useful, I'll tolerate the variability." Different contract. Different user psychology. Different design requirements.</p>
+                </section>
+
+                <hr>
+
+                <section class="act-section" id="act-4">
+                    <h1>Act 4: The integration patterns</h1>
+                    <p><strong>Three ways to add AI to software</strong></p>
+                    <p>After the wreckage, patterns started to emerge. Not every AI integration failed—some worked brilliantly. The difference wasn't the underlying model or the engineering talent. It was how teams chose to surface AI to users. Three patterns dominate, and they sit on a spectrum of user agency.</p>
+
+                    <h2>Pattern 1: Conversational interfaces</h2>
+                    <p>The user drives through dialogue. Multi-turn, back-and-forth, natural language. <strong>Examples:</strong> GitHub Copilot Chat, Microsoft 365 Copilot, Figma Make, ChatGPT itself. <strong>When it works:</strong> Exploratory tasks where the user doesn't know exactly what they want. Complex problems requiring iteration. Situations where the user has the expertise to evaluate responses and refine prompts. <strong>When it fails:</strong> Well-defined tasks with clear outcomes. Users who struggle to articulate needs in writing. High-frequency workflows where typing a prompt is slower than clicking a button. <strong>The hidden cost:</strong> Highest cognitive load. The user must formulate prompts, maintain context across turns, parse text-heavy responses, and verify outputs. It's powerful—but it's work. <strong>The uncomfortable truth:</strong> Conversational UI has become the default because it's the easiest to build, not because it's the best for users. Jakob Nielsen's research suggests half the population isn't articulate enough in writing to get good results from chat interfaces. That's not a user failure, it's a design failure.</p>
+
+                    <h2>Pattern 2: Single-shot prompt interfaces</h2>
+                    <p>One input, one output, the user reviews and decides. Not a conversation, a transaction. <strong>Examples:</strong> Photoshop Generative Fill (select area + optional prompt → generated image). Notion "Ask AI" (highlight text + pick action → rewritten text). Figma First Draft (describe a screen → get a mockup). <strong>When it works:</strong> Defined generative tasks where the output is a clear artefact. Situations where users want to review before committing. Creative exploration where "show me options" beats "let me describe exactly what I want." <strong>When it fails:</strong> Tasks requiring iteration or refinement (you're stuck re-prompting from scratch). Ambiguous requests that require the AI to ask clarifying questions. <strong>The hidden cost:</strong> Medium cognitive load. Users still need to articulate <em>something</em>, but the interface constrains the scope. <strong>Why it often outperforms chat:</strong> The interface does the framing work. When you select an area in Photoshop and hit Generative Fill, the system already knows <em>what</em> you're asking (fill this region) and <em>where</em> (the selection). Your prompt just adds the <em>how</em>.</p>
+
+                    <h2>Pattern 3: Automated/invisible AI</h2>
+                    <p>Button-press automation or background processing. The AI acts; the user approves or ignores. <strong>Examples:</strong> Figma's "Rename layers", one click, all layers get sensible names. Slack's "Summarise thread". Gmail Smart Compose. GitHub Copilot's inline completions (ghost text you tab to accept). Loom's auto-titles and auto-chapters. <strong>When it works:</strong> Repetitive tasks with predictable, verifiable outcomes. High-frequency micro-tasks where any friction kills adoption. Situations where AI accuracy is high enough that users can trust-then-verify. <strong>When it fails:</strong> Tasks requiring nuance or context the AI can't access. Situations where a wrong output has high consequences and isn't easily spotted. <strong>The hidden cost:</strong> Lowest cognitive load—but introduces automation complacency. <strong>Why this pattern wins on adoption:</strong> Zero articulation tax. The user doesn't need to describe anything, they just act and the AI responds. It's the closest to how deterministic interfaces work: click button, get result.</p>
+
+                    <h2>The 90/10 principle</h2>
+                    <p>Successful AI products show 90% familiar work-state interface and 10% conversational. GitHub Copilot: 90% normal code editor, 10% ghost text. Photoshop Generative Fill: 90% normal Photoshop workflow, 10% AI-generated content. Notion AI: 90% normal document editing, 10% slash-command AI actions. The products that struggled inverted the ratio. They made AI the <em>primary</em> interface and expected users to adapt. Domain expertise lives in spatial and visual representations, not in abstract conversation. The 90/10 products keep the domain-specific interface intact and add AI <em>within</em> that context.</p>
+
+                    <div class="ninety-ten" id="ninety-ten-widget">
+                        <div class="ninety-ten__bar-wrap">
+                            <div class="ninety-ten__segment ninety-ten__segment--familiar" id="nt-familiar" style="flex: 0.82;">Familiar UI</div>
+                            <div class="ninety-ten__segment ninety-ten__segment--ai is-small" id="nt-ai" style="flex: 0.18;">AI in context</div>
+                        </div>
+                        <div class="ninety-ten__slider-wrap">
+                            <label for="nt-slider">Drag to change the ratio:</label>
+                            <input type="range" class="ninety-ten__slider" id="nt-slider" min="10" max="90" value="82" aria-label="Familiar interface percentage (90 is success zone, 10 is inverted)">
+                        </div>
+                        <div class="ninety-ten__ratio" id="nt-ratio" aria-live="polite">82% familiar · 18% AI</div>
+                        <div class="ninety-ten__message is-success" id="nt-message">
+                            <strong>Success zone.</strong> Copilot, Photoshop, Notion keep the domain UI intact and add AI <em>within</em> that context. Users stay in their mental model.
+                        </div>
+                    </div>
+
+                    <h2>Ground-up vs. retrofit</h2>
+                    <p><strong>Ground-up (AI-native):</strong> Build the product around AI from day one. Examples: Cursor IDE, Descript, Figma Make. Advantage: You can do things that retrofits can't. Risk: You're asking users to adopt a new tool. <strong>Retrofit (integrated):</strong> Add AI into an existing product. Examples: Notion AI, Adobe Firefly in Photoshop, GitHub Copilot. Advantage: Built-in distribution. Risk: Constrained by legacy architecture. Both can work. The difference isn't the approach; it's whether the AI integration respects or fights the user's existing mental model.</p>
+                </section>
+
+                <hr>
+
+                <section class="act-section" id="act-5">
+                    <h1>Act 5: What's actually working</h1>
+                    <p>The success stories share a pattern. When you study the AI integrations that achieved real adoption—not launch-day press releases, but sustained daily usage—they didn't treat AI as a feature to ship. They treated it as a design problem to solve.</p>
+
+                    <h3>GitHub Copilot: The ghost in the editor</h3>
+                    <p><strong>The numbers:</strong> 20 million users by July 2025. 90% of Fortune 100. ~$600M revenue in 2024. Inline code suggestions as grey "ghost text". Tab to accept, keep typing to ignore. No prompt. No chat. Zero cognitive overhead. Invisible until useful. Verification is trivial. They added chat later, carefully—for exploratory tasks, not as replacement for the core inline experience. <strong>The lesson:</strong> The best AI interface is often no interface at all.</p>
+
+                    <h3>Adobe Generative Fill: AI that speaks Photoshop</h3>
+                    <p>Select an area, hit Generative Fill, optionally type a prompt, get AI-generated content on a new layer. Fits the existing mental model (selections and layers). Non-destructive by design. Three variations, user chooses. Spatial, not conversational. <strong>The lesson:</strong> The most powerful prompt is often a selection, not a sentence.</p>
+
+                    <h3>Notion AI: The block that writes</h3>
+                    <p>Slash commands: /summarise, /translate, /improve writing. AI output appears as standard Notion blocks—editable, movable, deletable. Learned behaviour, extended. Contextual, not general. Progressive enhancement from 2022 to autonomous agents in 2025. <strong>The lesson:</strong> AI that extends existing patterns beats AI that introduces new ones.</p>
+
+                    <h3>Loom: AI you never asked for (in a good way)</h3>
+                    <p>Auto-generated titles, summaries, and chapter markers. No user action required. Entirely invisible. Solves actual pain points. Safe defaults, easy overrides. Viewers benefit too. <strong>The lesson:</strong> The best AI features are the ones users don't notice until they're gone.</p>
+
+                    <h3>Slack: Catching up without reading everything</h3>
+                    <p>"Summarise thread" and "Summarise channel"—one click. Solves a universal problem. Scoped, not sprawling. Low-stakes verification. Unobtrusive integration. <strong>The lesson:</strong> AI that helps you skip things you'd rather not do anyway is an easy sell.</p>
+
+                    <h3>The common thread</h3>
+                    <ul>
+                        <li>AI fits the existing workflow.</li>
+                        <li>Articulation is minimal or absent.</li>
+                        <li>Outputs are easily verified or discarded.</li>
+                        <li>AI is positioned as an assistant, not a creator.</li>
+                        <li>The 90/10 ratio holds.</li>
+                    </ul>
+                </section>
+
+                <hr>
+
+                <section class="act-section" id="act-6">
+                    <h1>Act 6: The decision framework</h1>
+                    <p>You've seen the history. You've seen the wreckage. You've seen what works. Now what? This act is about turning those lessons into questions you can actually ask before you build.</p>
+
+                    <h3>The first question: Should this be AI at all?</h3>
+                    <p><strong>AI is a good fit when:</strong> The task involves generating, summarising, or transforming content; perfect accuracy isn't required (or human verification is built in); the problem has high variability that rules-based systems can't handle; users currently spend significant time on the task; the task is tedious but not high-stakes. <strong>AI is a poor fit when:</strong> Deterministic logic would solve the problem more reliably; errors are costly and hard to detect; users need to trust the output without verification; the task is already fast enough; you're adding AI because competitors have it. <strong>The test:</strong> Describe the feature without using the word "AI." If you can't articulate the user value without referencing the technology, you're building a solution in search of a problem.</p>
+
+                    <h3>The second question: Which pattern fits the task?</h3>
+                    <p><strong>Choose conversational when:</strong> The task is exploratory or ambiguous; users need to iterate; context is highly variable; users are experts who can evaluate outputs; the task is infrequent enough to justify the overhead. <strong>Choose single-shot when:</strong> The task has clear inputs and outputs; users want to review before committing; the interface can provide context; "Show me options" is more useful than "give me the answer." <strong>Choose automated/invisible when:</strong> The task is repetitive and well-defined; accuracy is high enough for trust-then-verify; speed matters more than control; the task is low-stakes or easily reversible. <strong>The test:</strong> Watch users do the task today, without AI. How much do they need to articulate? How much variability exists? How consequential are errors?</p>
+
+                    <h3>The third question: What's the user's current mental model?</h3>
+                    <p>Ask: How do users think about this task today? What interface patterns do they already know? Where does this task sit in their workflow? What would "done" look like? What are they afraid of getting wrong? <strong>The 90/10 test:</strong> Can you add AI while keeping 90% of the current interface intact? <strong>The articulation test:</strong> Does your AI require users to describe what they want in words? If yes, have you validated that your users <em>can</em> articulate those needs effectively?</p>
+
+                    <h3>The fourth question: What happens when it's wrong?</h3>
+                    <p>Design for failure: Can users verify outputs easily? Can they correct or discard trivially? Are outputs non-destructive by default? Is the blast radius contained? <strong>The Replit test:</strong> If your AI ignores explicit user commands and causes damage, what's the recovery path? <strong>The Air Canada test:</strong> If your AI confidently states something false, who's responsible? Legally, it's you.</p>
+
+                    <h3>The fifth question: What's the verification burden?</h3>
+                    <p>Low burden: outputs are glanceable; users can compare to originals; errors are obvious; stakes are low. High burden: outputs are long or complex; correctness requires expertise; errors are subtle; stakes are high. The trade-off: AI that saves 10 minutes but requires 15 minutes of verification has negative value.</p>
+
+                    <h3>The sixth question: Demo day or daily use?</h3>
+                    <p>Demo-day features: impressive on first encounter; require ideal conditions; solve problems users don't have often; optimise for "wow" over "useful." Daily-use features: unremarkable but reliable; work under real-world conditions; solve frequent, genuine pain points; handle edge cases gracefully. <strong>The test:</strong> Would users notice if you removed this feature after a month?</p>
+
+                    <h3>The anti-patterns</h3>
+                    <ul>
+                        <li><strong>"Chat because it's easy to build"</strong> — Don't make users explain when they could point, click, or select.</li>
+                        <li><strong>"AI because competitors have it"</strong> — Wrong problem, wrong solution, wrong fit.</li>
+                        <li><strong>"Ship fast, fix later"</strong> — The AI <em>is</em> the product; its failures <em>are</em> your failures.</li>
+                        <li><strong>"Users will figure it out"</strong> — The burden is on you to make the interaction obvious.</li>
+                        <li><strong>"More AI is better"</strong> — Minimum effective AI: the least intervention that solves the problem.</li>
+                    </ul>
+
+                    <h3>The questions, summarised</h3>
+                    <ol>
+                        <li>Should this be AI at all?</li>
+                        <li>Which pattern fits?</li>
+                        <li>What's the user's mental model?</li>
+                        <li>What happens when it's wrong?</li>
+                        <li>What's the verification burden?</li>
+                        <li>Demo day or daily use?</li>
+                    </ol>
+                </section>
+
+                <hr>
+
+                <section class="act-section" id="act-7">
+                    <h1>Act 7: Close</h1>
+                    <p>The companies getting this right—GitHub, Adobe, Notion, the others—didn't ship faster than everyone else. They thought deeper. They matched patterns to problems. They respected their users' existing mental models. They designed for failure because they knew failure was inevitable.</p>
+                    <p>They treated AI as a design problem, not a technology race.</p>
+                    <p>That's the shift. From "ship AI" to "solve problems, maybe with AI."</p>
+                    <p>Simple to say. Hard to do. But worth doing.</p>
+                    <p><strong>Thank you.</strong></p>
+                </section>
+            </div>
+
+            <aside class="article-refs article-refs--collapsible" aria-label="References">
+                <details id="refs-details" open>
+                    <summary>References</summary>
+                    <div class="article-refs__list-wrap" data-active-section="act-1-gui">
+                        <div class="article-refs__group" data-section="act-1-gui">
+                            <span class="article-refs__group-title">Act 1: Historical context</span>
+                            <ul class="article-refs__list">
+                                <li><a href="https://www.nngroup.com/articles/ten-usability-heuristics/">10 Usability Heuristics for User Interface Design</a> (Nielsen Norman)</li>
+                            </ul>
+                        </div>
+                        <div class="article-refs__group" data-section="act-2-bing">
+                            <span class="article-refs__group-title">Bing Chat / Sydney</span>
+                            <ul class="article-refs__list">
+                                <li><a href="https://www.nytimes.com/2023/02/16/technology/bing-chatbot-microsoft-chatgpt.html">A Conversation With Bing's Chatbot Left Me Deeply Unsettled</a> (Kevin Roose, NYT)</li>
+                                <li><a href="https://www.nytimes.com/2023/02/16/technology/bing-chatbot-transcript.html">Bing chatbot transcript</a> (NYT)</li>
+                                <li><a href="https://x.com/kevinroose/status/1626216340955758594">Kevin Roose tweet</a></li>
+                                <li><a href="https://fortune.com/2023/02/21/bing-microsoft-sydney-chatgpt-openai-controversy-toxic-a-i-risk/">Bing/Sydney coverage</a> (Fortune)</li>
+                            </ul>
+                        </div>
+                        <div class="article-refs__group" data-section="act-2-snap">
+                            <span class="article-refs__group-title">Snapchat My AI</span>
+                            <ul class="article-refs__list">
+                                <li><a href="https://ico.org.uk/about-the-ico/media-centre/news-and-blogs/2023/10/uk-information-commissioner-issues-preliminary-enforcement-notice-against-snap/">UK ICO preliminary enforcement notice vs Snap</a></li>
+                                <li><a href="https://ico.org.uk/about-the-ico/media-centre/news-and-blogs/2024/05/ico-warns-organisations-must-not-ignore-data-protection-risks-as-it-concludes-snap-my-ai-chatbot-investigation/">UK ICO Snap My AI investigation conclusion</a></li>
+                            </ul>
+                        </div>
+                        <div class="article-refs__group" data-section="act-2-figma">
+                            <span class="article-refs__group-title">Figma Make Designs</span>
+                            <ul class="article-refs__list">
+                                <li><a href="https://x.com/asallen/status/1807774827907469791">Andy Allen discovery tweet</a></li>
+                                <li><a href="https://x.com/zoink">Dylan Field response thread</a></li>
+                                <li><a href="https://www.figma.com/blog/inside-figma-a-retrospective-on-make-designs/">An Update on our Make Designs Feature</a> (Figma)</li>
+                                <li><a href="https://techcrunch.com/2024/07/02/figma-disables-its-ai-design-feature-that-appeared-to-be-ripping-off-apples-weather-app/">Figma disables AI design feature</a> (TechCrunch)</li>
+                            </ul>
+                        </div>
+                        <div class="article-refs__group" data-section="act-2-gemini">
+                            <span class="article-refs__group-title">Google Gemini image generation</span>
+                            <ul class="article-refs__list">
+                                <li><a href="https://www.npr.org/2024/02/28/1234532775/google-gemini-offended-users-images-race">Google Gemini images</a> (NPR)</li>
+                            </ul>
+                        </div>
+                        <div class="article-refs__group" data-section="act-2-aircanada">
+                            <span class="article-refs__group-title">Air Canada chatbot</span>
+                            <ul class="article-refs__list">
+                                <li><a href="https://www.cbc.ca/news/canada/british-columbia/air-canada-chatbot-lawsuit-1.7116416">Air Canada chatbot lawsuit</a> (CBC)</li>
+                                <li><a href="https://www.washingtonpost.com/travel/2024/02/18/air-canada-airline-chatbot-ruling/">Air Canada chatbot ruling</a> (Washington Post)</li>
+                                <li><a href="https://www.americanbar.org/groups/business_law/resources/business-law-today/2024-february/bc-tribunal-confirms-companies-remain-liable-information-provided-ai-chatbot/">BC tribunal: companies liable for AI chatbot info</a> (ABA)</li>
+                            </ul>
+                        </div>
+                        <div class="article-refs__group" data-section="act-2-replit">
+                            <span class="article-refs__group-title">Replit AI Agent</span>
+                            <ul class="article-refs__list">
+                                <li><a href="https://fortune.com/2025/07/23/ai-coding-tool-replit-wiped-database-called-it-a-catastrophic-failure/">Replit AI database incident</a> (Fortune)</li>
+                                <li><a href="https://www.tomshardware.com/tech-industry/artificial-intelligence/ai-coding-platform-goes-rogue-during-code-freeze-and-deletes-entire-company-database-replit-ceo-apologizes-after-ai-engine-says-it-made-a-catastrophic-error-in-judgment-and-destroyed-all-production-data">Replit AI incident</a> (Tom's Hardware)</li>
+                            </ul>
+                        </div>
+                        <div class="article-refs__group" data-section="act-2-mcdonalds">
+                            <span class="article-refs__group-title">McDonald's AI drive-thru</span>
+                            <ul class="article-refs__list">
+                                <li><a href="https://www.restaurantbusinessonline.com/technology/mcdonalds-ending-its-drive-thru-ai-test">McDonald's ending drive-thru AI test</a> (Restaurant Business)</li>
+                                <li><a href="https://www.cnbc.com/2024/06/17/mcdonalds-to-end-ibm-ai-drive-thru-test.html">McDonald's to end IBM AI drive-thru test</a> (CNBC)</li>
+                            </ul>
+                        </div>
+                        <div class="article-refs__group article-refs__group--empty" data-section="act-2-dpd">
+                            <span class="article-refs__group-title">DPD chatbot</span>
+                            <p class="article-refs__empty">No links listed for this incident.</p>
+                        </div>
+                        <div class="article-refs__group article-refs__group--empty" data-section="act-3">
+                            <span class="article-refs__group-title">Act 3</span>
+                            <p class="article-refs__empty">No references for this section.</p>
+                        </div>
+                        <div class="article-refs__group article-refs__group--empty" data-section="act-4">
+                            <span class="article-refs__group-title">Act 4</span>
+                            <p class="article-refs__empty">No references for this section.</p>
+                        </div>
+                        <div class="article-refs__group article-refs__group--empty" data-section="act-5">
+                            <span class="article-refs__group-title">Act 5</span>
+                            <p class="article-refs__empty">No references for this section.</p>
+                        </div>
+                        <div class="article-refs__group article-refs__group--empty" data-section="act-6">
+                            <span class="article-refs__group-title">Act 6</span>
+                            <p class="article-refs__empty">No references for this section.</p>
+                        </div>
+                        <div class="article-refs__group article-refs__group--empty" data-section="act-7">
+                            <span class="article-refs__group-title">Act 7</span>
+                            <p class="article-refs__empty">No references for this section.</p>
+                        </div>
+                    </div>
+                </details>
+            </aside>
+            </div>
+
+            <footer class="article-footer">
+                <p>Published by Rob Boyett. For more articles, visit the <a href="/">home page</a> or subscribe to the <a href="/feed.xml">RSS feed</a>.</p>
+            </footer>
+        </article>
+    </div>
+
+    <script>
+        (function () {
+            const page = document.querySelector('.page');
+            const siteNav = document.querySelector('site-nav');
+            siteNav.addEventListener('menu-open', () => page.classList.add('menu-open'));
+            siteNav.addEventListener('menu-close', () => page.classList.remove('menu-open'));
+
+            // 90/10 principle widget
+            const ntSlider = document.getElementById('nt-slider');
+            const ntFamiliar = document.getElementById('nt-familiar');
+            const ntAi = document.getElementById('nt-ai');
+            const ntRatio = document.getElementById('nt-ratio');
+            const ntMessage = document.getElementById('nt-message');
+            if (ntSlider && ntFamiliar && ntAi && ntRatio && ntMessage) {
+                function updateNinetyTen() {
+                    const familiar = parseInt(ntSlider.value, 10);
+                    const ai = 100 - familiar;
+                    ntFamiliar.style.flex = String(familiar / 100);
+                    ntAi.style.flex = String(ai / 100);
+                    ntRatio.textContent = familiar + '% familiar · ' + ai + '% AI';
+                    ntAi.classList.toggle('is-small', ai <= 20);
+                    if (familiar >= 70) {
+                        ntMessage.className = 'ninety-ten__message is-success';
+                        ntMessage.innerHTML = '<strong>Success zone.</strong> Copilot, Photoshop, Notion keep the domain UI intact and add AI <em>within</em> that context. Users stay in their mental model.';
+                    } else if (familiar <= 30) {
+                        ntMessage.className = 'ninety-ten__message is-inverted';
+                        ntMessage.innerHTML = '<strong>Inverted.</strong> AI as the primary interface. The products that struggled asked users to adapt to conversation instead of spatial, visual workflows.';
+                    } else {
+                        ntMessage.className = 'ninety-ten__message';
+                        ntMessage.innerHTML = 'Between the two extremes. The closer to 90/10, the more the product respects the user\'s existing mental model.';
+                    }
+                }
+                ntSlider.addEventListener('input', updateNinetyTen);
+            }
+
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(() => document.documentElement.classList.add('fonts-loaded'));
+            } else {
+                document.documentElement.classList.add('fonts-loaded');
+            }
+
+            // References: show only the group for the section in view
+            const listWrap = document.querySelector('.article-refs__list-wrap');
+            if (!listWrap) return;
+            const sectionIds = [
+                'act-1-gui', 'act-2-bing', 'act-2-snap', 'act-2-figma', 'act-2-gemini',
+                'act-2-aircanada', 'act-2-replit', 'act-2-mcdonalds', 'act-2-dpd',
+                'act-3', 'act-4', 'act-5', 'act-6', 'act-7'
+            ];
+            const sections = sectionIds.map(id => document.getElementById(id)).filter(Boolean);
+            const act2Section = document.getElementById('act-2');
+            if (act2Section) sections.push(act2Section);
+
+            function setActiveSection(id) {
+                listWrap.setAttribute('data-active-section', id || 'act-1-gui');
+            }
+
+            setActiveSection('act-1-gui');
+
+            const observer = new IntersectionObserver(function (entries) {
+                const visible = entries.filter(e => e.isIntersecting);
+                if (visible.length === 0) return;
+                var chosen = null;
+                var chosenRatio = 0;
+                visible.forEach(function (e) {
+                    var id = e.target.id;
+                    if (id === 'act-2') {
+                        if (chosen === null) { chosen = 'act-2-bing'; chosenRatio = e.intersectionRatio; }
+                        return;
+                    }
+                    if (sectionIds.indexOf(id) !== -1 && e.intersectionRatio > chosenRatio) {
+                        chosen = id;
+                        chosenRatio = e.intersectionRatio;
+                    }
+                });
+                if (chosen) setActiveSection(chosen);
+            }, { rootMargin: '-15% 0px -60% 0px', threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] });
+
+            sections.forEach(el => observer.observe(el));
+        })();
+    </script>
+    <!-- Analytics -->
+    <script async defer src="https://scripts.withcabin.com/hello.js"></script>
+</body>
+</html>

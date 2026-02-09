@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mac Classic window (Figma) | Rob Boyett</title>
+    <link rel="preload" href="https://rsms.me/inter/inter.css" as="style">
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+    <link rel="alternate" type="application/rss+xml" title="Rob Boyett's Journal" href="/feed.xml">
+    <style>
+        @font-face {
+            font-family: 'ChiKareGo';
+            src: url('ChiKareGo.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { visibility: hidden; scroll-behavior: smooth; }
+        html.fonts-loaded { visibility: visible; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f5f5f4;
+            color: #1a1a1a;
+            min-height: 100vh;
+            padding: 66px 24px 120px;
+        }
+
+        .page-header {
+            max-width: min(42rem, 90vw);
+            margin: 0 auto 2rem;
+        }
+        .page-header h1 { font-size: 1.25rem; font-weight: 500; color: #666; }
+        .page-header a { color: #0066cc; text-decoration: underline; }
+
+        /* ========== .mac-classic-wrap ========== */
+        .mac-classic-wrap {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 40vh;
+        }
+
+        /* ========== .mac-classic-window ========== */
+        .mac-classic-window {
+            font-family: 'ChiKareGo', Chicago, Geneva, system-ui, sans-serif;
+            -webkit-font-smoothing: none;
+            width: 400px;
+            flex-shrink: 0;
+            background: #fff;
+            border: 2px solid #000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+
+        /* ========== .mac-classic-title-bar ========== */
+        .mac-classic-title-bar {
+            height: 20px;
+            min-height: 20px;
+            border-bottom: 1px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 5px 0 4px;
+            position: relative;
+            /* Detail: three lines top, white band, three lines bottom */
+            background-color: #fff;
+            background-image:
+                linear-gradient(to bottom, #000 0, #000 1px, #fff 1px, #fff 2px, #000 2px, #000 3px, #fff 3px, #fff 4px, #000 4px, #000 5px, #fff 5px, #fff 6px),
+                linear-gradient(to bottom, #fff 0, #fff 2px, #000 2px, #000 3px, #fff 3px, #fff 4px, #000 4px, #000 5px, #fff 5px, #fff 6px);
+            background-size: 100% 6px, 100% 6px;
+            background-position: 0 0, 0 14px;
+            background-repeat: no-repeat;
+        }
+        .mac-classic-close {
+            width: 8px;
+            height: 8px;
+            border: 1px solid #000;
+            background: #fff;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .mac-classic-close::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 3px;
+            height: 3px;
+            background: #000;
+        }
+        .mac-classic-title {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            font-weight: bold;
+            color: #000;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+        .mac-classic-zoom {
+            width: 8px;
+            height: 8px;
+            border: 1px solid #000;
+            background: #fff;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .mac-classic-zoom::after {
+            content: '';
+            position: absolute;
+            left: 2px;
+            right: 2px;
+            height: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: repeating-linear-gradient(to bottom, #000 0, #000 1px, transparent 1px, transparent 2px);
+        }
+
+        /* ========== .mac-classic-status ========== */
+        .mac-classic-status {
+            height: 22px;
+            min-height: 22px;
+            background: #fff;
+            border-bottom: 1px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px 0 12px;
+            font-size: 10px;
+            color: #000;
+            position: relative;
+        }
+        .mac-classic-status-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .mac-classic-status-right { margin-left: auto; }
+
+        /* ========== .mac-classic-body-row ========== */
+        .mac-classic-body-row {
+            display: flex;
+            flex: 1;
+            min-height: 200px;
+        }
+
+        /* ========== .mac-classic-content ========== */
+        .mac-classic-content {
+            flex: 1;
+            background: #fff;
+            min-width: 0;
+        }
+
+        /* ========== .mac-classic-vscroll ========== */
+        .mac-classic-vscroll {
+            width: 16px;
+            flex-shrink: 0;
+            border-left: 1px solid #000;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+        }
+        .mac-classic-vscroll-arrow {
+            width: 16px;
+            height: 16px;
+            border: 1px solid #000;
+            border-bottom: none;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+        }
+        .mac-classic-vscroll-arrow svg { width: 8px; height: 8px; }
+        .mac-classic-vscroll-arrow-down { border-top: 1px solid #000; }
+        .mac-classic-vscroll-track {
+            flex: 1;
+            position: relative;
+            min-height: 40px;
+            display: flex;
+            flex-direction: column;
+        }
+        .mac-classic-vscroll-track-above {
+            height: 20px;
+            min-height: 20px;
+            background: #fff;
+            flex-shrink: 0;
+        }
+        .mac-classic-vscroll-track-below {
+            flex: 1;
+            min-height: 20px;
+        }
+        .mac-classic-stipple {
+            background-color: #fff;
+            background-image: radial-gradient(circle, #000 0.5px, transparent 0.5px);
+            background-size: 2px 2px;
+        }
+        .mac-classic-vscroll-thumb {
+            position: absolute;
+            left: 2px;
+            top: 4px;
+            width: 12px;
+            height: 14px;
+            background: #fff;
+            border: 1px solid #000;
+        }
+
+        /* ========== .mac-classic-bottom ========== */
+        .mac-classic-bottom {
+            display: flex;
+            height: 16px;
+            border-top: 1px solid #000;
+        }
+
+        /* ========== .mac-classic-hscroll-wrap ========== */
+        .mac-classic-hscroll-wrap {
+            flex: 1;
+            display: flex;
+            border-right: 1px solid #000;
+            background: #fff;
+        }
+        .mac-classic-hscroll-arrow {
+            width: 16px;
+            height: 16px;
+            border: 1px solid #000;
+            border-right: none;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+        }
+        .mac-classic-hscroll-arrow svg { width: 8px; height: 8px; }
+        .mac-classic-hscroll-arrow-right { border-right: none; border-left: 1px solid #000; }
+        .mac-classic-hscroll-track {
+            flex: 1;
+            position: relative;
+            min-width: 40px;
+            display: flex;
+            flex-direction: row;
+        }
+        .mac-classic-hscroll-track-left {
+            width: 20px;
+            min-width: 20px;
+            background: #fff;
+            flex-shrink: 0;
+        }
+        .mac-classic-hscroll-track-right { flex: 1; min-width: 20px; }
+        .mac-classic-hscroll-thumb {
+            position: absolute;
+            top: 2px;
+            left: 4px;
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border: 1px solid #000;
+        }
+
+        /* ========== .mac-classic-resize ========== */
+        .mac-classic-resize {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            border-left: 1px solid #000;
+            position: relative;
+        }
+        .mac-classic-resize-arrows {
+            position: absolute;
+            right: 2px;
+            bottom: 2px;
+            width: 12px;
+            height: 12px;
+        }
+    </style>
+    <script src="/components/site-nav.js"></script>
+</head>
+<body>
+    <site-nav></site-nav>
+
+    <!-- ========== Page header ========== -->
+    <div class="page-header">
+        <h1><a href="index.html">← From deterministic to not</a></h1>
+    </div>
+
+    <!-- ========== .mac-classic-wrap ========== -->
+    <div class="mac-classic-wrap">
+        <!-- ========== .mac-classic-window ========== -->
+        <div class="mac-classic-window">
+            <!-- ========== .mac-classic-title-bar ========== -->
+            <div class="mac-classic-title-bar">
+                <div class="mac-classic-close" aria-hidden="true"></div>
+                <span class="mac-classic-title">Untitled folder</span>
+                <div class="mac-classic-zoom" aria-hidden="true"></div>
+            </div>
+
+            <!-- ========== .mac-classic-status ========== -->
+            <div class="mac-classic-status">
+                <span class="mac-classic-status-left">32 items</span>
+                <span class="mac-classic-status-center">64 MB in disk</span>
+                <span class="mac-classic-status-right">128 MB available</span>
+            </div>
+
+            <!-- ========== .mac-classic-body-row ========== -->
+            <div class="mac-classic-body-row">
+                <!-- ========== .mac-classic-content ========== -->
+                <div class="mac-classic-content"></div>
+
+                <!-- ========== .mac-classic-vscroll ========== -->
+                <div class="mac-classic-vscroll">
+                    <div class="mac-classic-vscroll-arrow" aria-hidden="true">
+                        <svg viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 2L2 5h4L4 2z" fill="#000"/>
+                        </svg>
+                    </div>
+                    <div class="mac-classic-vscroll-track">
+                        <div class="mac-classic-vscroll-track-above"></div>
+                        <div class="mac-classic-vscroll-track-below mac-classic-stipple"></div>
+                        <div class="mac-classic-vscroll-thumb"></div>
+                    </div>
+                    <div class="mac-classic-vscroll-arrow mac-classic-vscroll-arrow-down" aria-hidden="true">
+                        <svg viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 6L2 3h4l-2 3z" fill="#000"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== .mac-classic-bottom ========== -->
+            <div class="mac-classic-bottom">
+                <!-- ========== .mac-classic-hscroll-wrap ========== -->
+                <div class="mac-classic-hscroll-wrap">
+                    <div class="mac-classic-hscroll-arrow" aria-hidden="true">
+                        <svg viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 4L5 2v4L2 4z" fill="#000"/>
+                        </svg>
+                    </div>
+                    <div class="mac-classic-hscroll-track">
+                        <div class="mac-classic-hscroll-track-left"></div>
+                        <div class="mac-classic-hscroll-track-right mac-classic-stipple"></div>
+                        <div class="mac-classic-hscroll-thumb"></div>
+                    </div>
+                    <div class="mac-classic-hscroll-arrow mac-classic-hscroll-arrow-right" aria-hidden="true">
+                        <svg viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 4L3 2v4l3-2z" fill="#000"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- ========== .mac-classic-resize ========== -->
+                <div class="mac-classic-resize mac-classic-stipple" aria-hidden="true">
+                    <svg class="mac-classic-resize-arrows" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 12 L2 10" fill="none" stroke="#000" stroke-width="1" stroke-linecap="square"/>
+                        <path d="M12 12 L10 2" fill="none" stroke="#000" stroke-width="1" stroke-linecap="square"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const siteNav = document.querySelector('site-nav');
+        if (siteNav) {
+            siteNav.addEventListener('menu-open', () => document.body.classList.add('menu-open'));
+            siteNav.addEventListener('menu-close', () => document.body.classList.remove('menu-open'));
+        }
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => document.documentElement.classList.add('fonts-loaded'));
+        } else {
+            document.documentElement.classList.add('fonts-loaded');
+        }
+    </script>
+    <script async defer src="https://scripts.withcabin.com/hello.js"></script>
+</body>
+</html>

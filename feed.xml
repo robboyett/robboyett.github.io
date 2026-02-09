@@ -6,7 +6,17 @@
         <link>https://robboyett.com</link>
         <atom:link href="https://robboyett.com/feed.xml" rel="self" type="application/rss+xml"/>
         <language>en-gb</language>
-        <lastBuildDate>Fri, 30 Jan 2026 00:00:00 +0000</lastBuildDate>
+        <lastBuildDate>Fri, 06 Feb 2026 00:00:00 +0000</lastBuildDate>
+        
+        <!--
+        <item>
+            <title>From deterministic to not: AI, UX, and the contract we broke</title>
+            <link>https://robboyett.com/journal/determinism-ai-ux/</link>
+            <guid>https://robboyett.com/journal/determinism-ai-ux/</guid>
+            <pubDate>Fri, 07 Feb 2026 00:00:00 +0000</pubDate>
+            <description>A long read on command lines, GUIs, AI wreckage, integration patterns, and how to add AI without breaking the user. Scroll-driven reading experience.</description>
+        </item>
+        -->
         
         <item>
             <title>Am I a bank now? Building a pocket-sized money device for my kids</title>
@@ -71,16 +81,6 @@
             <pubDate>Tue, 23 Dec 2025 00:00:00 +0000</pubDate>
             <description>An experiment in co-locating research with code—making design context a first-class artefact in the development environment. What if research lived alongside the code it informs?</description>
         </item>
-        
-        <!-- HIDDEN: Awaiting permission to publish
-        <item>
-            <title>Synthetic vs Human Research Evaluation</title>
-            <link>https://robboyett.com/journal/synthetic-vs-human-evaluation/</link>
-            <guid>https://robboyett.com/journal/synthetic-vs-human-evaluation/</guid>
-            <pubDate>Sat, 06 Dec 2025 00:00:00 +0000</pubDate>
-            <description>How valuable are AI-generated interviews for qualitative research? An experiment comparing 10 real user interviews against 10 synthetic interviews, measuring thematic coverage, emotional tone, specificity, and linguistic authenticity.</description>
-        </item>
-        -->
         
         <item>
             <title>Midjourney Material Studies</title>
