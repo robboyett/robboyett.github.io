@@ -8,7 +8,7 @@
     <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <!-- RSS Feed -->
     <link rel="alternate" type="application/rss+xml" title="Rob Boyett's Journal" href="/feed.xml">
     <style>
@@ -23,6 +23,13 @@
             src: url('FindersKeepers.ttf') format('truetype');
             font-weight: normal;
             font-style: normal;
+        }
+        @font-face {
+            font-family: 'FindersKeepers';
+            src: url('FindersKeepers.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
         }
         :root { --column: min(42rem, 90vw); }
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -62,7 +69,7 @@
             font-weight: 400;
         }
         .article-title {
-            font-family: 'Crimson Text', Georgia, serif;
+            font-family: 'Bitter', Georgia, serif;
             font-size: clamp(2rem, 5vw, 2.75rem);
             font-weight: 400;
             letter-spacing: -0.02em;
@@ -86,7 +93,7 @@
         .article-content h2,
         .article-content h3,
         .article-content h4 {
-            font-family: 'Crimson Text', Georgia, serif;
+            font-family: 'Bitter', Georgia, serif;
         }
         .article-content h1 {
             font-size: 1.75rem;
@@ -206,7 +213,7 @@
             border: 1px solid rgba(0,0,0,0.08);
         }
         .summary-block .summary-block__title {
-            font-family: 'Crimson Text', Georgia, serif;
+            font-family: 'Bitter', Georgia, serif;
             font-size: 1.2rem;
             font-weight: 400;
             letter-spacing: -0.02em;
@@ -258,7 +265,7 @@
             flex-shrink: 0;
         }
         .framework-q__title {
-            font-family: 'Crimson Text', Georgia, serif;
+            font-family: 'Bitter', Georgia, serif;
             font-size: 1.2rem;
             font-weight: 400;
             letter-spacing: -0.02em;
@@ -322,7 +329,7 @@
         .pattern-card--2 .pattern-card__num { background: #6a1b9a; }
         .pattern-card--3 .pattern-card__num { background: #2e7d32; }
         .pattern-card__title {
-            font-family: 'Crimson Text', Georgia, serif;
+            font-family: 'Bitter', Georgia, serif;
             font-size: 1.35rem;
             font-weight: 400;
             letter-spacing: -0.02em;
@@ -516,268 +523,355 @@
         .mac-intro {
             width: 100%;
             margin-bottom: 0.5rem;
-            font-family: 'Crimson Text', Georgia, serif;
+            font-family: 'Bitter', Georgia, serif;
             font-size: 16px;
             color: #333;
         }
+        /* ── Mac Classic Window Component ─────────────────────────────── */
         .mac-window {
-            font-family: 'ChiKareGo', 'Finders Keepers', Chicago, Geneva, system-ui, sans-serif;
-            background: #fff;
-            border: 1px solid #000;
-            flex-shrink: 0;
-            min-width: 0;
-            position: relative;
-        }
-        .mac-window--key-insight,
-        .mac-window--rest {
-            width: 100%;
-        }
-        .mac-window .gui-title-bar {
+            --mac-border: #000;
+            --mac-bg: #fff;
+            --mac-title-font: 'ChiKareGo', 'Chicago', 'Geneva', system-ui, sans-serif;
+            --mac-info-font: 'FindersKeepers', 'Geneva', 'Helvetica Neue', system-ui, sans-serif;
+
             display: flex;
-            align-items: center;
-            padding: 3px 6px 4px 5px;
-            border-bottom: 1px solid #000;
-            background: repeating-linear-gradient(to bottom, #fff 0px, #fff 1px, #e5e5e5 1px, #e5e5e5 2px);
-            min-height: 20px;
-        }
-        /* Single chrome (title bar + status bar from Figma) with overlaid title and status */
-        .mac-window-chrome {
-            display: block;
-            position: relative;
-        }
-        .mac-window-chrome-bg {
-            display: block;
+            flex-direction: column;
             width: 100%;
             height: auto;
-            vertical-align: top;
+            min-width: 180px;
+            min-height: 60px;
+            background: var(--mac-bg);
+            border: 1px solid var(--mac-border);
+            box-shadow: 1px 1px 0 0 var(--mac-border);
+            overflow: hidden;
+            flex-shrink: 0;
+
+            -webkit-font-smoothing: none;
+            -moz-osx-font-smoothing: unset;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
         }
-        .mac-window-chrome .mac-window-title {
+
+        /* ── Title bar ─────────────────────────────────────────────────── */
+        .mac-window__titlebar {
+            position: relative;
+            height: 18px;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--mac-border);
+            background: var(--mac-bg);
+        }
+
+        /* Six horizontal stripes */
+        .mac-window__titlebar::before {
+            content: '';
             position: absolute;
-            left: 50%;
-            top: 9px;
-            transform: translate(-50%, -50%);
-            font-family: 'ChiKareGo', Chicago, Geneva, system-ui, sans-serif;
-            font-size: 16px;
-            font-weight: 400;
-            margin: 0;
-            padding: 0 2px;
-            text-align: center;
-            width: 70%;
+            inset: 1px 1px auto 1px;
+            height: 15px;
+            background:
+                repeating-linear-gradient(
+                    to bottom,
+                    var(--mac-border) 0, var(--mac-border) 1px,
+                    transparent        1px, transparent        2px
+                );
+            background-size: 100% 11px;
+            background-position: 0 2px;
+            background-repeat: no-repeat;
             pointer-events: none;
-            color: #000;
         }
-        .mac-window-chrome .mac-window-status {
+
+        /* ── Close box (top-left) ──────────────────────────────────────── */
+        .mac-window__close {
             position: absolute;
+            left: 7px;
+            top: 2px;
+            width: 13px;
+            height: 13px;
+            background: var(--mac-bg);
+            z-index: 1;
+            cursor: default;
+        }
+        .mac-window__close-inner {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            width: 11px;
+            height: 11px;
+            border: 1px solid var(--mac-border);
+        }
+
+        /* ── Zoom box (top-right) ──────────────────────────────────────── */
+        .mac-window__zoom {
+            position: absolute;
+            right: 7px;
+            top: 2px;
+            width: 13px;
+            height: 13px;
+            background: var(--mac-bg);
+            z-index: 1;
+            cursor: default;
+        }
+        .mac-window__zoom-inner {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            width: 11px;
+            height: 11px;
+            border: 1px solid var(--mac-border);
+        }
+        .mac-window__zoom-inner::before {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 0;
+            width: 1px;
+            height: 6px;
+            background: var(--mac-border);
+        }
+        .mac-window__zoom-inner::after {
+            content: '';
+            position: absolute;
+            top: 5px;
             left: 0;
-            right: 0;
-            bottom: 0;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 10px 0 12px;
-            font-family: 'ChiKareGo', 'Finders Keepers', Chicago, Geneva, system-ui, sans-serif;
-            font-size: 16px;
-            color: #000;
-            pointer-events: none;
+            width: 6px;
+            height: 1px;
+            background: var(--mac-border);
         }
-        .mac-window-chrome .mac-window-status-center {
+
+        /* ── Title text ────────────────────────────────────────────────── */
+        .mac-window__title {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-        }
-        .mac-window-chrome .mac-window-status-right {
-            margin-left: auto;
-        }
-        .mac-window .gui-close,
-        .mac-window .gui-zoom {
-            width: 12px;
-            height: 12px;
-            border: 1px solid #000;
-            flex-shrink: 0;
-            background: #fff;
-        }
-        .mac-window .gui-close { margin-right: 4px; }
-        .mac-window .gui-zoom { margin-left: auto; }
-        .mac-window .gui-title-bar:not(.gui-title-bar--figma) .mac-window-title {
-            font-family: 'ChiKareGo', Chicago, Geneva, system-ui, sans-serif;
-            font-size: 16px;
-            font-weight: 400;
-            margin: 0;
-            padding: 0 6px;
-            flex: 1;
-            min-width: 0;
-            text-align: center;
-            background-color: #fff;
-        }
-        .mac-window .gui-window-info {
+            top: 1px;
+            height: 15px;
             display: flex;
-            gap: 12px;
-            padding: 2px 8px 3px;
-            border-bottom: 1px solid #000;
+            align-items: center;
+            justify-content: center;
+            padding: 0 7px;
+            background: var(--mac-bg);
+            font-family: var(--mac-title-font);
             font-size: 16px;
-            background: #fff;
+            line-height: 15px;
+            color: var(--mac-border);
+            white-space: nowrap;
+            z-index: 1;
+            user-select: none;
+            pointer-events: none;
+            max-width: calc(100% - 56px);
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .mac-window .gui-body {
+
+        /* ── Info bar ──────────────────────────────────────────────────── */
+        .mac-window__infobar {
+            position: relative;
+            height: 20px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: flex-start;
+            padding: 0 10px;
+            background: var(--mac-bg);
+            font-family: var(--mac-info-font);
+            font-size: 16px;
+            line-height: 16px;
+            color: var(--mac-border);
+        }
+        .mac-window__infobar::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 2px;
+            height: 1px;
+            background: var(--mac-border);
+        }
+        .mac-window__info-left   { flex: 1; text-align: left; }
+        .mac-window__info-center  { flex: 1; text-align: center; }
+        .mac-window__info-right   { flex: 1; text-align: right; }
+
+        /* ── Content area ──────────────────────────────────────────────── */
+        .mac-window__content {
+            flex: none;
+            overflow: auto;
             padding: 10px 12px 14px;
-            font-size: 16px;
+            background: var(--mac-bg);
+            font-family: var(--mac-info-font);
+            font-size: 32px;
+            line-height: 36px;
             color: #000;
+            display: block;
+            text-align: left;
         }
-        .mac-window .gui-body p { margin-bottom: 0.6em; }
-        .mac-window .gui-body h3 { font-size: 16px; font-weight: 400; margin: 1em 0 0.4em; }
-        .mac-window .gui-body h3:first-child { margin-top: 0; }
-        .mac-window .gui-body blockquote {
+        .mac-window__content p { margin-bottom: 0.6em; }
+        .mac-window__content h3 { font-size: 32px; font-weight: 400; margin: 1em 0 0.4em; }
+        .mac-window__content h3:first-child { margin-top: 0; }
+        .mac-window__content blockquote {
             border-left: 2px solid #000;
             margin: 0.6em 0;
             padding-left: 8px;
         }
-        .mac-window .gui-body .inline-icon {
+        .mac-window__content .inline-icon {
             display: inline-block;
             width: 1em;
             height: 1em;
             vertical-align: -0.2em;
             margin: 0 0.15em;
         }
-        /* Wrapper for sticky pair: stacked, first left, second right */
+        /* ── Sticky Note Component ────────────────────────────────────── */
+        .sticky-note {
+            --sticky-bg: #ffffb3;
+            --sticky-accent: #ffda00;
+
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: var(--sticky-bg);
+            box-shadow: inset 0 0 0 1px var(--sticky-accent);
+            overflow: hidden;
+            font-family: 'FindersKeepers', 'Geneva', 'Helvetica Neue', system-ui, sans-serif;
+            -webkit-font-smoothing: none;
+            -moz-osx-font-smoothing: unset;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+
+        /* ── Colour presets ────────────────────────────────────────────── */
+        .sticky-note--yellow { --sticky-bg: #ffffb3; --sticky-accent: #ffda00; }
+        .sticky-note--blue   { --sticky-bg: #b3ffff; --sticky-accent: #00daff; }
+        .sticky-note--green  { --sticky-bg: #daffda; --sticky-accent: #87ff87; }
+
+        /* ── Header bar (9 px, stipple pattern) ────────────────────────── */
+        .sticky-note__header {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            right: 1px;
+            height: 9px;
+            overflow: hidden;
+
+            background-color: var(--sticky-bg);
+            background-image: conic-gradient(
+                var(--sticky-accent) 90deg,
+                var(--sticky-bg)     90deg 180deg,
+                var(--sticky-accent) 180deg 270deg,
+                var(--sticky-bg)     270deg
+            );
+            background-size: 2px 2px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 4px;
+        }
+
+        /* ── Close button (7x7, left) ────────────────────────────────── */
+        .sticky-note__close {
+            width: 7px;
+            height: 7px;
+            flex-shrink: 0;
+            position: relative;
+            cursor: default;
+            background: var(--sticky-bg);
+            box-shadow: inset 0 0 0 1px var(--sticky-accent);
+        }
+        .sticky-note__close::after {
+            content: '';
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            width: 1px;
+            height: 1px;
+            background: var(--sticky-accent);
+            box-shadow:
+                0 0 0 0 var(--sticky-accent),
+                1px 1px 0 0 var(--sticky-accent),
+                2px 2px 0 0 var(--sticky-accent),
+                3px 3px 0 0 var(--sticky-accent),
+                4px 4px 0 0 var(--sticky-accent),
+                4px 0 0 0 var(--sticky-accent),
+                3px 1px 0 0 var(--sticky-accent),
+                1px 3px 0 0 var(--sticky-accent),
+                0 4px 0 0 var(--sticky-accent);
+        }
+
+        /* ── Zoom button (7x7, right) ────────────────────────────────── */
+        .sticky-note__zoom {
+            width: 7px;
+            height: 7px;
+            flex-shrink: 0;
+            position: relative;
+            cursor: default;
+            background: var(--sticky-bg);
+            box-shadow: inset 0 0 0 1px var(--sticky-accent);
+        }
+        .sticky-note__zoom::after {
+            content: '';
+            position: absolute;
+            bottom: 1px;
+            right: 1px;
+            width: 3px;
+            height: 3px;
+            box-shadow: inset 0 0 0 1px var(--sticky-accent);
+        }
+
+        /* ── Text content ──────────────────────────────────────────────── */
+        .sticky-note__content {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            bottom: 10px;
+            font-size: 32px;
+            line-height: 24px;
+            color: #000;
+            white-space: pre-wrap;
+            overflow: hidden;
+        }
+
+        /* ── Resize handle (8x8, bottom-right) ─────────────────────────── */
+        .sticky-note__resize {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 8px;
+            height: 8px;
+            overflow: hidden;
+            cursor: se-resize;
+        }
+        .sticky-note__resize::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                to top left,
+                var(--sticky-accent) 50%,
+                transparent 50%
+            );
+        }
+        .sticky-note__resize::after {
+            content: '';
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            width: 6px;
+            height: 6px;
+            background: linear-gradient(
+                to top left,
+                var(--sticky-bg) 50%,
+                transparent 50%
+            );
+        }
+
+        /* ── Sticky note layout wrappers (article-specific) ──────────── */
         .mac-stickies {
             display: flex;
             flex-direction: column;
             gap: 1.25rem;
         }
-        .mac-stickies .mac-sticky--blue { align-self: flex-start; }
-        .mac-stickies .mac-sticky--yellow { align-self: flex-end; }
-        /* Sticky note: Classic Mac style from Figma (node 2003:8777) */
-        .mac-sticky {
-            width: 180px;
-            position: relative;
-            flex-shrink: 0;
-            font-family: 'ChiKareGo', 'Finders Keepers', Chicago, Geneva, system-ui, sans-serif;
-            font-size: 16px;
-            color: #000;
-            -webkit-font-smoothing: none;
-            font-smoothing: none;
-            /* Outer embossed border: light top/left, dark bottom/right */
-            border-top: 1px solid #fff;
-            border-left: 1px solid #fff;
-            border-right: 1px solid #333;
-            border-bottom: 1px solid #333;
-            box-shadow: 1px 1px 0 #FFDA00 inset;
-            background: #FFFFB3;
-        }
-        /* Blue sticky (double width) */
-        .mac-sticky--blue {
-            width: 360px;
-            background: #B3FFFF;
-            box-shadow: 1px 1px 0 #00DAFF inset;
-        }
-        .mac-sticky--blue .mac-sticky-header {
-            background-color: #00DAFF;
-            background-image:
-                repeating-linear-gradient(
-                    90deg,
-                    transparent 0,
-                    transparent 1px,
-                    #B3FFFF 1px,
-                    #B3FFFF 2px
-                ),
-                repeating-linear-gradient(
-                    0deg,
-                    transparent 0,
-                    transparent 1px,
-                    #B3FFFF 1px,
-                    #B3FFFF 2px
-                );
-        }
-        .mac-sticky--blue .mac-sticky-header::before {
-            border-color: #B3FFFF transparent transparent transparent;
-        }
-        .mac-sticky--blue .mac-sticky-body {
-            background: #B3FFFF;
-        }
-        /* Yellow sticky, wider */
-        .mac-sticky--yellow {
-            width: 280px;
-            background: #FFFFB3;
-            box-shadow: 1px 1px 0 #FFDA00 inset;
-        }
-        .mac-sticky--yellow .mac-sticky-header {
-            background-color: #FFDA00;
-            background-image:
-                repeating-linear-gradient(
-                    90deg,
-                    transparent 0,
-                    transparent 1px,
-                    #FFFFB3 1px,
-                    #FFFFB3 2px
-                ),
-                repeating-linear-gradient(
-                    0deg,
-                    transparent 0,
-                    transparent 1px,
-                    #FFFFB3 1px,
-                    #FFFFB3 2px
-                );
-        }
-        .mac-sticky--yellow .mac-sticky-header::before {
-            border-color: #FFFFB3 transparent transparent transparent;
-        }
-        .mac-sticky--yellow .mac-sticky-body {
-            background: #FFFFB3;
-        }
-        .mac-sticky-header {
-            height: 22px;
-            min-height: 22px;
-            /* Stippled / checkerboard pattern (two yellows) */
-            background-color: #FFDA00;
-            background-image:
-                repeating-linear-gradient(
-                    90deg,
-                    transparent 0,
-                    transparent 1px,
-                    #FFFFB3 1px,
-                    #FFFFB3 2px
-                ),
-                repeating-linear-gradient(
-                    0deg,
-                    transparent 0,
-                    transparent 1px,
-                    #FFFFB3 1px,
-                    #FFFFB3 2px
-                );
-            background-size: 4px 4px;
-            position: relative;
-            border-bottom: 1px solid #ccc;
-        }
-        .mac-sticky-header::before,
-        .mac-sticky-header::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 0;
-            border-style: solid;
-        }
-        /* Folded corner top-left */
-        .mac-sticky-header::before {
-            top: 2px;
-            left: 2px;
-            border-width: 6px 6px 0 0;
-            border-color: #FFFFB3 transparent transparent transparent;
-        }
-        /* Triangle top-right */
-        .mac-sticky-header::after {
-            top: 4px;
-            right: 4px;
-            border-width: 0 5px 6px 5px;
-            border-color: transparent transparent #ccc transparent;
-        }
-        .mac-sticky-body {
-            padding: 10px 10px 12px;
-            background: #FFFFB3;
-            /* Inner recessed border */
-            box-shadow: inset 1px 1px 0 rgba(255,255,255,0.6), inset -1px -1px 0 rgba(0,0,0,0.15);
-        }
-        .mac-sticky-body p { margin-bottom: 0.5em; }
-        .mac-sticky-body p:last-child { margin-bottom: 0; }
+        .mac-stickies__note--blue  { width: 360px; max-width: 100%; height: 260px; align-self: flex-start; }
+        .mac-stickies__note--yellow { width: 280px; max-width: 100%; height: 90px; align-self: flex-end; }
         .mac-icon {
             flex-shrink: 0;
         }
@@ -1114,6 +1208,7 @@
                 user-select: none;
             }
             .article-refs summary::-webkit-details-marker { display: none; }
+            .article-refs summary { list-style: none; }
             .article-refs summary::before {
                 content: '';
                 display: inline-block;
@@ -1130,8 +1225,16 @@
             .article-refs .article-refs__list-wrap {
                 padding: 0.75rem 1rem 1rem;
                 border-top: 1px solid rgba(0,0,0,0.08);
-                max-height: 16rem;
+                max-height: 20rem;
                 overflow-y: auto;
+            }
+            /* Show ALL reference groups on mobile (no section-toggling) */
+            .article-refs__list-wrap[data-active-section] .article-refs__group {
+                display: block;
+            }
+            /* Hide empty placeholder groups on mobile */
+            .article-refs__group--empty {
+                display: none !important;
             }
         }
 
@@ -1146,6 +1249,15 @@
             .page { padding: 24px; }
             .article-title { font-size: 1.75rem; }
             .article-content { font-size: 1.0625rem; }
+
+            /* Mac desktop section: tighter padding, full-width children */
+            .mac-desktop { padding: 0.75rem; gap: 1rem; }
+            .mac-window { min-width: 0; }
+            .mac-stickies__note--blue,
+            .mac-stickies__note--yellow {
+                width: 100%;
+                align-self: stretch;
+            }
         }
     </style>
     <script src="/components/site-nav.js"></script>
@@ -1183,37 +1295,66 @@
                 <div class="mac-desktop" id="act-1-gui">
                     
                     <div class="mac-window mac-window--key-insight">
-                        <div class="mac-window-chrome">
-                            <img src="mac-title-bar-v2.svg" alt="" class="mac-window-chrome-bg" aria-hidden="true" width="530" height="38">
+                        <div class="mac-window__titlebar">
+                            <div class="mac-window__close" aria-hidden="true">
+                                <div class="mac-window__close-inner"></div>
+                            </div>
+                            <span class="mac-window__title">Key Insight</span>
+                            <div class="mac-window__zoom" aria-hidden="true">
+                                <div class="mac-window__zoom-inner"></div>
+                            </div>
                         </div>
-                        <div class="gui-body">
+                        <div class="mac-window__infobar">
+                            <span class="mac-window__info-left">1 item</span>
+                            <span class="mac-window__info-center">64 MB in disk</span>
+                            <span class="mac-window__info-right">128 MB available</span>
+                        </div>
+                        <div class="mac-window__content">
                             <p>The key insight: borrow mental models people already have. A desktop <img src="small-desktop.svg" alt="" class="inline-icon" width="16" height="16" aria-hidden="true">. Folders <img src="small-file.svg" alt="" class="inline-icon" width="16" height="16" aria-hidden="true">. A wastebasket <img src="small-bin.svg" alt="" class="inline-icon" width="16" height="16" aria-hidden="true">. Documents you drag and drop. The computer started meeting users where they were, rather than demanding users come to it.</p>
                         </div>
                     </div>
 
                     <div class="mac-stickies">
-                        <div class="mac-sticky mac-sticky--blue" aria-hidden="true">
-                            <div class="mac-sticky-header" aria-hidden="true"></div>
-                            <div class="mac-sticky-body">
-                                <p>The deterministic contract</p>
-                                <p>GUIs introduced something we now take for granted:</p>
-                                <p>same action, same result, every time.</p>
-                                <p>Click the bold button, text goes bold. Drag a file to a folder, it moves. No surprises.</p>
+                        <div class="mac-stickies__note mac-stickies__note--blue">
+                            <div class="sticky-note sticky-note--blue" aria-hidden="true">
+                                <div class="sticky-note__header">
+                                    <div class="sticky-note__close" aria-hidden="true"></div>
+                                    <div class="sticky-note__zoom" aria-hidden="true"></div>
+                                </div>
+                                <div class="sticky-note__content">The deterministic contract
+GUIs introduced something we now take for granted: same action, same result, every time.
+Click the bold button, text goes bold. Drag a file to a folder, it moves. No surprises.</div>
+                                <div class="sticky-note__resize" aria-hidden="true"></div>
                             </div>
                         </div>
-                        <div class="mac-sticky mac-sticky--yellow" aria-hidden="true">
-                            <div class="mac-sticky-header" aria-hidden="true"></div>
-                            <div class="mac-sticky-body">
-                                Recognition over recall.
+                        <div class="mac-stickies__note mac-stickies__note--yellow">
+                            <div class="sticky-note sticky-note--yellow" aria-hidden="true">
+                                <div class="sticky-note__header">
+                                    <div class="sticky-note__close" aria-hidden="true"></div>
+                                    <div class="sticky-note__zoom" aria-hidden="true"></div>
+                                </div>
+                                <div class="sticky-note__content">Recognition over recall.</div>
+                                <div class="sticky-note__resize" aria-hidden="true"></div>
                             </div>
                         </div>
                     </div>
 
                     <div class="mac-window mac-window--rest">
-                        <div class="mac-window-chrome">
-                            <img src="mac-title-bar-v2.svg" alt="" class="mac-window-chrome-bg" aria-hidden="true" width="530" height="38">
+                        <div class="mac-window__titlebar">
+                            <div class="mac-window__close" aria-hidden="true">
+                                <div class="mac-window__close-inner"></div>
+                            </div>
+                            <span class="mac-window__title">Determinism</span>
+                            <div class="mac-window__zoom" aria-hidden="true">
+                                <div class="mac-window__zoom-inner"></div>
+                            </div>
                         </div>
-                        <div class="gui-body">
+                        <div class="mac-window__infobar">
+                            <span class="mac-window__info-left">3 items</span>
+                            <span class="mac-window__info-center">64 MB in disk</span>
+                            <span class="mac-window__info-right">128 MB available</span>
+                        </div>
+                        <div class="mac-window__content">
                             <p>This predictability enabled exploration without fear. Users could poke around, try things, undo mistakes. The system's state was visible at a glance—selected items highlighted, open windows present, progress bars moving.</p>
                             <p>Nielsen Norman's heuristics codified what good GUIs intuitively understood: visibility of system status, match between system and real world, user control and freedom.</p>
                             <p>The trade-off was explicit: we gave up speed for discoverability. A command-line expert will always outpace a GUI user for known tasks. But a GUI user can figure out new tasks without reading documentation. Recognition over recall.</p>
@@ -1846,6 +1987,12 @@
                 document.fonts.ready.then(() => document.documentElement.classList.add('fonts-loaded'));
             } else {
                 document.documentElement.classList.add('fonts-loaded');
+            }
+
+            // On mobile, close the references details by default
+            var refsDetails = document.getElementById('refs-details');
+            if (refsDetails && window.matchMedia('(max-width: 959px)').matches) {
+                refsDetails.removeAttribute('open');
             }
 
             // References: show only the group for the section in view

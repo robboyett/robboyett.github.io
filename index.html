@@ -17,7 +17,7 @@
         html {
             visibility: hidden;
         }
-        
+
         html.fonts-loaded {
             visibility: visible;
         }
@@ -624,9 +624,10 @@
             }
         }
     </style>
-    
+
     <!-- Navigation Component -->
     <script src="/components/site-nav.js"></script>
+
 </head>
 <body>
     <div class="page">
@@ -737,7 +738,7 @@
         // Preload internal page previews
         function preloadPreviews() {
             const menuItems = siteNav.getMenuItems();
-            
+
             menuItems.forEach(item => {
                 const url = item.dataset.preview;
                 if (url && !preloadedFrames.has(url)) {
@@ -745,7 +746,7 @@
                     iframe.src = url;
                     iframe.setAttribute('loading', 'lazy');
                     iframePreloader.appendChild(iframe);
-                    
+
                     iframe.onload = () => {
                         preloadedFrames.set(url, true);
                     };
@@ -757,7 +758,7 @@
         const loadedUrls = new Map(); // url -> screenshotUrl for external, true for internal
         const previewImage = document.getElementById('previewImage');
         let currentImageUrl = null;
-        
+
         // Check if URL is external
         function isExternalUrl(url) {
             if (!url || url === '#') return false;
@@ -768,7 +769,7 @@
                 return false;
             }
         }
-        
+
         // Get Microlink screenshot URL
         function getMicrolinkScreenshot(url) {
             return `https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&meta=false&embed=screenshot.url`;
@@ -781,7 +782,7 @@
         function showPreview(item, e) {
             const url = item.dataset.preview;
             const placeholder = item.dataset.previewPlaceholder;
-            
+
             clearTimeout(hideTimeout);
 
             // Always reset and hide all preview types first
@@ -802,11 +803,11 @@
                 // External URL - use Microlink screenshot
                 const screenshotUrl = getMicrolinkScreenshot(url);
                 currentPreviewType = 'image';
-                
+
                 // Always update the image src when switching URLs
                 if (currentImageUrl !== screenshotUrl) {
                     currentImageUrl = screenshotUrl;
-                    
+
                     if (loadedUrls.has(url)) {
                         // Already cached - just update src and show
                         previewImage.src = screenshotUrl;
@@ -817,7 +818,7 @@
                         previewLoading.textContent = 'Loading preview';
                         previewLoading.classList.add('with-spinner');
                         previewLoading.style.display = 'flex';
-                        
+
                         // Load screenshot
                         previewImage.onload = () => {
                             loadedUrls.set(url, screenshotUrl);
@@ -845,7 +846,7 @@
                 // Internal URL - use iframe
                 currentImageUrl = null;
                 currentPreviewType = 'iframe';
-                
+
                 if (currentPreviewUrl === url && loadedUrls.has(url)) {
                     // Same URL already loaded - show immediately
                     previewLoading.style.display = 'none';
@@ -855,13 +856,13 @@
                     previewLoading.textContent = 'Loading preview';
                     previewLoading.classList.add('with-spinner');
                     previewLoading.style.display = 'flex';
-                    
+
                     if (currentPreviewUrl !== url) {
                         // Load the preview
                         currentPreviewUrl = url;
                         previewFrame.src = url;
                     }
-                    
+
                     previewFrame.onload = () => {
                         loadedUrls.set(url, true);
                         if (currentPreviewUrl === url) {
@@ -1041,7 +1042,7 @@
             thoughtsOverlay.classList.add('visible');
             thoughtsToggle.classList.add('active');
             document.body.style.overflow = 'hidden';
-            
+
             // Check if we need to reload due to viewport size change
             const isMobile = window.innerWidth <= 768;
             if (!thoughtsLoaded || loadedAtMobile !== isMobile) {
@@ -1063,40 +1064,40 @@
                 const parser = new DOMParser();
                 const xml = parser.parseFromString(xmlText, 'text/xml');
                 const thoughts = xml.querySelectorAll('thought');
-                
+
                 thoughtsContainer.innerHTML = '';
-                
+
                 thoughts.forEach((thought, index) => {
                     const color = thought.getAttribute('color') || 'yellow';
                     const text = thought.querySelector('text').textContent;
-                    
+
                     const note = document.createElement('div');
                     note.className = `sticky-note ${color}`;
                     note.innerHTML = `
                         <div class="tape"></div>
                         ${text}
                     `;
-                    
+
                     // Position notes in an ad-hoc scattered pattern (desktop only)
                     if (window.innerWidth > 768) {
                         const position = getAdHocPosition(index, thoughts.length);
                         note.style.left = position.x + '%';
                         note.style.top = position.y + '%';
                     }
-                    
+
                     // Stagger animation entry
                     note.style.opacity = '0';
                     note.style.animation = `noteEntry 0.4s ease ${index * 0.08}s forwards`;
-                    
+
                     // Make note draggable
                     makeDraggable(note);
-                    
+
                     thoughtsContainer.appendChild(note);
                 });
-                
+
                 // Add the "write me a note" post-it
                 addWriteNotePostIt(thoughts.length);
-                
+
                 thoughtsLoaded = true;
             } catch (error) {
                 console.error('Error loading thoughts:', error);
@@ -1119,24 +1120,24 @@
                     </div>
                 </form>
             `;
-            
+
             // Position it in bottom right area (desktop only, using left/top so dragging works)
             if (window.innerWidth > 768) {
                 note.style.left = '70%';
                 note.style.top = '55%';
             }
-            
+
             // Animation
             note.style.opacity = '0';
             note.style.animation = `noteEntry 0.4s ease ${index * 0.08}s forwards`;
-            
+
             const prompt = note.querySelector('.note-prompt');
             const form = note.querySelector('.note-form');
             const textarea = note.querySelector('textarea');
-            
+
             // Make it draggable like other notes, but not when interacting with form
             makeDraggable(note);
-            
+
             // Prevent drag when clicking on form elements
             form.addEventListener('mousedown', (e) => {
                 e.stopPropagation();
@@ -1144,14 +1145,14 @@
             form.addEventListener('touchstart', (e) => {
                 e.stopPropagation();
             }, { passive: true });
-            
+
             // Click anywhere on the note to focus textarea
             note.addEventListener('click', (e) => {
                 if (!e.target.closest('.note-actions')) {
                     textarea.focus();
                 }
             });
-            
+
             // Handle form submission
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -1159,19 +1160,19 @@
                 const messageText = textarea.value;
                 submitBtn.disabled = true;
                 submitBtn.style.opacity = '0';
-                
+
                 try {
                     const response = await fetch(form.action, {
                         method: 'POST',
                         body: new FormData(form),
                         headers: { 'Accept': 'application/json' }
                     });
-                    
+
                     if (response.ok) {
                         // Clear and animate "Thanks" letter by letter
                         textarea.value = '';
                         textarea.readOnly = true;
-                        
+
                         const thanksText = 'Thanks ✓';
                         let i = 0;
                         const typeInterval = setInterval(() => {
@@ -1180,7 +1181,7 @@
                                 i++;
                             } else {
                                 clearInterval(typeInterval);
-                                
+
                                 // Wait, then clear and reset
                                 setTimeout(() => {
                                     textarea.value = '';
@@ -1203,14 +1204,14 @@
                     }, 2000);
                 }
             });
-            
+
             // Prevent drag on this note when editing
             note.addEventListener('mousedown', (e) => {
                 if (note.classList.contains('editing')) {
                     e.stopPropagation();
                 }
             });
-            
+
             thoughtsContainer.appendChild(note);
         }
 
@@ -1228,12 +1229,12 @@
                 { x: 35, y: 54 },
                 { x: 65, y: 52 },
             ];
-            
+
             // Use predefined positions, with fallback for more notes
             if (index < positions.length) {
                 return positions[index];
             }
-            
+
             // Generate additional positions if more notes than predefined
             const row = Math.floor(index / 3);
             const col = index % 3;
@@ -1259,7 +1260,7 @@
                 // Get the current position
                 const rect = element.getBoundingClientRect();
                 const containerRect = thoughtsContainer.getBoundingClientRect();
-                
+
                 // Convert to absolute positioning if using percentage
                 element.style.left = (rect.left - containerRect.left) + 'px';
                 element.style.top = (rect.top - containerRect.top) + 'px';
