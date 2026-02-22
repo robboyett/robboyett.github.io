@@ -25,7 +25,7 @@ class SiteNav extends HTMLElement {
         this.setupEventListeners();
         this.loadJournalEntries();
     }
-    
+
     // Public method to get menu items for external event binding
     getMenuItems() {
         return Array.from(this.shadowRoot.querySelectorAll('.journal-menu-item'));
@@ -268,27 +268,27 @@ class SiteNav extends HTMLElement {
 
     async loadJournalEntries() {
         const menu = this.shadowRoot.getElementById('journalMenu');
-        
+
         try {
-            const response = await fetch('/journal.xml');
+            const response = await fetch('/journal.xml', { cache: 'no-cache' });
             const xmlText = await response.text();
             const parser = new DOMParser();
             const xml = parser.parseFromString(xmlText, 'text/xml');
             const entries = xml.querySelectorAll('entry');
-            
+
             const loadedEntries = [];
-            
+
             entries.forEach(entry => {
                 const title = entry.querySelector('title').textContent;
                 const url = entry.querySelector('url').textContent;
                 const preview = entry.querySelector('preview');
                 const placeholder = entry.querySelector('placeholder');
-                
+
                 const link = document.createElement('a');
                 link.href = url;
                 link.className = 'journal-menu-item';
                 link.textContent = title;
-                
+
                 // Store preview data as data attributes
                 if (preview) {
                     link.dataset.preview = preview.textContent;
@@ -296,7 +296,7 @@ class SiteNav extends HTMLElement {
                 if (placeholder) {
                     link.dataset.previewPlaceholder = placeholder.textContent;
                 }
-                
+
                 menu.appendChild(link);
                 loadedEntries.push({
                     element: link,
@@ -306,9 +306,9 @@ class SiteNav extends HTMLElement {
                     placeholder: placeholder?.textContent
                 });
             });
-            
+
             this.entries = loadedEntries;
-            
+
             // Dispatch event so external code can attach handlers
             this.dispatchEvent(new CustomEvent('entries-loaded', {
                 bubbles: true,
