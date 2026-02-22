@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>90/10 Principle Interactive Mockup</title>
+    <style>
+        :root {
+            --bg-color: #f7f6f2;
+            /* From robboyett's site or just off-white */
+            --window-bg: #dadada;
+            --skeleton-base: #e0e0e0;
+            --skeleton-dark: #c5c5c5;
+            --success-color: #3b8c56;
+            --warning-color: #b26b00;
+            --danger-color: #c43b3b;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .mockup-container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        /* Faux Browser Window */
+        .browser-window {
+            background: var(--window-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            margin-bottom: 32px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 480px;
+        }
+
+        /* Browser Header */
+        .browser-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            gap: 16px;
+        }
+
+        .mac-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .dot.red {
+            background: #ff5f56;
+        }
+
+        .dot.yellow {
+            background: #ffbd2e;
+        }
+
+        .dot.green {
+            background: #27c93f;
+        }
+
+        .browser-tabs {
+            display: flex;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .skeleton-rect {
+            background: var(--skeleton-dark);
+            border-radius: 4px;
+            height: 16px;
+            opacity: 0.5;
+        }
+
+        .tab {
+            width: 32px;
+        }
+
+        /* Main Body */
+        .browser-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            background: #dadada;
+        }
+
+        /* Familiar UI */
+        .familiar-ui {
+            background: #e4e4e4;
+            height: 100%;
+            padding: 40px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: width 0.1s linear, padding 0.2s ease, opacity 0.2s ease;
+            box-sizing: border-box;
+            overflow: hidden;
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
+            flex-shrink: 0;
+            width: 100%;
+        }
+
+        .familiar-ui-inner {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .familiar-content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            width: 100%;
+        }
+
+        .skeleton-card {
+            background: var(--skeleton-dark);
+            height: 90px;
+            border-radius: 6px;
+            opacity: 0.6;
+        }
+
+        .skeleton-banner {
+            width: 100%;
+            max-width: 320px;
+            height: 24px;
+            border-radius: 6px;
+            background: var(--skeleton-dark);
+            opacity: 0.7;
+        }
+
+        .skeleton-footer-line {
+            width: 100%;
+            max-width: 400px;
+            height: 16px;
+            border-radius: 4px;
+            background: var(--skeleton-dark);
+            opacity: 0.7;
+        }
+
+        /* Chat / AI UI */
+        .ai-ui {
+            background: #d4d4d4;
+            height: 100%;
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: width 0.1s linear, opacity 0.2s ease;
+            box-sizing: border-box;
+            overflow: hidden;
+            flex-shrink: 0;
+            width: 0%;
+        }
+
+        .ai-ui-inner {
+            width: 100%;
+            min-width: 200px;
+            /* Keep chat lines visible when shrinking */
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .chat-bubble {
+            background: var(--skeleton-dark);
+            height: 12px;
+            border-radius: 4px;
+            opacity: 0.7;
+        }
+
+        .chat-bubble.right {
+            align-self: flex-end;
+            width: 65%;
+        }
+
+        .chat-bubble.left {
+            align-self: flex-start;
+            width: 85%;
+        }
+
+        .chat-bubble.left.short {
+            width: 55%;
+        }
+
+        .chat-bubble.right.medium {
+            width: 80%;
+        }
+
+        /* Footer inside Browser */
+        .browser-footer {
+            height: 48px;
+            border-top: 1px solid rgba(0, 0, 0, 0.04);
+            display: flex;
+            align-items: center;
+            padding: 0 40px;
+            gap: 32px;
+            background: var(--window-bg);
+        }
+
+        .footer-rect {
+            height: 12px;
+            background: var(--skeleton-dark);
+            border-radius: 4px;
+            flex: 1;
+            opacity: 0.6;
+            max-width: 200px;
+        }
+
+        /* Controls Section */
+        .controls-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            font-size: 14px;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .labels {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            color: var(--success-color);
+            text-transform: uppercase;
+        }
+
+        #ai-label {
+            color: #666;
+        }
+
+        .slider-wrapper {
+            position: relative;
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: #d0d0d0;
+            border-radius: 2px;
+            outline: none;
+            margin: 0;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #222;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        input[type=range]::-moz-range-thumb {
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #222;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            border: none;
+            transition: transform 0.1s;
+        }
+
+        .status-message {
+            margin-top: 12px;
+            padding: 0.9rem 1.2rem;
+            font-size: 15px;
+            line-height: 1.5;
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            transition: background-color 0.2s;
+            max-width: 600px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="mockup-container">
+        <div class="browser-window">
+            <!-- Header -->
+            <div class="browser-header">
+                <div class="mac-dots">
+                    <div class="dot red"></div>
+                    <div class="dot yellow"></div>
+                    <div class="dot green"></div>
+                </div>
+                <div class="browser-tabs">
+                    <div class="skeleton-rect tab" style="width: 40px; margin-left:16px;"></div>
+                    <div class="skeleton-rect tab" style="width: 32px;"></div>
+                    <div class="skeleton-rect tab" style="width: 32px;"></div>
+                    <div class="skeleton-rect tab" style="width: 48px;"></div>
+                    <div class="skeleton-rect tab" style="width: 32px;"></div>
+                    <div class="skeleton-rect tab" style="width: 32px;"></div>
+                    <div class="skeleton-rect tab" style="width: 24px;"></div>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="browser-body">
+                <div class="familiar-ui" id="familiar-ui">
+                    <div class="familiar-ui-inner">
+                        <div class="skeleton-banner" style="margin-bottom: 24px; height: 32px;"></div>
+                        <div class="familiar-content-grid">
+                            <div class="skeleton-card"></div>
+                            <div class="skeleton-card"></div>
+                        </div>
+                        <div class="skeleton-banner" style="height: 20px; max-width: 100%; margin: 8px 0;"></div>
+                        <div class="familiar-content-grid">
+                            <div class="skeleton-card"></div>
+                            <div class="skeleton-card"></div>
+                        </div>
+                        <div class="skeleton-footer-line" style="margin-top: 24px;"></div>
+                    </div>
+                </div>
+                <div class="ai-ui" id="ai-ui">
+                    <div class="ai-ui-inner">
+                        <div class="chat-bubble right"></div>
+                        <div class="chat-bubble left short"></div>
+                        <div class="chat-bubble left"></div>
+                        <div class="chat-bubble left" style="width: 40%;"></div>
+                        <div class="chat-bubble right medium" style="margin-top: 20px;"></div>
+                        <div class="chat-bubble left"></div>
+                        <div class="chat-bubble left short"></div>
+                        <div class="chat-bubble left" style="width: 65%;"></div>
+                        <div class="chat-bubble right" style="width: 85%; margin-top: 20px;"></div>
+                        <div class="chat-bubble right" style="width: 40%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="browser-footer">
+                <div class="footer-rect"></div>
+                <div class="footer-rect"></div>
+                <div class="footer-rect"></div>
+                <div class="footer-rect"></div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-section">
+            <div class="labels">
+                <span id="familiar-label">100% familiar UI</span>
+                <span id="ai-label">0% AI / chat</span>
+            </div>
+
+            <div class="slider-wrapper">
+                <input type="range" id="ratio-slider" min="0" max="100" value="10" aria-label="Adjust UI Ratio">
+            </div>
+
+            <div class="status-message" id="status-msg">
+                <span
+                    style="font-family: monospace; font-size: 13px; font-weight: bold; letter-spacing: 0.5px; display: block; margin-bottom: 4px; text-transform: uppercase"
+                    id="status-title">SUCCESS ZONE</span>
+                <span id="status-desc">AI lives within the familiar interface. Users stay in their mental model.</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const slider = document.getElementById('ratio-slider');
+        const familiarUi = document.getElementById('familiar-ui');
+        const aiUi = document.getElementById('ai-ui');
+        const familiarLabel = document.getElementById('familiar-label');
+        const aiLabel = document.getElementById('ai-label');
+        const statusMsg = document.getElementById('status-msg');
+        const statusTitle = document.getElementById('status-title');
+        const statusDesc = document.getElementById('status-desc');
+
+        function updateUI() {
+            const aiPercentage = parseInt(slider.value, 10);
+            const familiarPercentage = 100 - aiPercentage;
+
+            let visualAiWidth = aiPercentage;
+            if (aiPercentage <= 10) {
+                visualAiWidth = aiPercentage * 2.8; // 10% -> 28% visual width
+            } else {
+                visualAiWidth = 28 + (aiPercentage - 10) * (72 / 90);
+            }
+            let visualFamiliarWidth = 100 - visualAiWidth;
+
+            familiarUi.style.width = visualFamiliarWidth + '%';
+            aiUi.style.width = visualAiWidth + '%';
+
+            if (aiPercentage < 2) {
+                aiUi.style.padding = '0';
+                aiUi.style.opacity = '0';
+            } else {
+                aiUi.style.padding = '32px 24px';
+                aiUi.style.opacity = Math.min(1, aiPercentage / 10).toString();
+            }
+
+            if (familiarPercentage < 2) {
+                familiarUi.style.padding = '0';
+                familiarUi.style.opacity = '0';
+            } else {
+                familiarUi.style.padding = '40px 24px';
+                familiarUi.style.opacity = Math.min(1, familiarPercentage / 10).toString();
+            }
+
+            // Update text labels
+            familiarLabel.textContent = familiarPercentage + '% familiar UI';
+            aiLabel.textContent = aiPercentage + '% AI / chat';
+
+            // Update colors based on familiar percentage
+            let color = '';
+            let title = '';
+            let desc = '';
+
+            if (familiarPercentage >= 70) {
+                color = 'var(--success-color)';
+                title = 'SUCCESS ZONE';
+                desc = 'AI lives within the familiar interface. Users stay in their mental model.';
+                familiarLabel.style.color = color;
+                aiLabel.style.color = '#666';
+            } else if (familiarPercentage >= 30) {
+                color = 'var(--warning-color)';
+                title = 'TRANSITION ZONE';
+                desc = 'Familiar interface is compressed. AI chat mechanics begin to dominate the workspace.';
+                familiarLabel.style.color = '#666';
+                aiLabel.style.color = '#666';
+            } else {
+                color = 'var(--danger-color)';
+                title = 'INVERTED ZONE';
+                desc = 'AI is the primary interface. Users are forced to articulate via chat instead of using spatial workflows.';
+                familiarLabel.style.color = '#666';
+                aiLabel.style.color = color;
+            }
+
+            // Apply track gradient so the "familiar" side is colored, and "ai" side is grey
+            // Since thumb moves from left to right, we want the track to be colored based on the logic:
+            // By default, range inputs color from left to right.
+            // What we actually want is the track on the left to be green, and right to be grey, 
+            // representing the green "zone" shrinking. Wait, if AI% increases (left to right), the green zone shrinks?
+            // No! The green zone represents the familiar UI which shrinks! So if the thumb moves left to right, the green bar should shrink!
+            // That means the track left of the thumb should be grey, and the track right of the thumb should be green?
+            // Let's match typical semantic UI: Left side of the slider is green, growing *grey* from the left?
+            // Actually: if sliding RIGHT makes familiar UI (green) SHRINK, then the right side of the track should be green, and the thumb moves to eat it away.
+            slider.style.background = `linear-gradient(to right, #d0d0d0 0%, #d0d0d0 ${aiPercentage}%, ${color} ${aiPercentage}%, ${color} 100%)`;
+
+            statusMsg.style.backgroundColor = color === 'var(--success-color)' ? 'rgba(46,125,50,0.06)' : color === 'var(--warning-color)' ? 'rgba(178,107,0,0.06)' : 'rgba(196,59,59,0.06)';
+            statusTitle.style.color = color;
+            statusTitle.textContent = title;
+            statusDesc.textContent = desc;
+        }
+
+        slider.addEventListener('input', updateUI);
+        // Initial UI Setup
+        updateUI();
+    </script>
+
+</body>
+
+</html>
