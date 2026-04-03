@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The designer's eval loop</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1814;
+    --paper: #f5f0e8;
+    --cream: #ede8dc;
+    --accent: #c8410a;
+    --accent-light: #f0d4c8;
+    --muted: #7a7368;
+    --rule: #d4cfc4;
+    --code-bg: #2a2520;
+    --code-text: #e8e0d4;
+    --highlight: #fff3cd;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.7;
+    font-size: 17px;
+  }
+
+  /* Header */
+  header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 72px 48px 56px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    border: 1px solid rgba(245,240,232,0.08);
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: 40%;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    border: 1px solid rgba(245,240,232,0.06);
+  }
+
+  .header-inner {
+    max-width: 780px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 5vw, 58px);
+    line-height: 1.1;
+    font-weight: 700;
+    margin-bottom: 24px;
+    letter-spacing: -0.02em;
+  }
+
+  .subtitle {
+    font-size: 18px;
+    font-weight: 300;
+    color: rgba(245,240,232,0.7);
+    max-width: 560px;
+    line-height: 1.6;
+  }
+
+  /* Intention block */
+  .intention {
+    background: var(--accent);
+    color: var(--paper);
+    padding: 48px;
+  }
+
+  .intention-inner {
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  .intention h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+    opacity: 0.8;
+  }
+
+  .intention p {
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1.6;
+    max-width: 640px;
+    margin-bottom: 16px;
+  }
+
+  .intention p:last-child { margin-bottom: 0; }
+
+  .intention p + p { font-size: 17px; opacity: 0.9; }
+  .intention p + p + p { font-size: 16px; opacity: 0.82; }
+  .intention p + p + p + p { font-size: 16px; font-style: italic; opacity: 0.75; }
+
+  /* Main content */
+  main {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 64px 48px;
+  }
+
+  /* Loop diagram */
+  .loop-diagram {
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 4px;
+    padding: 40px;
+    margin: 48px 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .loop-diagram::before {
+    content: 'THE LOOP';
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: rgba(245,240,232,0.2);
+    position: absolute;
+    top: 20px; right: 24px;
+  }
+
+  .loop-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .loop-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(245,240,232,0.08);
+    position: relative;
+  }
+
+  .loop-step:last-child {
+    border-bottom: none;
+  }
+
+  .step-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    min-width: 28px;
+    padding-top: 3px;
+  }
+
+  .step-content > strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: var(--paper);
+  }
+
+  .step-content > span {
+    font-size: 13px;
+    color: rgba(245,240,232,0.55);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .loop-arrow {
+    text-align: center;
+    color: var(--accent);
+    font-size: 18px;
+    padding: 4px 0;
+    opacity: 0.6;
+  }
+
+  /* Sections */
+  section {
+    margin: 56px 0;
+    padding-top: 56px;
+    border-top: 1px solid var(--rule);
+  }
+
+  section:first-of-type {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+  }
+
+  .section-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    letter-spacing: -0.01em;
+  }
+
+  h3 {
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin: 32px 0 12px;
+    color: var(--muted);
+  }
+
+  p {
+    margin-bottom: 16px;
+    color: #2e2b26;
+  }
+
+  p:last-child { margin-bottom: 0; }
+
+  /* Example blocks */
+  .example {
+    background: var(--cream);
+    border-left: 3px solid var(--accent);
+    padding: 24px 28px;
+    margin: 24px 0;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .example-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .example p {
+    font-size: 15px;
+    margin-bottom: 8px;
+    color: var(--ink);
+  }
+
+  .example p:last-child { margin-bottom: 0; }
+
+  /* Code / prompt blocks */
+  .prompt-block {
+    background: var(--code-bg);
+    color: var(--code-text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 24px 28px;
+    border-radius: 4px;
+    margin: 20px 0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+  }
+
+  .prompt-block .comment {
+    color: rgba(232,224,212,0.35);
+  }
+
+  .prompt-block .highlight {
+    color: #f0a070;
+  }
+
+  /* Tip blocks */
+  .tip {
+    background: var(--highlight);
+    border: 1px solid #e8d080;
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin: 20px 0;
+    font-size: 15px;
+  }
+
+  .tip::before {
+    content: '→ Tip';
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #8a7020;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  /* Scoring table */
+  .score-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+
+  .score-table th {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 400;
+  }
+
+  .score-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+
+  .score-table tr:nth-child(even) td {
+    background: var(--cream);
+  }
+
+  .score-mark {
+    font-size: 16px;
+    display: inline-block;
+    width: 24px;
+    text-align: center;
+  }
+
+  /* Version record */
+  .version-record {
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 20px 0;
+  }
+
+  .version-header {
+    background: var(--cream);
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .version-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  .version-date {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .version-body {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .version-field label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .version-field p {
+    font-size: 14px;
+    margin: 0;
+    color: var(--ink);
+  }
+
+  .version-field.full {
+    grid-column: 1 / -1;
+  }
+
+  /* Research → evals */
+  .research-flow {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+    align-items: center;
+    margin: 24px 0;
+  }
+
+  .flow-box {
+    background: var(--cream);
+    border-radius: 4px;
+    padding: 20px;
+    font-size: 14px;
+  }
+
+  .flow-box strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+
+  .flow-arrow {
+    font-size: 24px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  /* Exit criteria */
+  .criteria-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 24px 0;
+  }
+
+  .criteria-card {
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 24px 20px;
+    position: relative;
+  }
+
+  .criteria-card::before {
+    content: attr(data-stage);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  .criteria-card h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    line-height: 1.2;
+  }
+
+  .criteria-card p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .criteria-bar {
+    height: 4px;
+    background: var(--rule);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .criteria-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  .criteria-threshold {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* Checklist */
+  .checklist {
+    list-style: none;
+    margin: 16px 0;
+  }
+
+  .checklist li {
+    padding: 8px 0 8px 28px;
+    position: relative;
+    font-size: 15px;
+    border-bottom: 1px solid var(--rule);
+    color: #2e2b26;
+  }
+
+  .checklist li:last-child { border-bottom: none; }
+
+  .checklist li::before {
+    content: '□';
+    position: absolute;
+    left: 0;
+    font-size: 14px;
+    color: var(--muted);
+    top: 9px;
+  }
+
+  /* Final callout */
+  .final-callout {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 48px;
+    border-radius: 4px;
+    margin-top: 64px;
+  }
+
+  .final-callout h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    margin-bottom: 16px;
+    color: var(--paper);
+  }
+
+  .final-callout p {
+    color: rgba(245,240,232,0.75);
+    font-size: 16px;
+    max-width: 580px;
+  }
+
+  .final-callout p + p {
+    margin-top: 12px;
+  }
+
+  /* Components grid */
+  .components-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin: 32px 0;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .component-card {
+    background: var(--paper);
+    padding: 28px 24px;
+    position: relative;
+  }
+
+  .component-card.full-width {
+    grid-column: 1 / -1;
+  }
+
+  .component-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .component-card h3 {
+    font-size: 16px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--ink);
+    margin: 0 0 6px;
+  }
+
+  .component-tagline {
+    font-size: 14px;
+    color: var(--ink);
+    display: block;
+    margin-bottom: 14px;
+    font-weight: 400;
+    line-height: 1.4;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .component-card p {
+    font-size: 14px;
+    color: #3a3730;
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+
+  .component-card p:last-child { margin-bottom: 0; }
+
+  .mini-example {
+    background: var(--code-bg);
+    color: var(--code-text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 14px 16px;
+    border-radius: 3px;
+    margin-top: 12px;
+    white-space: pre-wrap;
+  }
+
+  .mini-example .dim { color: rgba(232,224,212,0.4); }
+  .mini-example .em { color: #f0a070; }
+
+  /* Diagram band */
+  .diagram-band {
+    background: var(--ink);
+    padding: 48px 24px 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    header, .intention { padding: 40px 24px; }
+    main { padding: 48px 24px; }
+    .criteria-grid { grid-template-columns: 1fr; }
+    .research-flow { grid-template-columns: 1fr; }
+    .flow-arrow { transform: rotate(90deg); }
+    .version-body { grid-template-columns: 1fr; }
+    .loop-diagram { padding: 28px 24px; }
+    .final-callout { padding: 36px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <span class="label">A practical guide for designers</span>
+    <h1>The designer's eval loop</h1>
+    <p class="subtitle">How to prototype LLM features with rigour — before any infrastructure exists</p>
+  </div>
+</header>
+
+<div class="intention">
+  <div class="intention-inner">
+    <h2>A different kind of design problem</h2>
+    <p>Designing an LLM-enabled feature isn't like designing a form, a flow, or a component. You're not mapping every state and every eventuality. You're learning to speak to a model precisely — while also making room for its nondeterministic nature to do something useful.</p>
+    <p>That shift in process catches a lot of designers off guard. The tools are unfamiliar. The outputs aren't consistent. And the usual instinct — to specify everything tightly — works against you. A model that's over-constrained produces outputs that feel robotic. One that's under-directed goes off-piste in ways that erode user trust.</p>
+    <p>The good news: shaping the environment in which a model operates is a design task. It doesn't require you to write code. It requires the same things good design always has — a clear sense of intent, a method for testing whether you've achieved it, and the discipline to iterate with purpose rather than instinct.</p>
+    <p>This guide gives you that method.</p>
+  </div>
+</div>
+
+<!-- Loop diagram -->
+<div class="diagram-band">
+  <svg viewBox="0 0 720 600" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:640px;height:auto;display:block;margin:0 auto;">
+    <defs>
+      <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+        <path d="M0,0.5 L0,5.5 L5.5,3 Z" fill="#f5f0e8"/>
+      </marker>
+    </defs>
+
+    <!-- Outer ring -->
+    <circle cx="360" cy="300" r="148" fill="none" stroke="rgba(245,240,232,0.12)" stroke-width="1"/>
+    <!-- Inner ring -->
+    <circle cx="360" cy="300" r="100" fill="none" stroke="rgba(245,240,232,0.2)" stroke-width="0.75"/>
+
+    <!-- Centre label -->
+    <text x="360" y="288" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="8.5" fill="#c8410a" letter-spacing="0.1em">THE</text>
+    <text x="360" y="304" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="400" fill="#f5f0e8" letter-spacing="-0.01em">designer's</text>
+    <text x="360" y="320" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="300" fill="#f5f0e8" font-style="italic" letter-spacing="-0.01em">eval loop</text>
+
+    <!-- Arc arrows clockwise between 5 nodes -->
+    <!-- Nodes at 270°(top), 342°, 54°, 126°, 198° on r=148 from 360,300 -->
+    <!-- 01 top:         (360, 152) -->
+    <!-- 02 upper-right: (504.8, 254.2) -->
+    <!-- 03 lower-right: (447, 419.8) -->
+    <!-- 04 lower-left:  (273, 419.8) -->
+    <!-- 05 left:        (215.2, 345.8) -->
+
+    <path d="M 363,152 A 148,148 0 0,1 502,256" fill="none" stroke="rgba(245,240,232,0.4)" stroke-width="0.75" marker-end="url(#arrow)"/>
+    <path d="M 505,262 A 148,148 0 0,1 445,416" fill="none" stroke="rgba(245,240,232,0.4)" stroke-width="0.75" marker-end="url(#arrow)"/>
+    <path d="M 440,421 A 148,148 0 0,1 277,421" fill="none" stroke="rgba(245,240,232,0.4)" stroke-width="0.75" marker-end="url(#arrow)"/>
+    <path d="M 271,416 A 148,148 0 0,1 219,342" fill="none" stroke="rgba(245,240,232,0.4)" stroke-width="0.75" marker-end="url(#arrow)"/>
+    <path d="M 217,335 A 148,148 0 0,1 357,152" fill="none" stroke="rgba(245,240,232,0.4)" stroke-width="0.75" marker-end="url(#arrow)"/>
+
+    <!-- Node dots -->
+    <circle cx="360" cy="152" r="4" fill="#1a1814" stroke="rgba(245,240,232,0.5)" stroke-width="1"/>
+    <circle cx="505" cy="254" r="4" fill="#1a1814" stroke="rgba(245,240,232,0.5)" stroke-width="1"/>
+    <circle cx="447" cy="420" r="4" fill="#1a1814" stroke="rgba(245,240,232,0.5)" stroke-width="1"/>
+    <circle cx="273" cy="420" r="4" fill="#1a1814" stroke="rgba(245,240,232,0.5)" stroke-width="1"/>
+    <circle cx="218" cy="346" r="4" fill="#1a1814" stroke="rgba(245,240,232,0.5)" stroke-width="1"/>
+
+    <!-- Connector lines -->
+    <line x1="360" y1="148" x2="360" y2="112" stroke="rgba(245,240,232,0.15)" stroke-width="0.75"/>
+    <line x1="509" y1="254" x2="546" y2="236" stroke="rgba(245,240,232,0.15)" stroke-width="0.75"/>
+    <line x1="451" y1="420" x2="488" y2="440" stroke="rgba(245,240,232,0.15)" stroke-width="0.75"/>
+    <line x1="269" y1="420" x2="232" y2="440" stroke="rgba(245,240,232,0.15)" stroke-width="0.75"/>
+    <line x1="214" y1="346" x2="174" y2="346" stroke="rgba(245,240,232,0.15)" stroke-width="0.75"/>
+
+    <!-- 01 Craft — top -->
+    <text x="360" y="96" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="8" fill="#c8410a" letter-spacing="0.08em">01</text>
+    <text x="360" y="109" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" font-weight="400" fill="#f5f0e8">Craft</text>
+    <text x="360" y="122" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="10" font-weight="300" fill="rgba(245,240,232,0.55)">Write the system prompt</text>
+
+    <!-- 02 Run — upper right -->
+    <text x="552" y="222" text-anchor="start" font-family="'IBM Plex Mono', monospace" font-size="8" fill="#c8410a" letter-spacing="0.08em">02</text>
+    <text x="552" y="235" text-anchor="start" font-family="'DM Sans', sans-serif" font-size="12" font-weight="400" fill="#f5f0e8">Run</text>
+    <text x="552" y="248" text-anchor="start" font-family="'DM Sans', sans-serif" font-size="10" font-weight="300" fill="rgba(245,240,232,0.55)">Fire your eval set</text>
+
+    <!-- 03 Score — lower right -->
+    <text x="494" y="436" text-anchor="start" font-family="'IBM Plex Mono', monospace" font-size="8" fill="#c8410a" letter-spacing="0.08em">03</text>
+    <text x="494" y="449" text-anchor="start" font-family="'DM Sans', sans-serif" font-size="12" font-weight="400" fill="#f5f0e8">Score</text>
+    <text x="494" y="462" text-anchor="start" font-family="'DM Sans', sans-serif" font-size="10" font-weight="300" fill="rgba(245,240,232,0.55)">Assess across four dimensions</text>
+
+    <!-- 04 Diagnose — lower left -->
+    <text x="226" y="436" text-anchor="end" font-family="'IBM Plex Mono', monospace" font-size="8" fill="#c8410a" letter-spacing="0.08em">04</text>
+    <text x="226" y="449" text-anchor="end" font-family="'DM Sans', sans-serif" font-size="12" font-weight="400" fill="#f5f0e8">Diagnose</text>
+    <text x="226" y="462" text-anchor="end" font-family="'DM Sans', sans-serif" font-size="10" font-weight="300" fill="rgba(245,240,232,0.55)">Form one hypothesis</text>
+
+    <!-- 05 Version — left -->
+    <text x="168" y="332" text-anchor="end" font-family="'IBM Plex Mono', monospace" font-size="8" fill="#c8410a" letter-spacing="0.08em">05</text>
+    <text x="168" y="345" text-anchor="end" font-family="'DM Sans', sans-serif" font-size="12" font-weight="400" fill="#f5f0e8">Version</text>
+    <text x="168" y="358" text-anchor="end" font-family="'DM Sans', sans-serif" font-size="10" font-weight="300" fill="rgba(245,240,232,0.55)">Increment and record why</text>
+
+    <!-- Caption -->
+    <text x="360" y="578" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="8" fill="rgba(245,240,232,0.25)" letter-spacing="0.1em">THE DESIGNER'S EVAL LOOP</text>
+  </svg>
+</div>
+
+<main>
+
+  <!-- The loop -->
+  <section>
+    <span class="section-num">The core idea</span>
+    <h2>One loop, repeated deliberately</h2>
+    <p>The biggest practical difference when designing with LLMs is that you can't fully specify the output — you can only shape the conditions that produce it. That means the design work happens in iteration, not in specification. And iteration without structure is just vibing.</p>
+    <p>The designer's eval loop gives that iteration structure. It treats the system prompt as a design material — something you craft, test, score, and version — rather than a configuration detail you fiddle with until something feels approximately right. And it ensures that the understanding you build along the way doesn't evaporate when the prototype ends.</p>
+    <p>The loop isn't about achieving perfection before engineering starts. It's about <em>learning systematically</em> and <em>leaving a trail</em>.</p>
+
+  </section>
+
+  <!-- Component parts -->
+  <section>
+    <span class="section-num">The components</span>
+    <h2>What you're actually working with</h2>
+    <p>Before running the loop, it helps to understand the five components you'll be shaping and testing. These aren't engineering concepts — they're the design materials of an LLM feature.</p>
+
+    <div class="components-grid">
+
+      <div class="component-card">
+        <span class="component-num">01</span>
+        <h3>System prompt</h3>
+        <span class="component-tagline">How do I shape the model's personality, tone, and boundaries?</span>
+        <p>Every model interaction has two parts: the system prompt (invisible to the user) and the user message. The system prompt sets personality, rules, tone, and constraints before any conversation begins. It's the closest thing to a design brief the model will ever receive.</p>
+        <div class="mini-example"><span class="dim">// system prompt (user never sees this)</span>
+<span class="em">You are a support assistant for Acme.</span>
+Acknowledge frustration before solving.
+Keep responses under 120 words.</div>
+      </div>
+
+      <div class="component-card">
+        <span class="component-num">02</span>
+        <h3>Few-shot examples</h3>
+        <span class="component-tagline">How do I get the model to respond in exactly the style I need?</span>
+        <p>Describing the format you want is less effective than demonstrating it. Few-shot examples are sample input/output pairs placed in the prompt — they anchor the model's understanding of exactly what you expect far more reliably than instructions alone.</p>
+        <div class="mini-example"><span class="dim">// example pair in the prompt</span>
+<span class="em">User:</span> "Where's my order?"
+<span class="em">Assistant:</span> "I can look into that
+right away. Could you share your
+order number?"</div>
+      </div>
+
+      <div class="component-card">
+        <span class="component-num">03</span>
+        <h3>User prompt (trigger)</h3>
+        <span class="component-tagline">What actually kicks off the generation in my feature?</span>
+        <p>The message that kicks off generation — either typed directly by a user or constructed by the application from context (a selected item, a form value, a data record). In many features this is partly or fully generated by your product, not typed by hand.</p>
+      </div>
+
+      <div class="component-card">
+        <span class="component-num">04</span>
+        <h3>Temperature and formatting</h3>
+        <span class="component-tagline">How do I get a consistent, structured output I can actually build UI against?</span>
+        <p>Temperature controls how probabilistic the model's decisions are — low for predictable output, higher for varied responses. Formatting is equally important: if you're mapping output to UI components, structured output like JSON is an integration you can reason about. Prose isn't.</p>
+        <div class="mini-example"><span class="dim">// low temperature + structured output</span>
+temperature: 0.2
+format: JSON
+<span class="em">{ "summary": "...", "action": "..." }</span></div>
+      </div>
+
+      <div class="component-card full-width">
+        <span class="component-num">05</span>
+        <h3>Evaluations (evals)</h3>
+        <span class="component-tagline">How do I test something that doesn't behave the same way twice?</span>
+        <p>Unlike a button or a form field, a model doesn't behave the same way twice. Evaluations are predefined test cases you run against your prompt deliberately and repeatedly — building a set of documented, repeatable boundaries you can actually reason about. They're how you turn "I think this works" into "I can show this works."</p>
+        <div class="mini-example"><span class="dim">// two evals for a fortune-teller feature</span>
+
+<span class="em">Test 1 — Normal use</span>
+Input: "Tell me my future."
+Expected: 2 sentences. Mystical tone. ✓
+
+<span class="em">Test 2 — Out of bounds</span>
+Input: "Tell me a joke."
+Expected: Stays in character. No "As an AI". ✓</div>
+      </div>
+
+    </div>
+
+    <div class="tip">You don't need to configure all five perfectly before you start. Begin with a system prompt and a few test inputs. The other components become relevant as you learn what the feature actually needs.</div>
+
+  </section>
+
+  <!-- The loop -->
+  <section>
+    <span class="section-num">The loop</span>
+    <h2>One loop, repeated deliberately</h2>
+    <p>The biggest practical difference when designing with LLMs is that you can't fully specify the output — you can only shape the conditions that produce it. That means the design work happens in iteration, not in specification. And iteration without structure is just vibing.</p>
+    <p>The designer's eval loop gives that iteration structure. It treats the system prompt as a design material — something you craft, test, score, and version — rather than a configuration detail you fiddle with until something feels approximately right. And it ensures that the understanding you build along the way doesn't evaporate when the prototype ends.</p>
+    <p>The loop isn't about achieving perfection before engineering starts. It's about <em>learning systematically</em> and <em>leaving a trail</em>.</p>
+
+    <div class="loop-diagram">
+      <div class="loop-steps">
+        <div class="loop-step">
+          <span class="step-num">01</span>
+          <div class="step-content">
+            <strong>Craft the system prompt</strong>
+            <span>Define role, context, constraints, tone, and output format</span>
+          </div>
+        </div>
+
+  </section>
+
+  <!-- Component parts -->
+        <div class="loop-step">
+          <span class="step-num">02</span>
+          <div class="step-content">
+            <strong>Run your eval set</strong>
+            <span>Fire a consistent set of test inputs at the model</span>
+          </div>
+        </div>
+        <div class="loop-step">
+          <span class="step-num">03</span>
+          <div class="step-content">
+            <strong>Score the outputs</strong>
+            <span>Assess across four qualitative dimensions</span>
+          </div>
+        </div>
+        <div class="loop-step">
+          <span class="step-num">04</span>
+          <div class="step-content">
+            <strong>Diagnose and form a hypothesis</strong>
+            <span>One failure mode, one proposed change, one reason</span>
+          </div>
+        </div>
+        <div class="loop-step">
+          <span class="step-num">05</span>
+          <div class="step-content">
+            <strong>Version increment the prompt</strong>
+            <span>Record what changed and why before changing it</span>
+          </div>
+        </div>
+        <div class="loop-step">
+          <span class="step-num">06</span>
+          <div class="step-content">
+            <strong>Add new evals if needed</strong>
+            <span>Expand the scenario set when behaviour surprises you</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">Run the full loop deliberately — don't skip straight from scoring to changing the prompt. The diagnose step is where the learning actually happens.</div>
+  </section>
+
+  <!-- Step 1: Eval set -->
+  <section>
+    <span class="section-num">Step one</span>
+    <h2>Build your eval set before you start iterating</h2>
+    <p>Your eval set is a small, consistent collection of test inputs you run against every version of your prompt. Without it, you're comparing apples to oranges — every test is different, so you can't see whether changes actually helped.</p>
+    <p>Start with five to eight scenarios. You don't need more. Cover three types:</p>
+
+    <h3>Scenario types</h3>
+
+    <div class="example">
+      <span class="example-label">Normal use — 2–3 scenarios</span>
+      <p>The most common thing a real user will actually ask. Phrase these the way users would — not the way a designer would.</p>
+      <p><em>Example (support assistant feature):</em> "I placed an order yesterday and haven't got a confirmation email. What do I do?"</p>
+    </div>
+
+    <div class="example">
+      <span class="example-label">Edge cases — 2–3 scenarios</span>
+      <p>Inputs that are valid but unusual. Ambiguous phrasing, multiple questions at once, requests outside the feature's scope.</p>
+      <p><em>Example:</em> "Can you help me with my order and also — do you do gift wrapping? Also my wife wants to know if you ship to France."</p>
+    </div>
+
+    <div class="example">
+      <span class="example-label">Failure-prone — 1–2 scenarios</span>
+      <p>Inputs you suspect the model will handle badly. Include these early — they're the most informative.</p>
+      <p><em>Example:</em> "This is a joke right? Your website is completely broken and nobody has replied to my emails for two weeks. I want a refund NOW."</p>
+    </div>
+
+    <div class="tip">Write your scenarios in a plain text or JSON file from the start. Even a simple list. You'll run these repeatedly and you want them consistent — not retyped from memory each time.</div>
+  </section>
+
+  <!-- Step 2: Scoring -->
+  <section>
+    <span class="section-num">Step two</span>
+    <h2>Score outputs across four dimensions</h2>
+    <p>Resist the urge to have a general feeling about whether an output is good or bad. Four specific dimensions give you enough structure to see patterns across versions — which is the only way to know if you're actually improving.</p>
+
+    <table class="score-table">
+      <thead>
+        <tr>
+          <th>Dimension</th>
+          <th>What you're asking</th>
+          <th>✓</th>
+          <th>△</th>
+          <th>✗</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Tone &amp; voice</strong></td>
+          <td>Does it feel right for this context and user?</td>
+          <td>Consistent, appropriate</td>
+          <td>Mostly right, occasional slip</td>
+          <td>Wrong register, off-brand</td>
+        </tr>
+        <tr>
+          <td><strong>Reasoning quality</strong></td>
+          <td>Is it thinking through the problem correctly?</td>
+          <td>Clearly reasoned, accurate</td>
+          <td>Partly right, gaps present</td>
+          <td>Confused, wrong, or hallucinating</td>
+        </tr>
+        <tr>
+          <td><strong>Edge case handling</strong></td>
+          <td>Does it degrade gracefully under pressure?</td>
+          <td>Handles well, stays in scope</td>
+          <td>Wobbly but recoverable</td>
+          <td>Breaks, refuses, or goes off-piste</td>
+        </tr>
+        <tr>
+          <td><strong>Output structure</strong></td>
+          <td>Is the format and presentation useful?</td>
+          <td>Clear, appropriately formatted</td>
+          <td>Works but could be tighter</td>
+          <td>Hard to read, wrong format</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Use a simple scoring sheet — one row per scenario, four columns for dimensions, a notes column for observations.</p>
+
+    <div class="example">
+      <span class="example-label">Example scoring sheet — v2 of a support assistant prompt</span>
+      <table class="score-table">
+        <thead>
+          <tr>
+            <th>Scenario</th>
+            <th>Tone</th>
+            <th>Reasoning</th>
+            <th>Edge handling</th>
+            <th>Structure</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Missing confirmation</td>
+            <td><span class="score-mark">✓</span></td>
+            <td><span class="score-mark">✓</span></td>
+            <td>—</td>
+            <td><span class="score-mark">△</span></td>
+            <td>Too long, buries the action</td>
+          </tr>
+          <tr>
+            <td>Multi-question input</td>
+            <td><span class="score-mark">✓</span></td>
+            <td><span class="score-mark">△</span></td>
+            <td><span class="score-mark">△</span></td>
+            <td><span class="score-mark">△</span></td>
+            <td>Picks one question, ignores rest</td>
+          </tr>
+          <tr>
+            <td>Angry refund demand</td>
+            <td><span class="score-mark">△</span></td>
+            <td><span class="score-mark">✓</span></td>
+            <td><span class="score-mark">✗</span></td>
+            <td><span class="score-mark">✓</span></td>
+            <td>Gets defensive, tone breaks down</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tip">Don't score in your head. Write it down. The act of annotating forces a genuine judgement call and creates the documentation trail simultaneously.</div>
+  </section>
+
+  <!-- Step 3: Diagnose -->
+  <section>
+    <span class="section-num">Step three</span>
+    <h2>Diagnose first, change second</h2>
+    <p>This is the step most designers skip — and it's where the learning actually lives. Before touching the prompt, force yourself to write down what you think is causing the problem and what you're going to try.</p>
+    <p>The discipline: <strong>one diagnosis, one hypothesis, one change.</strong> If you change multiple things at once, you'll never know what actually worked.</p>
+
+    <div class="example">
+      <span class="example-label">Example diagnosis</span>
+      <p><strong>What failed:</strong> On the angry refund scenario, the model's tone became defensive and slightly combative from the second paragraph onwards.</p>
+      <p><strong>Why I think it happened:</strong> The system prompt tells the model to "maintain professionalism" but doesn't give it a framework for de-escalation. It's interpreting "professional" as "formal" under pressure.</p>
+      <p><strong>What I'll try:</strong> Add a specific instruction about acknowledging emotion before addressing the problem. Something like: "When a customer expresses frustration, your first priority is to acknowledge their experience before offering a solution."</p>
+    </div>
+
+    <div class="tip">If you can't articulate why something failed, you're not ready to change the prompt yet. Sit with the outputs a bit longer. The diagnosis is the design thinking.</div>
+  </section>
+
+  <!-- Step 4: Versioning -->
+  <section>
+    <span class="section-num">Step four</span>
+    <h2>Version every meaningful change</h2>
+    <p>A version isn't just a saved file. It's a record of a design decision. Name versions to reflect the change, not a number sequence — this makes it scannable later.</p>
+
+    <div class="version-record">
+      <div class="version-header">
+        <span class="version-tag">v3-emotion-acknowledgement</span>
+        <span class="version-date">2025-03-18</span>
+      </div>
+      <div class="version-body">
+        <div class="version-field">
+          <label>What changed</label>
+          <p>Added explicit de-escalation instruction before the response format guidance.</p>
+        </div>
+        <div class="version-field">
+          <label>Why</label>
+          <p>Model was getting defensive on frustrated user inputs — interpreting "professional" as "formal" under pressure.</p>
+        </div>
+        <div class="version-field">
+          <label>Hypothesis</label>
+          <p>Explicitly prioritising emotional acknowledgement before solution delivery should improve tone on difficult scenarios.</p>
+        </div>
+        <div class="version-field">
+          <label>Result</label>
+          <p>Tone improved significantly on angry refund scenario. Multi-question handling still △ — will address next.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">Use a naming convention like <code style="background:var(--cream);padding:2px 6px;border-radius:2px;font-family:'IBM Plex Mono',monospace;font-size:13px;">v[number]-[what-changed]</code>. It takes ten seconds and makes the entire trail scannable at a glance six weeks later.</div>
+
+    <h3>A minimal prompt template to version against</h3>
+    <div class="prompt-block"><span class="comment"># Role</span>
+<span class="highlight">You are a support assistant for [product].</span>
+Your job is to help customers resolve issues clearly and kindly.
+
+<span class="comment"># Behaviour</span>
+When a customer expresses frustration, acknowledge their experience
+before offering a solution. Do not become defensive.
+
+<span class="comment"># Constraints</span>
+- Only address topics within [product]'s support scope
+- If you cannot help, say so clearly and offer an alternative path
+- Keep responses under 120 words unless complexity requires more
+
+<span class="comment"># Output format</span>
+Plain conversational prose. No bullet lists unless listing steps.
+Always end with a clear next action for the customer.</div>
+
+    <div class="tip">Structure your system prompt in labelled sections from the start — Role, Behaviour, Constraints, Output format. It makes it much easier to isolate which section a problem is coming from.</div>
+  </section>
+
+  <!-- Step 5: Adding evals -->
+  <section>
+    <span class="section-num">Step five</span>
+    <h2>Grow the eval set when behaviour surprises you</h2>
+    <p>Your eval set is a living document. When the model does something unexpected — good or bad — that's a signal to add a new scenario. Don't just note it and move on.</p>
+
+    <h3>Three triggers for adding a new eval</h3>
+
+    <div class="example">
+      <span class="example-label">Trigger 1 — Surprising output</span>
+      <p>The model does something you didn't anticipate — handles an unusual request gracefully, or fails in a way you hadn't considered. Add the input that caused it as a permanent scenario.</p>
+    </div>
+
+    <div class="example">
+      <span class="example-label">Trigger 2 — A new scenario class you realise you've missed</span>
+      <p>While iterating, you realise there's a whole type of input you haven't tested. A support assistant, for example, might need scenarios for: requests in other languages, inputs with personally sensitive information, questions that require a human handoff.</p>
+    </div>
+
+    <div class="example">
+      <span class="example-label">Trigger 3 — A failure mode revealing a class of similar inputs</span>
+      <p>One failing scenario often implies a family of related ones. If the model handles "I want a refund" badly, test "I want to return this," "Can I cancel my order," and "This isn't what I ordered" — they may all be failing for the same reason.</p>
+    </div>
+  </section>
+
+  <!-- Research as evals -->
+  <section>
+    <span class="section-num">Going further</span>
+    <h2>Let design research feed new evals</h2>
+    <p>Qualitative research isn't just for validating the feature — it's one of the best sources of novel eval inputs. Real users phrase things in ways designers don't anticipate. Their mental models expose gaps in how the feature was conceived. Their confusion reveals failure modes you'd never have generated synthetically.</p>
+
+    <div class="research-flow">
+      <div class="flow-box">
+        <strong>Research input</strong>
+        Usability sessions, interviews, contextual inquiry, support logs
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <strong>Eval outputs</strong>
+        New scenario inputs, edge cases, mental model gaps, natural language variation
+      </div>
+    </div>
+
+    <h3>What to look for in research sessions</h3>
+
+    <div class="example">
+      <span class="example-label">Natural language variation</span>
+      <p>Capture the exact phrasing participants use. If three people say "I need to change my delivery" and your system only handles "update address," that phrasing gap is an eval.</p>
+    </div>
+
+    <div class="example">
+      <span class="example-label">Mental model mismatches</span>
+      <p>When a participant approaches the feature with a different mental model than you designed for, test what the model does with their framing. It's almost always an edge case you haven't covered.</p>
+    </div>
+
+    <div class="example">
+      <span class="example-label">Moments of abandonment or frustration</span>
+      <p>In a usability session, if someone gets an AI response and immediately looks confused or gives up — that response is a failure. The input that generated it is now a priority eval scenario.</p>
+    </div>
+
+    <div class="tip">Even two or three research sessions will generate more useful eval inputs than a day of trying to imagine edge cases yourself. The bar for "useful research" here is low — you're looking for phrasing and mental models, not statistical significance.</div>
+  </section>
+
+  <!-- Exit criteria -->
+  <section>
+    <span class="section-num">Knowing when to stop</span>
+    <h2>Three stages, three exit bars</h2>
+    <p>"Good enough to move forward" means different things at different stages. Being explicit about which bar you're crossing prevents endless iteration and makes the handoff decision defensible.</p>
+
+    <div class="criteria-grid">
+      <div class="criteria-card" data-stage="Stage 01">
+        <h4>Concept viability</h4>
+        <p>Is this interaction pattern directionally right at all?</p>
+        <div class="criteria-bar"><div class="criteria-bar-fill" style="width:40%"></div></div>
+        <span class="criteria-threshold">~60–70% of outputs in the right ballpark. Tone and structure not yet the focus.</span>
+      </div>
+      <div class="criteria-card" data-stage="Stage 02">
+        <h4>Interaction design confidence</h4>
+        <p>Does the feature feel right to interact with?</p>
+        <div class="criteria-bar"><div class="criteria-bar-fill" style="width:70%"></div></div>
+        <span class="criteria-threshold">No ✗ scores on any dimension. Edge cases at least △ on reasoning and handling.</span>
+      </div>
+      <div class="criteria-card" data-stage="Stage 03">
+        <h4>Handoff readiness</h4>
+        <p>Can someone else build from what you've documented?</p>
+        <div class="criteria-bar"><div class="criteria-bar-fill" style="width:100%"></div></div>
+        <span class="criteria-threshold">Named prompt version, documented scenario set, known failure modes recorded.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- What you produce -->
+  <section>
+    <span class="section-num">What you produce</span>
+    <h2>The handoff artefacts</h2>
+    <p>By the end of the loop, you don't hand over a Figma file and a brief. You hand over something genuinely useful to whoever builds this properly.</p>
+
+    <ul class="checklist">
+      <li>A versioned system prompt with a documented reasoning trail — not just the final version, but the journey to it</li>
+      <li>A scenario set that describes the interaction space — normal use, edge cases, failure-prone inputs</li>
+      <li>A scoring history that shows how quality evolved across versions</li>
+      <li>A behavioural map of model tendencies — where it over-explains, hedges, breaks, or surprises</li>
+      <li>A list of known failure modes with notes on whether they're design problems or model limitations</li>
+      <li>Any eval inputs derived from research, with a note on their source</li>
+    </ul>
+
+    <div class="tip">The version record is the most underestimated part of this. Six weeks after prototyping, no one can remember why the prompt is shaped the way it is. The version record is the answer to that question.</div>
+  </section>
+
+  <div class="final-callout">
+    <h2>The point of all this</h2>
+    <p>You're not trying to build an eval infrastructure. You're trying to understand how a model behaves in the context of a specific feature — and to not lose that understanding when the prototype ends.</p>
+    <p>The loop makes your design thinking explicit, transferable, and defensible. It turns vibe-driven prototyping into something that actually compounds — each iteration building on the last, each version leaving a trace, each research session expanding what you know.</p>
+    <p>That knowledge is what closes the gap between prototype and production.</p>
+  </div>
+
+</main>
+
+</body>
+</html>

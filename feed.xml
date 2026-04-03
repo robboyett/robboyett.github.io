@@ -6,7 +6,15 @@
         <link>https://robboyett.com</link>
         <atom:link href="https://robboyett.com/feed.xml" rel="self" type="application/rss+xml"/>
         <language>en-gb</language>
-        <lastBuildDate>Fri, 06 Feb 2026 00:00:00 +0000</lastBuildDate>
+        <lastBuildDate>Tue, 31 Mar 2026 00:00:00 +0000</lastBuildDate>
+        
+        <item>
+            <title>The designer's eval loop</title>
+            <link>https://robboyett.com/journal/the-designer's-eval-loop/</link>
+            <guid>https://robboyett.com/journal/the-designer's-eval-loop/</guid>
+            <pubDate>Tue, 31 Mar 2026 00:00:00 +0000</pubDate>
+            <description>How to prototype LLM features with rigour — before any infrastructure exists. A practical guide for designers on crafting, testing, scoring, and versioning system prompts.</description>
+        </item>
         
         <item>
             <title>The vending machine and the colleague. How to think about LLM integration for digital products.</title>

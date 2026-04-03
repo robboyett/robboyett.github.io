@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <journal>
     <entry>
+        <title>The designer's eval loop</title>
+        <url>/journal/the-designer's-eval-loop/</url>
+        <preview>/journal/the-designer's-eval-loop/</preview>
+    </entry>
+    <entry>
         <title>The vending machine and the colleague. How to think about LLM integration for digital products.</title>
         <url>/journal/determinism-ai-ux/</url>
         <preview>/journal/determinism-ai-ux/</preview>

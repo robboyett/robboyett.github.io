@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The designer's eval loop | Rob Boyett</title>
+    <link rel="preload" href="https://rsms.me/inter/inter.css" as="style">
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+
+<!-- In <head> or just before </body> — either works -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.3/turndown.min.js"></script>
+<script src="../../components/copy-as-markdown-button.js" type="module"></script>
+
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="Rob Boyett's Journal" href="/feed.xml">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            visibility: hidden;
+        }
+
+        html.fonts-loaded {
+            visibility: visible;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-feature-settings:
+                'liga' 1,
+                'dlig' 1,
+                'calt' 1,
+                'zero' 1,
+                'kern' 1,
+                'ss01' 1,
+                'ss02' 0,
+                'ss03' 1,
+                'cv01' 1,
+                'cv03' 1,
+                'cv04' 1,
+                'cv06' 1,
+                'cv07' 1,
+                'cv09' 1,
+                'cv10' 0,
+                'cv11' 1,
+                'tnum' 1;
+            background-color: #F1F1F1;
+            color: #1A1A1A;
+            min-height: 100vh;
+        }
+
+        @supports (font-variation-settings: normal) {
+            body {
+                font-family: 'Inter var', 'InterVariable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            }
+        }
+
+        .page {
+            padding: 66px 62px;
+            min-height: 100vh;
+        }
+
+        .page.menu-open .article {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .article {
+            transition: opacity 0.3s ease;
+            max-width: 680px;
+            margin: 0;
+        }
+
+        .article-header {
+            margin-bottom: 48px;
+        }
+
+        .article-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .article-title {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .article-subtitle {
+            font-size: 20px;
+            color: #555;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        /* Article Content */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #333;
+        }
+
+        .article-content p {
+            margin-bottom: 24px;
+        }
+
+        .article-content h2 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-top: 48px;
+            margin-bottom: 24px;
+            color: #1A1A1A;
+        }
+
+        .article-content h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 36px;
+            margin-bottom: 16px;
+            color: #1A1A1A;
+        }
+
+        .article-content a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+
+        .article-content a:hover {
+            color: #004499;
+        }
+
+        .article-content strong {
+            font-weight: 600;
+        }
+
+        .article-content code {
+            background: #e8e8e8;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 16px;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        /* Section separator */
+        .section-separator {
+            height: 1px;
+            background: #ddd;
+            margin: 48px 0;
+            border: none;
+        }
+
+        /* Section label */
+        .section-label {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            color: #666;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .section-label + h2,
+        .section-separator + h2 {
+            margin-top: 0;
+        }
+
+        /* Diagram container */
+        .diagram-container {
+            background: #2d2d2d;
+            border-radius: 8px;
+            padding: 40px 24px 24px;
+            margin: 32px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .diagram-container--hero {
+            margin-top: 8px;
+            margin-bottom: 40px;
+        }
+
+        .article-content > .section-label:first-of-type {
+            margin-top: 0;
+        }
+
+        /* Loop steps diagram */
+        .loop-diagram {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            border-radius: 8px;
+            padding: 32px;
+            margin: 32px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loop-diagram::before {
+            content: 'THE LOOP';
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            color: rgba(248,248,242,0.2);
+            position: absolute;
+            top: 20px;
+            right: 24px;
+        }
+
+        .loop-steps {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .loop-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(248,248,242,0.08);
+        }
+
+        .loop-step:last-child {
+            border-bottom: none;
+        }
+
+        .step-num {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 11px;
+            color: #999;
+            min-width: 28px;
+            padding-top: 3px;
+        }
+
+        .step-content strong {
+            display: block;
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: #f8f8f2;
+        }
+
+        .step-content span {
+            font-size: 13px;
+            color: rgba(248,248,242,0.5);
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        /* Components grid */
+        .components-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            margin: 32px 0;
+            background: #ddd;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .component-card {
+            background: #fff;
+            padding: 28px 24px;
+        }
+
+        .component-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .component-num {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 10px;
+            letter-spacing: 0.15em;
+            color: #666;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .component-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: none;
+            letter-spacing: 0;
+            color: #1A1A1A;
+            margin: 0 0 6px;
+        }
+
+        .component-tagline {
+            font-size: 14px;
+            color: #555;
+            display: block;
+            margin-bottom: 14px;
+            font-weight: 400;
+            line-height: 1.4;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .component-card p {
+            font-size: 14px;
+            color: #444;
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .component-card p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Subtle further-reading lines (lighter than body links) */
+        .further-reading {
+            font-size: 12px;
+            line-height: 1.55;
+            color: #888;
+            margin: 0;
+        }
+
+        .further-reading a {
+            color: #5a6f8f;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        .further-reading a:hover {
+            color: #004499;
+        }
+
+        .component-card .further-reading {
+            margin-top: 14px;
+            margin-bottom: 0;
+            padding-top: 12px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #888;
+            line-height: 1.55;
+        }
+
+        .further-reading-stack {
+            margin: 20px 0 0;
+        }
+
+        .further-reading-stack .further-reading + .further-reading {
+            margin-top: 8px;
+        }
+
+        .mini-example {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            padding: 14px 16px;
+            border-radius: 4px;
+            margin-top: 12px;
+            white-space: pre-wrap;
+        }
+
+        .mini-example .dim {
+            color: rgba(248,248,242,0.4);
+        }
+
+        .mini-example .em {
+            color: #f0a070;
+        }
+
+        /* Example blocks */
+        .example {
+            background: #fff;
+            border-left: 3px solid #202020;
+            padding: 24px 28px;
+            margin: 24px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .example-label {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 10px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .example p {
+            font-size: 15px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .example p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Tip blocks */
+        .tip {
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 20px 24px;
+            margin: 24px 0;
+            font-size: 15px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .tip::before {
+            content: '\2192\00a0 Tip';
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #666;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        /* Prompt / code blocks */
+        .prompt-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            padding: 24px 28px;
+            border-radius: 8px;
+            margin: 24px 0;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        .prompt-block .comment {
+            color: rgba(248,248,242,0.35);
+        }
+
+        .prompt-block .highlight {
+            color: #f0a070;
+        }
+
+        /* Score table */
+        .score-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        .score-table th {
+            background: #f8f8f8;
+            color: #666;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .score-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+            color: #444;
+            line-height: 1.5;
+        }
+
+        .score-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .score-mark {
+            font-size: 16px;
+            display: inline-block;
+            width: 24px;
+            text-align: center;
+        }
+
+        /* Version record */
+        .version-record {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 24px 0;
+            background: #fff;
+        }
+
+        .version-header {
+            background: #f8f8f8;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .version-tag {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 13px;
+            font-weight: 500;
+            color: #1A1A1A;
+        }
+
+        .version-date {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .version-body {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .version-field label {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #666;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .version-field p {
+            font-size: 14px;
+            margin: 0;
+            color: #333;
+        }
+
+        /* Criteria grid */
+        .criteria-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .criteria-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 24px 20px;
+            background: #fff;
+        }
+
+        .criteria-card::before {
+            content: attr(data-stage);
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #666;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .criteria-card h4 {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            line-height: 1.2;
+            color: #1A1A1A;
+        }
+
+        .criteria-card p {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 16px;
+        }
+
+        .criteria-bar {
+            height: 4px;
+            background: #ddd;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .criteria-bar-fill {
+            height: 100%;
+            background: #1A1A1A;
+            border-radius: 2px;
+        }
+
+        .criteria-threshold {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 11px;
+            color: #666;
+            display: block;
+            line-height: 1.35;
+        }
+
+        /* Checklist */
+        .checklist {
+            list-style: none;
+            margin: 16px 0 24px;
+            padding: 0;
+        }
+
+        .checklist li {
+            padding: 8px 0 8px 28px;
+            position: relative;
+            font-size: 15px;
+            border-bottom: 1px solid #ddd;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .checklist li:last-child {
+            border-bottom: none;
+        }
+
+        .checklist li::before {
+            content: '\25A1';
+            position: absolute;
+            left: 0;
+            font-size: 14px;
+            color: #999;
+            top: 9px;
+        }
+
+        /* Final callout */
+        .final-callout {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 40px;
+            border-radius: 8px;
+            margin-top: 48px;
+        }
+
+        .final-callout h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #f8f8f2;
+            margin-top: 0;
+        }
+
+        .final-callout p {
+            color: rgba(248,248,242,0.75);
+            font-size: 16px;
+            max-width: 580px;
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+
+        .final-callout p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Article Footer */
+        .article-footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid #ddd;
+        }
+
+        .article-footer p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page {
+                padding: 24px;
+            }
+
+            .article-title {
+                font-size: 32px;
+            }
+
+            .article-subtitle {
+                font-size: 18px;
+            }
+
+            .article-content {
+                font-size: 17px;
+            }
+
+            .article-content h2 {
+                font-size: 24px;
+            }
+
+            .article-content h3 {
+                font-size: 20px;
+            }
+
+            .criteria-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .components-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .version-body {
+                grid-template-columns: 1fr;
+            }
+
+            .loop-diagram {
+                padding: 24px;
+            }
+
+            .final-callout {
+                padding: 28px;
+            }
+
+            .diagram-container {
+                padding: 24px 16px 16px;
+            }
+
+            .score-table {
+                font-size: 13px;
+            }
+
+            .score-table th,
+            .score-table td {
+                padding: 10px 12px;
+            }
+        }
+    </style>
+
+    <!-- Navigation Component -->
+    <script src="/components/site-nav.js"></script>
+</head>
+<body>
+    <div class="page">
+        <!-- Navigation -->
+        <site-nav></site-nav>
+
+        <!-- Article -->
+        <article class="article">
+            <header class="article-header">
+                <time class="article-date" datetime="2026-03-31">March 31, 2026</time>
+                <h1 class="article-title">The designer's eval loop</h1>
+                <p class="article-subtitle">How to prototype LLM features with rigour, before any infrastructure exists</p>
+                <copy-as-markdown-button style="margin-top: 12px;" selector="article" label="Copy as Markdown"></copy-as-markdown-button>
+            </header>
+
+            <div class="article-content">
+
+                <span class="section-label">The loop at a glance</span>
+                <div class="diagram-container diagram-container--hero">
+                    <svg viewBox="0 0 720 600" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:640px;height:auto;display:block;margin:0 auto;">
+                        <defs>
+                            <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                                <path d="M0,0.5 L0,5.5 L5.5,3 Z" fill="#F1F1F1"/>
+                            </marker>
+                        </defs>
+
+                        <circle cx="360" cy="300" r="148" fill="none" stroke="rgba(241,241,241,0.12)" stroke-width="1"/>
+                        <circle cx="360" cy="300" r="100" fill="none" stroke="rgba(241,241,241,0.2)" stroke-width="0.75"/>
+
+                        <text x="360" y="288" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="8.5" fill="#999" letter-spacing="0.1em">THE</text>
+                        <text x="360" y="304" text-anchor="middle" font-family="'Inter', sans-serif" font-size="13" font-weight="400" fill="#F1F1F1" letter-spacing="-0.01em">designer's</text>
+                        <text x="360" y="320" text-anchor="middle" font-family="'Inter', sans-serif" font-size="13" font-weight="300" fill="#F1F1F1" font-style="italic" letter-spacing="-0.01em">eval loop</text>
+
+                        <path d="M 363,152 A 148,148 0 0,1 502,256" fill="none" stroke="rgba(241,241,241,0.4)" stroke-width="0.75" marker-end="url(#arrow)"/>
+                        <path d="M 505,262 A 148,148 0 0,1 445,416" fill="none" stroke="rgba(241,241,241,0.4)" stroke-width="0.75" marker-end="url(#arrow)"/>
+                        <path d="M 440,421 A 148,148 0 0,1 277,421" fill="none" stroke="rgba(241,241,241,0.4)" stroke-width="0.75" marker-end="url(#arrow)"/>
+                        <path d="M 271,416 A 148,148 0 0,1 219,342" fill="none" stroke="rgba(241,241,241,0.4)" stroke-width="0.75" marker-end="url(#arrow)"/>
+                        <path d="M 217,335 A 148,148 0 0,1 357,152" fill="none" stroke="rgba(241,241,241,0.4)" stroke-width="0.75" marker-end="url(#arrow)"/>
+
+                        <circle cx="360" cy="152" r="4" fill="#2d2d2d" stroke="rgba(241,241,241,0.5)" stroke-width="1"/>
+                        <circle cx="505" cy="254" r="4" fill="#2d2d2d" stroke="rgba(241,241,241,0.5)" stroke-width="1"/>
+                        <circle cx="447" cy="420" r="4" fill="#2d2d2d" stroke="rgba(241,241,241,0.5)" stroke-width="1"/>
+                        <circle cx="273" cy="420" r="4" fill="#2d2d2d" stroke="rgba(241,241,241,0.5)" stroke-width="1"/>
+                        <circle cx="218" cy="346" r="4" fill="#2d2d2d" stroke="rgba(241,241,241,0.5)" stroke-width="1"/>
+
+                        <line x1="360" y1="148" x2="360" y2="112" stroke="rgba(241,241,241,0.15)" stroke-width="0.75"/>
+                        <line x1="509" y1="254" x2="546" y2="236" stroke="rgba(241,241,241,0.15)" stroke-width="0.75"/>
+                        <line x1="451" y1="420" x2="488" y2="440" stroke="rgba(241,241,241,0.15)" stroke-width="0.75"/>
+                        <line x1="269" y1="420" x2="232" y2="440" stroke="rgba(241,241,241,0.15)" stroke-width="0.75"/>
+                        <line x1="214" y1="346" x2="174" y2="346" stroke="rgba(241,241,241,0.15)" stroke-width="0.75"/>
+
+                        <text x="360" y="96" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="8" fill="#999" letter-spacing="0.08em">01</text>
+                        <text x="360" y="109" text-anchor="middle" font-family="'Inter', sans-serif" font-size="12" font-weight="500" fill="#F1F1F1">Craft</text>
+                        <text x="360" y="122" text-anchor="middle" font-family="'Inter', sans-serif" font-size="10" font-weight="400" fill="rgba(241,241,241,0.55)">Write the system prompt</text>
+
+                        <text x="552" y="222" text-anchor="start" font-family="'SF Mono', Monaco, monospace" font-size="8" fill="#999" letter-spacing="0.08em">02</text>
+                        <text x="552" y="235" text-anchor="start" font-family="'Inter', sans-serif" font-size="12" font-weight="500" fill="#F1F1F1">Run</text>
+                        <text x="552" y="248" text-anchor="start" font-family="'Inter', sans-serif" font-size="10" font-weight="400" fill="rgba(241,241,241,0.55)">Fire your eval set</text>
+
+                        <text x="494" y="436" text-anchor="start" font-family="'SF Mono', Monaco, monospace" font-size="8" fill="#999" letter-spacing="0.08em">03</text>
+                        <text x="494" y="449" text-anchor="start" font-family="'Inter', sans-serif" font-size="12" font-weight="500" fill="#F1F1F1">Score</text>
+                        <text x="494" y="462" text-anchor="start" font-family="'Inter', sans-serif" font-size="10" font-weight="400" fill="rgba(241,241,241,0.55)">Assess across four dimensions</text>
+
+                        <text x="226" y="436" text-anchor="end" font-family="'SF Mono', Monaco, monospace" font-size="8" fill="#999" letter-spacing="0.08em">04</text>
+                        <text x="226" y="449" text-anchor="end" font-family="'Inter', sans-serif" font-size="12" font-weight="500" fill="#F1F1F1">Diagnose</text>
+                        <text x="226" y="462" text-anchor="end" font-family="'Inter', sans-serif" font-size="10" font-weight="400" fill="rgba(241,241,241,0.55)">Form one hypothesis</text>
+
+                        <text x="168" y="332" text-anchor="end" font-family="'SF Mono', Monaco, monospace" font-size="8" fill="#999" letter-spacing="0.08em">05</text>
+                        <text x="168" y="345" text-anchor="end" font-family="'Inter', sans-serif" font-size="12" font-weight="500" fill="#F1F1F1">Version</text>
+                        <text x="168" y="358" text-anchor="end" font-family="'Inter', sans-serif" font-size="10" font-weight="400" fill="rgba(241,241,241,0.55)">Increment and record why</text>
+
+                        <text x="360" y="578" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="8" fill="rgba(241,241,241,0.25)" letter-spacing="0.1em">THE DESIGNER'S EVAL LOOP</text>
+                    </svg>
+                </div>
+
+                <p>This guide draws on several years of working with LLM-enabled features across complex platforms. But it was shaped by
+                one project above all: an LLM-enabled feature for AstraZeneca's clinical trials platform, with a highly complex expert
+                user base, a regulated environment, and real consequences for getting the model's behaviour wrong.</p>
+
+                <p>Working at that fidelity, it became clear very quickly that the quality of the model's responses wasn't just a technical concern. It was a design concern. How the LLM behaved in the interaction, what it said, how it said it, when it deferred and when it committed. Those were UX decisions, not engineering ones. That realisation is where this process came from.</p>
+
+                <p>Designing an LLM-enabled feature isn't like designing a form, a flow, or a component. You're not mapping every state and every eventuality. You're learning to speak to a model precisely, while also making room for its nondeterministic nature to do something useful.</p>
+
+                <p>I would imagine that shift in process will catch a lot of designers off guard. The tools are unfamiliar and appear
+                overly technical. The LLM outputs aren't consistent. And the usual instinct (to specify everything tightly) works
+                against you. An overconstrained model produces outputs that feel robotic. One that's under-directed goes off-piste,
+                eroding user trust.</p>
+
+                <p>The good news: shaping the environment in which a model operates is a design task. It doesn't require you to write code. It requires the same things good design always has: a clear sense of intent, a method for testing whether you've achieved it, and the discipline to iterate with purpose rather than instinct.</p>
+
+                <p>This guide gives you that method.</p>
+
+                <hr class="section-separator">
+
+                <span class="section-label">The core idea</span>
+                <h2>One loop, repeated deliberately</h2>
+
+                <p>The biggest practical difference when designing with LLMs is that you can't fully specify the output. You can only shape the conditions that produce it. That means the design work happens in iteration, not in specification. And iteration without structure is just vibing.</p>
+
+                <p>The designer's eval loop gives that iteration structure. It treats the system prompt as a design material (something you craft, test, score, and version) rather than a configuration detail you fiddle with until something feels approximately right. And it ensures that the understanding you build along the way doesn't evaporate when the prototype ends.</p>
+
+                <p>The loop isn't about achieving perfection before engineering starts. It's about <em>learning systematically</em> and <em>leaving a trail</em>.</p>
+
+                <hr class="section-separator">
+
+                <span class="section-label">The components</span>
+                <h2>What you're actually working with</h2>
+
+                <p>Before running the loop, it helps to understand the six components you'll be shaping and testing. They're the design materials of an LLM feature.</p>
+
+                <p>Five of them are what you typically roll into one call to the model: <strong>system prompt</strong>, <strong>few-shot examples</strong> (if you use them), the <strong>user prompt</strong> that triggers this turn, the <strong>format</strong> (whether you want plain text, JSON, or another shape), and the <strong>temperature</strong> (how much randomness to allow). Added together, that bundle is the input you post; the completion is what you get back. The sixth component, <strong>evaluations</strong>, sits outside that user-facing request. It is the scenario set you use to stress-test whether that bundle behaves the way you intended.</p>
+
+                <div class="diagram-container">
+                    <svg viewBox="0 0 720 360" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:640px;height:auto;display:block;margin:0 auto;">
+                        <defs>
+                            <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                                <path d="M0,0.5 L0,5.5 L5.5,3 Z" fill="rgba(241,241,241,0.4)"/>
+                            </marker>
+                        </defs>
+
+                        <!-- Component boxes -->
+                        <rect x="40" y="40" width="220" height="44" rx="6" fill="#202020" stroke="rgba(241,241,241,0.12)" stroke-width="1"/>
+                        <text x="64" y="66" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#999">01</text>
+                        <text x="96" y="66" font-family="'Inter', sans-serif" font-size="13" font-weight="500" fill="#F1F1F1">System prompt</text>
+
+                        <rect x="40" y="96" width="220" height="44" rx="6" fill="#202020" stroke="rgba(241,241,241,0.12)" stroke-width="1"/>
+                        <text x="64" y="122" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#999">02</text>
+                        <text x="96" y="122" font-family="'Inter', sans-serif" font-size="13" font-weight="500" fill="#F1F1F1">Few-shot examples</text>
+
+                        <rect x="40" y="152" width="220" height="44" rx="6" fill="#202020" stroke="rgba(241,241,241,0.12)" stroke-width="1"/>
+                        <text x="64" y="178" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#999">03</text>
+                        <text x="96" y="178" font-family="'Inter', sans-serif" font-size="13" font-weight="500" fill="#F1F1F1">User prompt (trigger)</text>
+
+                        <rect x="40" y="208" width="220" height="44" rx="6" fill="#202020" stroke="rgba(241,241,241,0.12)" stroke-width="1"/>
+                        <text x="64" y="234" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#999">04</text>
+                        <text x="96" y="234" font-family="'Inter', sans-serif" font-size="13" font-weight="500" fill="#F1F1F1">Format</text>
+
+                        <rect x="40" y="264" width="220" height="44" rx="6" fill="#202020" stroke="rgba(241,241,241,0.12)" stroke-width="1"/>
+                        <text x="64" y="290" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#999">05</text>
+                        <text x="96" y="290" font-family="'Inter', sans-serif" font-size="13" font-weight="500" fill="#F1F1F1">Temperature</text>
+
+                        <!-- Bracket -->
+                        <path d="M 270,62 L 290,62 L 290,286 L 270,286" fill="none" stroke="rgba(241,241,241,0.2)" stroke-width="1"/>
+                        
+                        <!-- Line to Model -->
+                        <line x1="290" y1="174" x2="350" y2="174" stroke="rgba(241,241,241,0.4)" stroke-width="1" marker-end="url(#arrow)"/>
+                        <text x="320" y="166" text-anchor="middle" font-family="'Inter', sans-serif" font-size="10" font-weight="400" fill="rgba(241,241,241,0.5)">Request</text>
+
+                        <!-- Model -->
+                        <rect x="360" y="144" width="120" height="60" rx="8" fill="rgba(241,241,241,0.03)" stroke="rgba(241,241,241,0.2)" stroke-width="1"/>
+                        <text x="420" y="170" text-anchor="middle" font-family="'Inter', sans-serif" font-size="13" font-weight="500" fill="#F1F1F1">Model</text>
+                        <text x="420" y="186" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="9" font-weight="400" fill="#999">LLM</text>
+
+                        <!-- Line to Completion -->
+                        <line x1="480" y1="174" x2="550" y2="174" stroke="rgba(241,241,241,0.4)" stroke-width="1" marker-end="url(#arrow)"/>
+                        
+                        <!-- Completion -->
+                        <rect x="560" y="144" width="120" height="60" rx="8" fill="#f0a070" fill-opacity="0.1" stroke="#f0a070" stroke-width="1"/>
+                        <text x="620" y="170" text-anchor="middle" font-family="'Inter', sans-serif" font-size="13" font-weight="600" fill="#f0a070">Completion</text>
+                        <text x="620" y="186" text-anchor="middle" font-family="'Inter', sans-serif" font-size="11" font-weight="400" fill="rgba(240,160,112,0.8)">Output</text>
+
+                        <!-- Watermark -->
+                        <text x="360" y="336" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="8" fill="rgba(241,241,241,0.25)" letter-spacing="0.1em">ONE GENERATION REQUEST</text>
+                    </svg>
+                </div>
+
+                <p>Evaluations reuse the same stack, but as a controlled test harness: fixed inputs and expectations, not the open-ended mix a real user sends.</p>
+
+                <div class="components-grid">
+                    <div class="component-card">
+                        <span class="component-num">01</span>
+                        <h3>System prompt</h3>
+                        <span class="component-tagline">How do I shape the model's personality, tone, and boundaries?</span>
+                        <p>Every model interaction has two parts: the system prompt (invisible to the user) and the user message. The system prompt sets personality, rules, tone, and constraints before any conversation begins. It's the closest thing to a design brief the model will ever receive.</p>
+                        <div class="mini-example"><span class="dim">// system prompt (user never sees this)</span>
+<span class="em">You are a support assistant for Acme.</span>
+Acknowledge frustration before solving.
+Keep responses under 120 words.</div>
+                        <p class="further-reading"><a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview">Anthropic&rsquo;s prompt engineering overview</a> &mdash; directly relevant, well explained, and broadly transferable across models.</p>
+                    </div>
+
+                    <div class="component-card">
+                        <span class="component-num">02</span>
+                        <h3>Few-shot examples</h3>
+                        <span class="component-tagline">How do I get the model to respond in exactly the style I need?</span>
+                        <p>Describing the format you want is less effective than demonstrating it. Few-shot examples are sample input/output pairs placed in the prompt. They anchor the model's understanding of exactly what you expect far more reliably than instructions alone.</p>
+                        <div class="mini-example"><span class="dim">// example pair in the prompt</span>
+<span class="em">User:</span> "Where's my order?"
+<span class="em">Assistant:</span> "I can look into that
+right away. Could you share your
+order number?"</div>
+                        <p class="further-reading"><a href="https://github.com/anthropics/prompt-eng-interactive-tutorial">Anthropic&rsquo;s interactive prompt tutorial</a> (GitHub) &mdash; hands-on and accessible without being code-heavy.</p>
+                    </div>
+
+                    <div class="component-card">
+                        <span class="component-num">03</span>
+                        <h3>User prompt (trigger)</h3>
+                        <span class="component-tagline">What actually kicks off the generation in my feature?</span>
+                        <p>The message that kicks off generation, either typed directly by a user or constructed by the application from context (a selected item, a form value, a data record). In many features this is partly or fully generated by your product, not typed by hand.</p>
+                    </div>
+
+                    <div class="component-card">
+                        <span class="component-num">04</span>
+                        <h3>Format</h3>
+                        <span class="component-tagline">How do I get a consistent, structured output I can actually build UI against?</span>
+                        <p>If you're mapping output to UI components, structured output like JSON is an integration you can reason about. Prose isn't. The format is a critical design material that dictates how your application parses the model's response.</p>
+                        <div class="mini-example"><span class="dim">// structured output</span>
+format: JSON
+<span class="em">{ "summary": "...", "action": "..." }</span></div>
+                    </div>
+
+                    <div class="component-card">
+                        <span class="component-num">05</span>
+                        <h3>Temperature</h3>
+                        <span class="component-tagline">How do I balance predictability with creativity?</span>
+                        <p>Temperature controls how probabilistic the model's decisions are: low for predictable output, higher for varied responses. It determines whether your feature feels rigid and robotic, or fluid and spontaneous.</p>
+                        <div class="mini-example"><span class="dim">// low temperature for consistency</span>
+temperature: 0.2</div>
+                        <p class="further-reading"><a href="https://www.promptingguide.ai">promptingguide.ai</a> &mdash; broad reference for temperature and related parameters in plain language.</p>
+                    </div>
+
+                    <div class="component-card">
+                        <span class="component-num">06</span>
+                        <h3>Evaluations (evals)</h3>
+                        <span class="component-tagline">How do I test something that doesn't behave the same way twice?</span>
+                        <p>Unlike a button or a form field, a model doesn't behave the same way twice. Evaluations are predefined test cases you run against your prompt deliberately and repeatedly, building a set of documented, repeatable boundaries you can actually reason about. They're how you turn "I think this works" into "I can show this works."</p>
+                        <div class="mini-example"><span class="dim">// two evals for a fortune-teller feature</span>
+
+<span class="em">Test 1: Normal use</span>
+Input: "Tell me my future."
+Expected: 2 sentences. Mystical tone. ✓
+
+<span class="em">Test 2: Out of bounds</span>
+Input: "Tell me a joke."
+Expected: Stays in character. No "As an AI". ✓</div>
+                    </div>
+                </div>
+
+                <div class="tip">You don't need to configure all six perfectly before you start. Begin with a system prompt and a few test inputs. The other components become relevant as you learn what the feature actually needs.</div>
+
+<h3>Bringing it all together</h3>
+<p>This is an example of what the final API call could look like when it's sent to the model. By the time it leaves your application, all of the pieces you've designed independently are packed together into a single request.</p>
+                <div class="prompt-block" style="margin-top: 32px; border: 1px solid rgba(241,241,241,0.12);"><span class="dim">{</span>
+  <span class="dim">"model": "claude-3-5-sonnet-20241022",</span>
+
+  <span class="comment">// 01 System prompt with json schema template for the response</span>
+  <span class="dim">"system":</span> <span style="color: #a3b8cc;">"You are a helpful assistant for Acme. Keep responses under 120 words. You must respond in JSON format matching this schema: { \"status\": \"string\", \"reply\": \"string\" }"</span><span class="dim">,</span>
+
+  <span class="dim">"messages": [</span>
+    <span class="comment">// 02 Few-shot examples (sample input/output pairs placed in the prompt)</span>
+    <span style="color: #c9a57b;">{ "role": "user", "content": "Where's my order?" },</span>
+    <span style="color: #c9a57b;">{ "role": "assistant", "content": "I can look into that right away. Could you share your order number?" },</span>
+
+    <span class="comment">// 03 User prompt (trigger) that kicks off the generation</span>
+    <span style="color: #92bfa0;">{ "role": "user", "content": "I placed an order yesterday and haven't got a confirmation email. What do I do?" }</span>
+  <span class="dim">],</span>
+
+  <span class="comment">// 04 Format (whether you want plain text, JSON, or another shape)</span>
+  <span class="dim">"response_format":</span> <span style="color: #d19a9a;">{ "type": "json_object" }</span><span class="dim">,</span>
+
+  <span class="comment">// 05 Temperature (how much randomness to allow)</span>
+  <span class="dim">"temperature":</span> <span style="color: #d19a9a;">0.2</span>
+<span class="dim">}</span></div>
+
+                <div class="further-reading-stack">
+                    <p class="further-reading"><a href="https://platform.openai.com/docs/api-reference/chat/create">OpenAI API Reference</a> &mdash; learn how messages, temperature, and formatting are structured for ChatGPT models.</p>
+                    <p class="further-reading"><a href="https://docs.anthropic.com/en/api/messages">Anthropic API Reference</a> &mdash; learn how system prompts and messages are structured for Claude models.</p>
+                </div>
+
+                <hr class="section-separator">
+
+                <span class="section-label">The loop</span>
+                <h2>Six steps, repeated deliberately</h2>
+
+                <div class="loop-diagram">
+                    <div class="loop-steps">
+                        <div class="loop-step">
+                            <span class="step-num">01</span>
+                            <div class="step-content">
+                                <strong>Craft the system prompt</strong>
+                                <span>Define role, context, constraints, tone, and output format</span>
+                            </div>
+                        </div>
+                        <div class="loop-step">
+                            <span class="step-num">02</span>
+                            <div class="step-content">
+                                <strong>Run your eval set</strong>
+                                <span>Fire a consistent set of test inputs at the model</span>
+                            </div>
+                        </div>
+                        <div class="loop-step">
+                            <span class="step-num">03</span>
+                            <div class="step-content">
+                                <strong>Score the outputs</strong>
+                                <span>Assess across four qualitative dimensions</span>
+                            </div>
+                        </div>
+                        <div class="loop-step">
+                            <span class="step-num">04</span>
+                            <div class="step-content">
+                                <strong>Diagnose and form a hypothesis</strong>
+                                <span>One failure mode, one proposed change, one reason</span>
+                            </div>
+                        </div>
+                        <div class="loop-step">
+                            <span class="step-num">05</span>
+                            <div class="step-content">
+                                <strong>Version increment the prompt</strong>
+                                <span>Record what changed and why before changing it</span>
+                            </div>
+                        </div>
+                        <div class="loop-step">
+                            <span class="step-num">06</span>
+                            <div class="step-content">
+                                <strong>Add new evals if needed</strong>
+                                <span>Expand the scenario set when behaviour surprises you</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tip">Run the full loop deliberately. Don't skip straight from scoring to changing the prompt. The diagnose step is where the learning actually happens.</div>
+
+                <hr class="section-separator">
+
+                <span class="section-label">Step one</span>
+                <h2>Build your eval set before you start iterating</h2>
+
+                <p>Your eval set is a small, consistent collection of test inputs you run against every version of your prompt. Without it, you're comparing apples to oranges: every test is different, so you can't see whether changes actually helped.</p>
+
+                <p>Start with five to eight scenarios. You don't need more. Cover three types:</p>
+
+                <h3>Scenario types</h3>
+
+                <div class="example">
+                    <span class="example-label">Normal use (Start with 2–3 scenarios)</span>
+                    <p>The most common thing a real user will actually ask. Phrase these the way users would, not the way a designer would.</p>
+                    <p><em>Example (support assistant feature):</em> "I placed an order yesterday and haven't got a confirmation email. What do I do?"</p>
+                </div>
+
+                <div class="example">
+                    <span class="example-label">Edge cases (Start with 2–3 scenarios)</span>
+                    <p>Inputs that are valid but unusual. Ambiguous phrasing, multiple questions at once, requests outside the feature's scope.</p>
+                    <p><em>Example:</em> "Can you help me with my order and also, do you do gift wrapping? Also my wife wants to know if you ship to France."</p>
+                </div>
+
+                <div class="example">
+                    <span class="example-label">Failure-prone (Start with 1–2 scenarios)</span>
+                    <p>Inputs you suspect the model will handle badly. Include these early; they're the most informative.</p>
+                    <p><em>Example:</em> "This is a joke right? Your website is completely broken and nobody has replied to my emails for two weeks. I want a refund NOW."</p>
+                </div>
+
+                <div class="tip">Write your scenarios in a plain text or JSON file from the start. Even a simple list. You'll run these repeatedly and you want them consistent, not retyped from memory each time.</div>
+
+                <div class="further-reading-stack">
+                    <p class="further-reading"><a href="https://www.evidentlyai.com/blog/llm-evaluation-framework">Evidently AI on designing an LLM evaluation framework</a> &mdash; one of the clearer non-engineering explanations of how to structure evals around real application behaviour.</p>
+                    <p class="further-reading"><a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents">Anthropic: demystifying evals for AI agents</a> &mdash; how product teams build eval suites; strong grounding for the qualitative approach here.</p>
+                </div>
+
+                <hr class="section-separator">
+
+                <span class="section-label">Step two</span>
+                <h2>Score outputs across four dimensions</h2>
+
+                <p>Resist the urge to have a general feeling about whether an output is good or bad. Four specific dimensions give you enough structure to see patterns across versions, which is the only way to know if you're actually improving.</p>
+
+                <table class="score-table">
+                    <thead>
+                        <tr>
+                            <th>Dimension</th>
+                            <th>What you're asking</th>
+                            <th>✓</th>
+                            <th>△</th>
+                            <th>✗</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Tone &amp; voice</strong></td>
+                            <td>Does it feel right for this context and user?</td>
+                            <td>Consistent, appropriate</td>
+                            <td>Mostly right, occasional slip</td>
+                            <td>Wrong register, off-brand</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Reasoning quality</strong></td>
+                            <td>Is it thinking through the problem correctly?</td>
+                            <td>Clearly reasoned, accurate</td>
+                            <td>Partly right, gaps present</td>
+                            <td>Confused, wrong, or hallucinating</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Edge case handling</strong></td>
+                            <td>Does it degrade gracefully under pressure?</td>
+                            <td>Handles well, stays in scope</td>
+                            <td>Wobbly but recoverable</td>
+                            <td>Breaks, refuses, or goes off-piste</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Output structure</strong></td>
+                            <td>Is the format and presentation useful?</td>
+                            <td>Clear, appropriately formatted</td>
+                            <td>Works but could be tighter</td>
+                            <td>Hard to read, wrong format</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p>Use a simple scoring sheet: one row per scenario, four columns for dimensions, and a notes column for observations.</p>
+
+                <div class="example">
+                    <span class="example-label">Example scoring sheet (v2 of a support assistant prompt)</span>
+                    <table class="score-table">
+                        <thead>
+                            <tr>
+                                <th>Scenario</th>
+                                <th>Tone</th>
+                                <th>Reasoning</th>
+                                <th>Edge handling</th>
+                                <th>Structure</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Missing confirmation</td>
+                                <td><span class="score-mark">✓</span></td>
+                                <td><span class="score-mark">✓</span></td>
+                                <td>–</td>
+                                <td><span class="score-mark">△</span></td>
+                                <td>Too long, buries the action</td>
+                            </tr>
+                            <tr>
+                                <td>Multi-question input</td>
+                                <td><span class="score-mark">✓</span></td>
+                                <td><span class="score-mark">△</span></td>
+                                <td><span class="score-mark">△</span></td>
+                                <td><span class="score-mark">△</span></td>
+                                <td>Picks one question, ignores rest</td>
+                            </tr>
+                            <tr>
+                                <td>Angry refund demand</td>
+                                <td><span class="score-mark">△</span></td>
+                                <td><span class="score-mark">✓</span></td>
+                                <td><span class="score-mark">✗</span></td>
+                                <td><span class="score-mark">✓</span></td>
+                                <td>Gets defensive, tone breaks down</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tip">Don't score in your head. Write it down. The act of annotating forces a genuine judgement call and creates the documentation trail simultaneously.</div>
+
+                <div class="tip">Don't score in your head. Write it down. The act of annotating forces a genuine judgement call and creates the documentation trail simultaneously.</div>
+
+                <p>When you track these specific scenarios across multiple versions of your prompt, you start to see the actual trajectory of your design work without losing the nuance of individual test cases. Aggregating scores hides the truth; a matrix reveals it. You can spot exactly when an intervention fixed one problem but introduced a regression in a specific edge case.</p>
+
+                <div class="diagram-container">
+                    <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:640px;height:auto;display:block;margin:0 auto;">
+                        
+                        <!-- Column Backgrounds -->
+                        <rect x="284" y="64" width="72" height="202" rx="6" fill="rgba(241,241,241,0.02)"/>
+                        <rect x="364" y="64" width="72" height="202" rx="6" fill="rgba(241,241,241,0.02)"/>
+                        <rect x="444" y="64" width="72" height="202" rx="6" fill="rgba(241,241,241,0.02)"/>
+                        <rect x="524" y="64" width="72" height="202" rx="6" fill="rgba(241,241,241,0.04)"/>
+
+                        <!-- Column Headers -->
+                        <text x="320" y="30" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#F1F1F1">v1.0</text>
+                        <text x="320" y="46" text-anchor="middle" font-family="'Inter', sans-serif" font-size="10" fill="#999">Baseline</text>
+
+                        <text x="400" y="30" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#F1F1F1">v1.1</text>
+                        <text x="400" y="46" text-anchor="middle" font-family="'Inter', sans-serif" font-size="10" fill="#999">Format fix</text>
+
+                        <text x="480" y="30" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#F1F1F1">v2.0</text>
+                        <text x="480" y="46" text-anchor="middle" font-family="'Inter', sans-serif" font-size="10" fill="#999">Tone fix</text>
+
+                        <text x="560" y="30" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#F1F1F1">v2.1</text>
+                        <text x="560" y="46" text-anchor="middle" font-family="'Inter', sans-serif" font-size="10" fill="#999">Model swap</text>
+
+                        <!-- Row 1: Normal -->
+                        <text x="260" y="86" text-anchor="end" font-family="'Inter', sans-serif" font-size="13" fill="#F1F1F1">"Where's my order?"</text>
+                        <text x="260" y="102" text-anchor="end" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#999">Normal use</text>
+                        
+                        <rect x="290" y="70" width="60" height="40" rx="4" fill="#92bfa0" fill-opacity="0.15" stroke="#92bfa0" stroke-width="1"/>
+                        <text x="320" y="95" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#92bfa0">✓</text>
+                        
+                        <rect x="370" y="70" width="60" height="40" rx="4" fill="#92bfa0" fill-opacity="0.15" stroke="#92bfa0" stroke-width="1"/>
+                        <text x="400" y="95" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#92bfa0">✓</text>
+
+                        <rect x="450" y="70" width="60" height="40" rx="4" fill="#92bfa0" fill-opacity="0.15" stroke="#92bfa0" stroke-width="1"/>
+                        <text x="480" y="95" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#92bfa0">✓</text>
+
+                        <rect x="530" y="70" width="60" height="40" rx="4" fill="#92bfa0" fill-opacity="0.15" stroke="#92bfa0" stroke-width="1"/>
+                        <text x="560" y="95" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#92bfa0">✓</text>
+
+                        <!-- Row 2: Edge Case -->
+                        <text x="260" y="136" text-anchor="end" font-family="'Inter', sans-serif" font-size="13" fill="#F1F1F1">"Order + gift wrap?"</text>
+                        <text x="260" y="152" text-anchor="end" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#999">Edge case</text>
+
+                        <rect x="290" y="120" width="60" height="40" rx="4" fill="#e5c07b" fill-opacity="0.15" stroke="#e5c07b" stroke-width="1"/>
+                        <text x="320" y="145" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#e5c07b">△</text>
+
+                        <rect x="370" y="120" width="60" height="40" rx="4" fill="#e5c07b" fill-opacity="0.15" stroke="#e5c07b" stroke-width="1"/>
+                        <text x="400" y="145" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#e5c07b">△</text>
+
+                        <!-- The regression! -->
+                        <rect x="450" y="120" width="60" height="40" rx="4" fill="#d19a9a" fill-opacity="0.15" stroke="#d19a9a" stroke-width="1"/>
+                        <text x="480" y="145" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#d19a9a">✗</text>
+
+                        <rect x="530" y="120" width="60" height="40" rx="4" fill="#92bfa0" fill-opacity="0.15" stroke="#92bfa0" stroke-width="1"/>
+                        <text x="560" y="145" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#92bfa0">✓</text>
+
+                        <!-- Row 3: Failure-prone -->
+                        <text x="260" y="186" text-anchor="end" font-family="'Inter', sans-serif" font-size="13" fill="#F1F1F1">"I want a refund NOW"</text>
+                        <text x="260" y="202" text-anchor="end" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#999">Failure-prone</text>
+
+                        <rect x="290" y="170" width="60" height="40" rx="4" fill="#d19a9a" fill-opacity="0.15" stroke="#d19a9a" stroke-width="1"/>
+                        <text x="320" y="195" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#d19a9a">✗</text>
+
+                        <rect x="370" y="170" width="60" height="40" rx="4" fill="#d19a9a" fill-opacity="0.15" stroke="#d19a9a" stroke-width="1"/>
+                        <text x="400" y="195" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#d19a9a">✗</text>
+
+                        <!-- The fix! -->
+                        <rect x="450" y="170" width="60" height="40" rx="4" fill="#92bfa0" fill-opacity="0.15" stroke="#92bfa0" stroke-width="1"/>
+                        <text x="480" y="195" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#92bfa0">✓</text>
+
+                        <rect x="530" y="170" width="60" height="40" rx="4" fill="#92bfa0" fill-opacity="0.15" stroke="#92bfa0" stroke-width="1"/>
+                        <text x="560" y="195" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#92bfa0">✓</text>
+
+                        <!-- Row 4: Out of bounds -->
+                        <text x="260" y="236" text-anchor="end" font-family="'Inter', sans-serif" font-size="13" fill="#F1F1F1">"Tell me a joke"</text>
+                        <text x="260" y="252" text-anchor="end" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#999">Out of bounds</text>
+
+                        <rect x="290" y="220" width="60" height="40" rx="4" fill="#92bfa0" fill-opacity="0.15" stroke="#92bfa0" stroke-width="1"/>
+                        <text x="320" y="245" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#92bfa0">✓</text>
+
+                        <rect x="370" y="220" width="60" height="40" rx="4" fill="#92bfa0" fill-opacity="0.15" stroke="#92bfa0" stroke-width="1"/>
+                        <text x="400" y="245" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#92bfa0">✓</text>
+
+                        <rect x="450" y="220" width="60" height="40" rx="4" fill="#92bfa0" fill-opacity="0.15" stroke="#92bfa0" stroke-width="1"/>
+                        <text x="480" y="245" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#92bfa0">✓</text>
+
+                        <rect x="530" y="220" width="60" height="40" rx="4" fill="#92bfa0" fill-opacity="0.15" stroke="#92bfa0" stroke-width="1"/>
+                        <text x="560" y="245" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#92bfa0">✓</text>
+
+                        <!-- Legend/Key at bottom -->
+                        <rect x="290" y="288" width="12" height="12" rx="2" fill="#92bfa0" fill-opacity="0.15" stroke="#92bfa0" stroke-width="1"/>
+                        <text x="310" y="298" font-family="'Inter', sans-serif" font-size="11" fill="#999">Good</text>
+
+                        <rect x="350" y="288" width="12" height="12" rx="2" fill="#e5c07b" fill-opacity="0.15" stroke="#e5c07b" stroke-width="1"/>
+                        <text x="370" y="298" font-family="'Inter', sans-serif" font-size="11" fill="#999">Okay</text>
+
+                        <rect x="410" y="288" width="12" height="12" rx="2" fill="#d19a9a" fill-opacity="0.15" stroke="#d19a9a" stroke-width="1"/>
+                        <text x="430" y="298" font-family="'Inter', sans-serif" font-size="11" fill="#999">Poor</text>
+                        
+                        <!-- Annotations/Arrows -->
+                        <path d="M 450,140 Q 420,130 430,105" fill="none" stroke="#d19a9a" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrow)"/>
+                        <text x="440" y="100" font-family="'Inter', sans-serif" font-size="10" fill="#d19a9a" text-anchor="end">Regression!</text>
+
+                    </svg>
+                </div>
+
+                <hr class="section-separator">
+
+                <span class="section-label">Step three</span>
+                <h2>Diagnose first, change second</h2>
+
+                <p>This is easy to skip, but I would argue that this is where the learning actually lives. Before touching the prompt,
+                force yourself to write down what you think is causing the problem and what you're going to try.</p>
+
+                <p>The discipline: <strong>one diagnosis, one hypothesis, one change.</strong> If you change multiple things at once, you'll never know what actually worked.</p>
+
+                <div class="example">
+                    <span class="example-label">Example diagnosis</span>
+                    <p><strong>What failed:</strong> On the angry refund scenario, the model's tone became defensive and slightly combative from the second paragraph onwards.</p>
+                    <p><strong>Why I think it happened:</strong> The system prompt tells the model to "maintain professionalism" but doesn't give it a framework for de-escalation. It's interpreting "professional" as "formal" under pressure.</p>
+                    <p><strong>What I'll try:</strong> Add a specific instruction about acknowledging emotion before addressing the problem. Something like: "When a customer expresses frustration, your first priority is to acknowledge their experience before offering a solution."</p>
+                </div>
+
+                <div class="tip">If you can't articulate why something failed, you're not ready to change the prompt yet. Sit with the outputs a bit longer. The diagnosis is the design thinking.</div>
+
+                <hr class="section-separator">
+
+                <span class="section-label">Step four</span>
+                <h2>Version every meaningful change</h2>
+
+                <p>A version isn't just a saved file. It's a record of a design decision. Name versions to reflect the change, not a number sequence. That makes them scannable later.</p>
+
+                <div class="version-record">
+                    <div class="version-header">
+                        <span class="version-tag">v3-emotion-acknowledgement</span>
+                        <span class="version-date">2025-03-18</span>
+                    </div>
+                    <div class="version-body">
+                        <div class="version-field">
+                            <label>What changed</label>
+                            <p>Added explicit de-escalation instruction before the response format guidance.</p>
+                        </div>
+                        <div class="version-field">
+                            <label>Why</label>
+                            <p>Model was getting defensive on frustrated user inputs, interpreting "professional" as "formal" under pressure.</p>
+                        </div>
+                        <div class="version-field">
+                            <label>Hypothesis</label>
+                            <p>Explicitly prioritising emotional acknowledgement before solution delivery should improve tone on difficult scenarios.</p>
+                        </div>
+                        <div class="version-field">
+                            <label>Result</label>
+                            <p>Tone improved significantly on angry refund scenario. Multi-question handling still △; will address next.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tip">Use a naming convention like <code>v[number]-[what-changed]</code>. It takes ten seconds and makes the entire trail scannable at a glance six weeks later.</div>
+
+                <h3>A minimal prompt template to version against</h3>
+
+                <div class="prompt-block"><span class="comment"># Role</span>
+<span class="highlight">You are a support assistant for [product].</span>
+Your job is to help customers resolve issues clearly and kindly.
+
+<span class="comment"># Behaviour</span>
+When a customer expresses frustration, acknowledge their experience
+before offering a solution. Do not become defensive.
+
+<span class="comment"># Constraints</span>
+- Only address topics within [product]'s support scope
+- If you cannot help, say so clearly and offer an alternative path
+- Keep responses under 120 words unless complexity requires more
+
+<span class="comment"># Output format</span>
+Plain conversational prose. No bullet lists unless listing steps.
+Always end with a clear next action for the customer.</div>
+
+                <div class="tip">Structure your system prompt in labelled sections from the start: Role, Behaviour, Constraints, Output format. It makes it much easier to isolate which section a problem is coming from.</div>
+
+                <hr class="section-separator">
+
+                <span class="section-label">Step five</span>
+                <h2>Grow the eval set when behaviour surprises you</h2>
+
+                <p>Your eval set is a living document. When the model does something unexpected, good or bad, that's a signal to add a new scenario. Don't just note it and move on.</p>
+
+                <h3>Three triggers for adding a new eval</h3>
+
+                <div class="example">
+                    <span class="example-label">Trigger 1: Surprising output</span>
+                    <p>The model does something you didn't anticipate: it handles an unusual request gracefully, or fails in a way you hadn't considered. Add the input that caused it as a permanent scenario.</p>
+                </div>
+
+                <div class="example">
+                    <span class="example-label">Trigger 2: A new scenario class you realise you've missed</span>
+                    <p>While iterating, you realise there's a whole type of input you haven't tested. A support assistant, for example, might need scenarios for: requests in other languages, inputs with personally sensitive information, questions that require a human handoff.</p>
+                </div>
+
+                <div class="example">
+                    <span class="example-label">Trigger 3: A failure mode revealing a class of similar inputs</span>
+                    <p>One failing scenario often implies a family of related ones. If the model handles "I want a refund" badly, test "I want to return this," "Can I cancel my order," and "This isn't what I ordered." They may all be failing for the same reason.</p>
+                </div>
+
+                <hr class="section-separator">
+
+                <span class="section-label">Going further</span>
+                <h2>Let design research feed new evals</h2>
+
+                <p>Qualitative research isn't just for validating the feature. It's one of the best sources of novel eval inputs. Real users phrase things in ways designers don't anticipate. Their mental models expose gaps in how the feature was conceived. Their confusion reveals failure modes you'd never have generated synthetically.</p>
+
+                <div class="diagram-container">
+                    <svg viewBox="0 0 720 248" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="research-feed-title research-feed-desc" style="width:100%;max-width:640px;height:auto;display:block;margin:0 auto;">
+                        <title id="research-feed-title">Research feeds eval scenarios</title>
+                        <desc id="research-feed-desc">From usability sessions, interviews, contextual inquiry, and support logs to new eval inputs including scenarios, edge cases, mental model gaps, and natural language variation.</desc>
+                        <defs>
+                            <marker id="arrow-research-feed" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                                <path d="M0,0.5 L0,5.5 L5.5,3 Z" fill="rgba(241,241,241,0.45)"/>
+                            </marker>
+                        </defs>
+
+                        <!-- Left panel -->
+                        <rect x="36" y="44" width="302" height="152" rx="8" fill="#202020" stroke="rgba(241,241,241,0.12)" stroke-width="1"/>
+
+                        <!-- Participants icon (two simple figures) -->
+                        <g fill="none" stroke="rgba(241,241,241,0.32)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <g transform="translate(54, 62)">
+                                <circle cx="9" cy="7" r="6"/>
+                                <path d="M2 24c0-5 3.5-8 9-8s9 3 9 8"/>
+                            </g>
+                            <g transform="translate(78, 62)">
+                                <circle cx="9" cy="7" r="6"/>
+                                <path d="M2 24c0-5 3.5-8 9-8s9 3 9 8"/>
+                            </g>
+                        </g>
+
+                        <!-- Interview / conversation bubbles -->
+                        <g fill="rgba(241,241,241,0.05)" stroke="rgba(241,241,241,0.28)" stroke-width="1" aria-hidden="true">
+                            <path d="M118 60h26a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3h-14l-5 5v-5h-7a3 3 0 0 1-3-3v-9a3 3 0 0 1 3-3z"/>
+                            <path d="M152 72h24a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-11l-4 4v-4h-9a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3z"/>
+                        </g>
+
+                        <text x="52" y="104" font-family="'SF Mono', Monaco, monospace" font-size="9" letter-spacing="0.14em" fill="#999">RESEARCH INPUT</text>
+                        <text x="52" y="124" font-family="'Inter', sans-serif" font-size="11.5" font-weight="500" fill="#F1F1F1">Usability sessions, interviews,</text>
+                        <text x="52" y="142" font-family="'Inter', sans-serif" font-size="11.5" font-weight="400" fill="rgba(241,241,241,0.62)">contextual inquiry, support logs</text>
+
+                        <!-- Connector -->
+                        <line x1="342" y1="120" x2="378" y2="120" stroke="rgba(241,241,241,0.38)" stroke-width="1" marker-end="url(#arrow-research-feed)"/>
+                        <text x="360" y="112" text-anchor="middle" font-family="'Inter', sans-serif" font-size="9.5" font-weight="400" fill="rgba(241,241,241,0.42)">feeds</text>
+
+                        <!-- Right panel (eval accent, matches completion styling) -->
+                        <rect x="382" y="44" width="302" height="152" rx="8" fill="rgba(240,160,112,0.08)" stroke="rgba(240,160,112,0.45)" stroke-width="1"/>
+
+                        <!-- Scenario list / checklist icon -->
+                        <g transform="translate(398, 60)" fill="none" stroke="rgba(240,160,112,0.55)" stroke-width="1" stroke-linecap="round" aria-hidden="true">
+                            <rect x="0" y="0" width="20" height="26" rx="2"/>
+                            <path d="M5 8h10M5 13h10M5 18h7"/>
+                            <circle cx="5" cy="8" r="1.2" fill="rgba(240,160,112,0.35)" stroke="none"/>
+                            <circle cx="5" cy="13" r="1.2" fill="rgba(240,160,112,0.35)" stroke="none"/>
+                            <circle cx="5" cy="18" r="1.2" fill="rgba(240,160,112,0.35)" stroke="none"/>
+                        </g>
+
+                        <text x="398" y="104" font-family="'SF Mono', Monaco, monospace" font-size="9" letter-spacing="0.14em" fill="rgba(240,160,112,0.85)">EVAL OUTPUTS</text>
+                        <text x="398" y="124" font-family="'Inter', sans-serif" font-size="11.5" font-weight="500" fill="#F1F1F1">New scenario inputs, edge cases,</text>
+                        <text x="398" y="142" font-family="'Inter', sans-serif" font-size="11.5" font-weight="400" fill="rgba(241,241,241,0.62)">mental model gaps, natural language variation</text>
+
+                        <text x="360" y="232" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="8" fill="rgba(241,241,241,0.22)" letter-spacing="0.12em">RESEARCH → EVAL</text>
+                    </svg>
+                </div>
+
+                <h3>What to look for in research sessions</h3>
+
+                <div class="example">
+                    <span class="example-label">Natural language variation</span>
+                    <p>Capture the exact phrasing participants use. If three people say "I need to change my delivery" and your system only handles "update address," that phrasing gap is an eval.</p>
+                </div>
+
+                <div class="example">
+                    <span class="example-label">Mental model mismatches</span>
+                    <p>When a participant approaches the feature with a different mental model than you designed for, test what the model does with their framing. It's almost always an edge case you haven't covered.</p>
+                </div>
+
+                <div class="example">
+                    <span class="example-label">Moments of abandonment or frustration</span>
+                    <p>In a usability session, if someone gets an AI response and immediately looks confused or gives up, that response is a failure. The input that generated it is now a priority eval scenario.</p>
+                </div>
+
+                <div class="tip">Even two or three research sessions will generate more useful eval inputs than a day of trying to imagine edge cases yourself. The bar for "useful research" here is low. You're looking for phrasing and mental models, not statistical significance.</div>
+
+                <hr class="section-separator">
+
+                <span class="section-label">Knowing when to stop</span>
+                <h2>Three stages, three exit bars</h2>
+
+                <p>"Good enough to move forward" means different things at different stages. Being explicit about which bar you're crossing prevents endless iteration and makes the handoff decision defensible.</p>
+
+                <div class="criteria-grid">
+                    <div class="criteria-card" data-stage="Stage 01">
+                        <h4>Concept viability</h4>
+                        <p>Is this interaction pattern directionally right at all?</p>
+                        <div class="criteria-bar"><div class="criteria-bar-fill" style="width:40%"></div></div>
+                        <span class="criteria-threshold">~60–70% of outputs in the right ballpark. Tone and structure not yet the focus.</span>
+                    </div>
+                    <div class="criteria-card" data-stage="Stage 02">
+                        <h4>Interaction design confidence</h4>
+                        <p>Does the feature feel right to interact with?</p>
+                        <div class="criteria-bar"><div class="criteria-bar-fill" style="width:70%"></div></div>
+                        <span class="criteria-threshold">No ✗ scores on any dimension. Edge cases at least △ on reasoning and handling.</span>
+                    </div>
+                    <div class="criteria-card" data-stage="Stage 03">
+                        <h4>Handoff readiness</h4>
+                        <p>Can someone else build from what you've documented?</p>
+                        <div class="criteria-bar"><div class="criteria-bar-fill" style="width:100%"></div></div>
+                        <span class="criteria-threshold">Named prompt version, documented scenario set, known failure modes recorded.</span>
+                    </div>
+                </div>
+
+                <hr class="section-separator">
+
+                <span class="section-label">What you produce</span>
+                <h2>The handoff artefacts</h2>
+
+                <p>By the end of the loop, you don't hand over a Figma file and a brief. You hand over something genuinely useful to whoever builds this properly.</p>
+
+                <ul class="checklist">
+                    <li>A versioned system prompt with a documented reasoning trail: not just the final version, but the journey to it</li>
+                    <li>A scenario set that describes the interaction space (normal use, edge cases, failure-prone inputs)</li>
+                    <li>A scoring history that shows how quality evolved across versions</li>
+                    <li>A behavioural map of model tendencies (where it over-explains, hedges, breaks, or surprises)</li>
+                    <li>A list of known failure modes with notes on whether they're design problems or model limitations</li>
+                    <li>Any eval inputs derived from research, with a note on their source</li>
+                </ul>
+
+                <div class="further-reading-stack">
+                    <p class="further-reading"><a href="https://promptfoo.dev">Promptfoo</a> &mdash; open source, runs locally with little setup; about as close as it gets to a designer-usable eval runner for the pre-engineering prototype phase.</p>
+                    <p class="further-reading"><a href="https://www.braintrust.dev">Braintrust</a> &mdash; where this kind of loop tends to go at production scale, once repeatable runs and team workflows matter.</p>
+                </div>
+
+                <div class="tip">The version record is the most underestimated part of this. Six weeks after prototyping, no one can remember why the prompt is shaped the way it is. The version record is the answer to that question.</div>
+
+                <div class="final-callout">
+                    <h2>The point of all this</h2>
+                    <p>You're not trying to build an eval infrastructure. You're trying to understand how a model behaves in the context of a specific feature, and to not lose that understanding when the prototype ends.</p>
+                    <p>The loop makes your design thinking explicit, transferable, and defensible. It turns vibe-driven prototyping into something that actually compounds: each iteration building on the last, each version leaving a trace, each research session expanding what you know.</p>
+                    <p>That knowledge is what closes the gap between prototype and production.</p>
+                </div>
+
+            </div>
+
+            <footer class="article-footer">
+                <p>Published by Rob Boyett. For more articles, visit the <a href="/">home page</a> or subscribe to the <a href="/feed.xml">RSS feed</a>.</p>
+            </footer>
+        </article>
+    </div>
+
+    <script>
+        const page = document.querySelector('.page');
+        const siteNav = document.querySelector('site-nav');
+
+        siteNav.addEventListener('menu-open', () => {
+            page.classList.add('menu-open');
+        });
+
+        siteNav.addEventListener('menu-close', () => {
+            page.classList.remove('menu-open');
+        });
+
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                document.documentElement.classList.add('fonts-loaded');
+            });
+        } else {
+            document.documentElement.classList.add('fonts-loaded');
+        }
+    </script>
+
+    <!-- Analytics -->
+    <script async defer src="https://scripts.withcabin.com/hello.js"></script>
+</body>
+</html>

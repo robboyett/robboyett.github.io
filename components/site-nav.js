@@ -71,6 +71,7 @@ class SiteNav extends HTMLElement {
                     color: #202020;
                     text-decoration: none;
                     flex-shrink: 0;
+                    font-feature-settings: inherit;
                 }
 
                 .nav-item.logo {
@@ -104,6 +105,7 @@ class SiteNav extends HTMLElement {
                     gap: 16px;
                     height: 104px;
                     font-family: inherit;
+                    font-feature-settings: inherit;
                 }
 
                 .journal-toggle:hover {
@@ -151,6 +153,7 @@ class SiteNav extends HTMLElement {
                     overflow: hidden;
                     text-overflow: ellipsis;
                     position: relative;
+                    font-feature-settings: inherit;
                 }
 
                 .journal-menu-item:hover {

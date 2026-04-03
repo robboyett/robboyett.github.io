@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ai-share-button demo</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=DM+Serif+Display&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111;
+      --border: #1f1f1f;
+      --fg: #d4d4d4;
+      --muted: #555;
+      --accent: #7fff7f;
+      --mono: "JetBrains Mono", monospace;
+      --serif: "DM Serif Display", Georgia, serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--mono);
+      font-size: 14px;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* Page header */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .site-name {
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* Main layout */
+    .layout {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 64px 32px;
+    }
+
+    /* Component demo section */
+    .demo-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 48px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .demo-label {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .demo-title {
+      font-family: var(--serif);
+      font-size: 28px;
+      color: #f0f0f0;
+      line-height: 1.2;
+      font-weight: normal;
+    }
+
+    /* The article content */
+    main article {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    h2 {
+      font-family: var(--serif);
+      font-weight: normal;
+      font-size: 22px;
+      color: #e8e8e8;
+      margin-top: 8px;
+    }
+
+    p {
+      color: #999;
+      line-height: 1.8;
+    }
+
+    code {
+      font-family: var(--mono);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 6px;
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 20px;
+      overflow-x: auto;
+    }
+
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 13px;
+      color: #ccc;
+    }
+
+    .attr-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .attr-row {
+      display: grid;
+      grid-template-columns: 140px 80px 1fr;
+      gap: 16px;
+      align-items: baseline;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+
+    .attr-name { color: var(--accent); }
+    .attr-default { color: var(--muted); }
+    .attr-desc { color: #888; }
+
+    /* Variant demos */
+    .variants {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="site-name">ai-share-button</span>
+  <ai-share-button selector="main" label="Share this page"></ai-share-button>
+</header>
+
+<div class="layout">
+
+  <div class="demo-header">
+    <div>
+      <div class="demo-label">Web Component</div>
+      <h1 class="demo-title">ai-share-button</h1>
+    </div>
+  </div>
+
+  <main>
+  <article>
+
+    <p>
+      A platform-agnostic web component that extracts page content as Markdown and
+      sends it to AI tools. Drop one <code>&lt;script&gt;</code> tag, place
+      <code>&lt;ai-share-button&gt;</code> anywhere.
+    </p>
+
+    <h2>Installation</h2>
+
+    <pre><code>&lt;!-- Turndown for DOM → Markdown conversion --&gt;
+&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.3/turndown.min.js"&gt;&lt;/script&gt;
+
+&lt;!-- The component --&gt;
+&lt;script src="ai-share-button.js" type="module"&gt;&lt;/script&gt;
+
+&lt;!-- Place it anywhere --&gt;
+&lt;ai-share-button selector="article" label="Share to AI"&gt;&lt;/ai-share-button&gt;</code></pre>
+
+    <h2>Attributes</h2>
+
+    <div class="attr-grid">
+      <div class="attr-row">
+        <span class="attr-name">selector</span>
+        <span class="attr-default">"main"</span>
+        <span class="attr-desc">CSS selector for the content to capture</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-name">label</span>
+        <span class="attr-default">"Share to AI"</span>
+        <span class="attr-desc">Text shown on the trigger button</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-name">options</span>
+        <span class="attr-default">"copy,claude,chatgpt"</span>
+        <span class="attr-desc">Comma-separated list of enabled actions</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-name">char-limit</span>
+        <span class="attr-default">2000</span>
+        <span class="attr-desc">Max characters passed via URL (Claude/ChatGPT)</span>
+      </div>
+    </div>
+
+    <h2>CSS custom properties</h2>
+    <p>
+      All visual properties are exposed as CSS custom properties on <code>:host</code>,
+      so you can theme it to match any site without touching Shadow DOM internals.
+    </p>
+
+    <pre><code>ai-share-button {
+  --ai-share-bg:      #0f0f0f;
+  --ai-share-fg:      #e2e2e2;
+  --ai-share-accent:  #7fff7f;
+  --ai-share-border:  #2a2a2a;
+  --ai-share-font:    "JetBrains Mono", monospace;
+  --ai-share-radius:  6px;
+}</code></pre>
+
+    <h2>Variants</h2>
+
+    <div class="variants">
+      <!-- Default: all options -->
+      <ai-share-button selector="main" label="Share to AI"></ai-share-button>
+
+      <!-- Copy only -->
+      <ai-share-button selector="main" label="Copy MD" options="copy"></ai-share-button>
+
+      <!-- Open actions only -->
+      <ai-share-button selector="main" label="Open in..." options="claude,chatgpt"></ai-share-button>
+
+      <!-- Custom char limit -->
+      <ai-share-button selector="main" label="Share (4k)" char-limit="4000"></ai-share-button>
+    </div>
+
+    <h2>How it works</h2>
+    <p>
+      When you trigger Copy or open an AI tool, the component finds the element matching
+      your <code>selector</code>, converts its inner HTML to clean Markdown using
+      <a href="https://github.com/mixmark-io/turndown" style="color: var(--accent)">Turndown</a>,
+      strips noise (<code>script</code>, <code>style</code>, <code>nav</code>, <code>footer</code>),
+      then either copies to clipboard or opens the AI tool's URL with the content
+      pre-loaded as a prompt.
+    </p>
+    <p>
+      Turndown is loaded lazily if not already present on the page — no build step required.
+      The component uses Shadow DOM so your page styles never bleed in or out.
+    </p>
+
+  </article>
+  </main>
+
+</div>
+
+<!-- Load Turndown first -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.3/turndown.min.js"></script>
+<!-- Then the component -->
+<script src="ai-share-button.js" type="module"></script>
+
+</body>
+</html>
