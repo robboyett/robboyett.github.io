@@ -1,0 +1,299 @@
+/* ======================================================================
+   AI Bingo — Printable Cards
+   Black & white friendly. Two cards per A4 portrait page.
+   ====================================================================== */
+
+@page {
+  size: A4 portrait;
+  margin: 12mm;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #ececec;
+  color: #000;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* ---------- Toolbar (screen only) ---------- */
+.toolbar {
+  background: #111;
+  color: #fff;
+  padding: 24px 32px 20px;
+  border-bottom: 4px solid #000;
+}
+
+.toolbar__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 24px;
+  justify-content: space-between;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.toolbar__title h1 {
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.toolbar__title p {
+  margin: 0;
+  font-size: 14px;
+  color: #c9c9c9;
+}
+
+.toolbar__controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: #c9c9c9;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  gap: 4px;
+}
+
+.field input {
+  width: 80px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 2px solid #444;
+  background: #1d1d1d;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.toolbar button {
+  appearance: none;
+  background: #fff;
+  color: #111;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.toolbar button:hover { background: #f1f1f1; }
+
+.toolbar button.primary {
+  background: #ffd400;
+  border-color: #ffd400;
+  color: #000;
+}
+
+.toolbar button.primary:hover { background: #ffe14a; border-color: #ffe14a; }
+
+.link {
+  color: #c9c9c9;
+  text-decoration: none;
+  font-size: 14px;
+  border-bottom: 1px solid transparent;
+}
+.link:hover { border-bottom-color: #c9c9c9; color: #fff; }
+
+.hint {
+  max-width: 1100px;
+  margin: 12px auto 0;
+  font-size: 13px;
+  color: #aaa;
+}
+
+/* ---------- Pages on screen (preview look) ---------- */
+.cards-stack {
+  padding: 32px 16px 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.page {
+  background: #fff;
+  width: 210mm;
+  height: 297mm;
+  padding: 12mm;
+  display: flex;
+  flex-direction: column;
+  gap: 8mm;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+  /* Avoid splitting a page across two physical pages */
+  page-break-after: always;
+  break-after: page;
+}
+
+.page:last-child {
+  page-break-after: auto;
+  break-after: auto;
+}
+
+/* ---------- Card ---------- */
+.card {
+  flex: 1;
+  border: 3px solid #000;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  page-break-inside: avoid;
+  break-inside: avoid;
+  /* Reserve a hair of space between the two cards on a page */
+  min-height: 0;
+}
+
+.card__header {
+  background: #fff;
+  color: #000;
+  border-bottom: 3px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6mm 4mm 5mm;
+  position: relative;
+}
+
+.card__title {
+  font-family: "Georgia", "Times New Roman", serif;
+  font-weight: 900;
+  font-size: 56pt;
+  line-height: 1;
+  letter-spacing: 14px;
+  text-indent: 14px; /* visually re-centre due to letter-spacing */
+}
+
+.card__id {
+  position: absolute;
+  bottom: 1.5mm;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: "Courier New", monospace;
+  font-size: 10pt;
+  letter-spacing: 4px;
+  color: #000;
+  opacity: 0.6;
+}
+
+.card__grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+}
+
+.cell {
+  border: 1.5px solid #000;
+  /* avoid double borders along the outer edges */
+  margin: -0.75px 0 0 -0.75px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2mm;
+  font-weight: 800;
+  font-size: 14pt;
+  line-height: 1.05;
+  color: #000;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
+  text-wrap: balance;
+  /* JS will tweak font-size per cell so words never break mid-letter. */
+}
+
+.cell--free {
+  background: #000;
+  color: #fff;
+}
+
+.cell--free .cell__free-label {
+  font-family: "Georgia", "Times New Roman", serif;
+  font-weight: 900;
+  font-size: 22pt;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+.cell--free .cell__free-sub {
+  display: block;
+  margin-top: 2mm;
+  font-family: "Courier New", monospace;
+  font-size: 8pt;
+  letter-spacing: 3px;
+  font-weight: 400;
+}
+
+.card__footer {
+  border-top: 2px solid #000;
+  padding: 2mm 4mm;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 8pt;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #000;
+  font-weight: 600;
+}
+
+.card__footer .card__brand { opacity: 0.7; }
+
+/* ---------- Print ---------- */
+@media print {
+  html, body {
+    background: #fff;
+  }
+
+  .no-print { display: none !important; }
+
+  .cards-stack {
+    padding: 0;
+    gap: 0;
+  }
+
+  .page {
+    width: auto;
+    height: auto;
+    padding: 0;
+    box-shadow: none;
+    /* Use the full @page area */
+    min-height: calc(297mm - 24mm);
+    gap: 8mm;
+  }
+}
+
+/* ---------- Small screens (preview only) ---------- */
+@media screen and (max-width: 900px) {
+  .page {
+    transform: scale(0.62);
+    transform-origin: top center;
+    margin-bottom: -120mm; /* compensate for the visual gap from scaling */
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .page {
+    transform: scale(0.45);
+    margin-bottom: -160mm;
+  }
+}

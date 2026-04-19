@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Bingo — Printable Cards</title>
+    <link rel="stylesheet" href="css/cards.css" />
+  </head>
+  <body>
+    <div class="toolbar no-print">
+      <div class="toolbar__inner">
+        <div class="toolbar__title">
+          <h1>AI Bingo — Printable Cards</h1>
+          <p>Black &amp; white, A4 portrait, two cards per page. Hit print when you're happy.</p>
+        </div>
+        <div class="toolbar__controls">
+          <label class="field">
+            <span>Cards</span>
+            <input id="card-count" type="number" min="1" max="200" value="20" />
+          </label>
+          <button id="regenerate" type="button">Regenerate</button>
+          <button id="print" type="button" class="primary">Print</button>
+          <a class="link" href="index.html">← Back to spinner</a>
+        </div>
+      </div>
+      <p class="hint">Tip: in the print dialog choose <strong>A4</strong> and turn <em>off</em> "Headers and footers" for the cleanest look. Margins can stay on default.</p>
+    </div>
+
+    <main id="cards" class="cards-stack"></main>
+
+    <script src="js/terms.js"></script>
+    <script src="js/cards.js"></script>
+  </body>
+</html>

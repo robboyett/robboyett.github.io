@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Bingo!</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Fredoka:wght@500;700&family=Space+Mono:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css?v=2" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%B0%3C/text%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <div class="bulbs bulbs--top" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <div class="title">
+        <span class="title__line title__line--1">AI</span>
+        <span class="title__line title__line--2">BINGO!</span>
+      </div>
+      <div class="topbar__right">
+        <a
+          class="cards-btn"
+          href="cards.html"
+          target="_blank"
+          rel="noopener"
+          aria-label="Open printable bingo cards"
+          title="Printable bingo cards"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="22"
+            height="22"
+            aria-hidden="true"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="3" y="4" width="18" height="14" rx="2" />
+            <path d="M7 8h10M7 12h10M7 16h6" />
+          </svg>
+          <span>Cards</span>
+        </a>
+        <button
+          id="mute-btn"
+          class="mute-btn"
+          type="button"
+          aria-pressed="false"
+          aria-label="Mute sounds"
+          title="Mute sounds (M)"
+        >
+          <svg
+            class="mute-btn__icon mute-btn__icon--on"
+            viewBox="0 0 24 24"
+            width="26"
+            height="26"
+            aria-hidden="true"
+            fill="currentColor"
+          >
+            <path d="M3 9v6h4l5 4V5L7 9H3z" />
+            <path
+              d="M16.5 12c0-1.77-1-3.29-2.5-4.03v8.05c1.5-.74 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"
+            />
+          </svg>
+          <svg
+            class="mute-btn__icon mute-btn__icon--off"
+            viewBox="0 0 24 24"
+            width="26"
+            height="26"
+            aria-hidden="true"
+            fill="currentColor"
+          >
+            <path d="M3 9v6h4l5 4V5L7 9H3z" />
+            <path
+              d="M16.59 8L14 10.59 11.41 8 10 9.41 12.59 12 10 14.59 11.41 16 14 13.41 16.59 16 18 14.59 15.41 12 18 9.41z"
+            />
+          </svg>
+        </button>
+        <div class="counter" id="counter" aria-live="polite">
+          <span id="counter-remaining">0</span>
+          <span class="counter__label">left in the cage</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="stage">
+      <section class="cage" aria-label="Bingo cage">
+        <div class="cage__glow"></div>
+        <div class="cage__display" id="display">
+          <div class="reel" id="reel">
+            <div class="reel__ball reel__ball--idle">
+              <span class="reel__text">PRESS SPIN</span>
+            </div>
+          </div>
+        </div>
+        <div class="cage__base"></div>
+      </section>
+
+      <div class="controls">
+        <button id="spin-btn" class="btn btn--spin" type="button">
+          <span class="btn__face">SPIN!</span>
+        </button>
+        <button id="reset-btn" class="btn btn--reset" type="button" title="Start a new round (puts all terms back in the cage)">
+          Reset round
+        </button>
+      </div>
+
+      <p class="hint" id="hint">Hit <strong>SPIN!</strong> to draw the first term.</p>
+    </main>
+
+    <div class="bulbs bulbs--bottom" aria-hidden="true"></div>
+
+    <!-- Term detail modal -->
+    <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-term" hidden>
+      <div class="modal__backdrop" data-close></div>
+      <div class="modal__card">
+        <div class="modal__ball">
+          <span id="modal-term">TERM</span>
+        </div>
+        <h2 class="modal__short" id="modal-short">Short description</h2>
+        <p class="modal__desc" id="modal-desc">Long description goes here.</p>
+        <button class="btn btn--close" id="modal-close" type="button" data-close>
+          Got it — close
+        </button>
+      </div>
+    </div>
+
+    <!-- All-done overlay -->
+    <div class="modal modal--done" id="done-modal" role="dialog" aria-modal="true" hidden>
+      <div class="modal__backdrop" data-close-done></div>
+      <div class="modal__card modal__card--done">
+        <div class="confetti" aria-hidden="true"></div>
+        <h2>That's the lot!</h2>
+        <p>Every term has been called. Time for prizes — or hit the button to start a fresh round.</p>
+        <button class="btn btn--reset" id="done-reset" type="button">Start a new round</button>
+      </div>
+    </div>
+
+    <script src="js/terms.js"></script>
+    <script src="js/sounds.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
