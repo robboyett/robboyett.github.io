@@ -1,0 +1,18 @@
+{
+  "context_catalog_version": "1",
+  "title": "Team packs",
+  "items": [
+    {
+      "id": "unique-id",
+      "title": "Company Context",
+      "description": "This pack might contain all sorts of top-level information about the company.",
+      "source": "https://www.robboyett.com/demo-context-remote.context"
+    },
+    {
+      "id": "unique-id",
+      "title": "Project Hawaii",
+      "description": "This pack might contain very focused information about a specific project.",
+      "source": "https://www.robboyett.com/Second-context-remote.context"
+    }
+  ]
+}
