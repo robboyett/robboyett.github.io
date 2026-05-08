@@ -455,13 +455,11 @@
       color: var(--text-muted);
       box-shadow: var(--card-shadow);
       line-height: 1.65;
-      overflow-wrap: break-word;
-      word-break: break-word;
-      min-width: 0;
     }
 
-    .convention-list li code {
-      word-break: break-all;
+    .convention-list li > span {
+      min-width: 0;
+      overflow-wrap: break-word;
     }
 
     .convention-list li::before {
@@ -820,11 +818,11 @@ takes 6–8 weeks in most regions…</span></pre>
     </p>
 
     <ul class="convention-list">
-      <li>All text content is <strong>Markdown</strong> (CommonMark + GFM tables). Any spec-compliant tool can render it.</li>
-      <li>Structured data — stakeholder lists, process steps, metadata — may use <strong>YAML frontmatter</strong> at the top of a Markdown file, or sibling <strong><code>.yaml</code> files</strong>.</li>
-      <li>File names are <strong>lowercase, hyphenated, and descriptive</strong>: <code>tanya-interview-2026-04-15.md</code>.</li>
-      <li>Embedded images use <strong>relative paths</strong> within the archive — no external URLs.</li>
-      <li>Raw source materials (interview transcripts, original documents) may be included in their <strong>original format</strong> (<code>.txt</code>, <code>.pdf</code>, <code>.html</code>) when fidelity to the source matters.</li>
+      <li><span>All text content is <strong>Markdown</strong> (CommonMark + GFM tables). Any spec-compliant tool can render it.</span></li>
+      <li><span>Structured data — stakeholder lists, process steps, metadata — may use <strong>YAML frontmatter</strong> at the top of a Markdown file, or sibling <strong><code>.yaml</code> files</strong>.</span></li>
+      <li><span>File names are <strong>lowercase, hyphenated, and descriptive</strong>: <code>tanya-interview-2026-04-15.md</code>.</span></li>
+      <li><span>Embedded images use <strong>relative paths</strong> within the archive — no external URLs.</span></li>
+      <li><span>Raw source materials (interview transcripts, original documents) may be included in their <strong>original format</strong> (<code>.txt</code>, <code>.pdf</code>, <code>.html</code>) when fidelity to the source matters.</span></li>
     </ul>
   </div>
 </section>
