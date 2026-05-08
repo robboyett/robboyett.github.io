@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>.context — Open Context Format</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F3F9F5;
+      --surface: #FFFFFF;
+      --border: #D8E9DF;
+      --text: #1A2820;
+      --text-muted: #527062;
+      --text-dim: #8FADA0;
+      --accent: #1A6644;
+      --accent-soft: rgba(26, 102, 68, 0.09);
+      --accent-2: #4A8C6E;
+      --accent-2-soft: rgba(74, 140, 110, 0.1);
+      --amber: #8A6B20;
+      --amber-soft: rgba(138, 107, 32, 0.1);
+      --card-shadow: 0 2px 16px rgba(15, 50, 30, 0.08);
+      --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+      --sans: 'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --serif: 'Lora', Georgia, serif;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --max: 880px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+
+    section { padding: 80px 0; }
+    section + section { border-top: 1px solid var(--border); }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav .inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 28px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      font-family: var(--mono);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -0.01em;
+    }
+
+    .nav-brand span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--sans);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .badge-draft {
+      background: var(--amber-soft);
+      color: var(--amber);
+      border: 1px solid rgba(160, 120, 42, 0.2);
+    }
+
+    /* ── Hero ── */
+    #hero {
+      padding: 64px 0 72px;
+      border-top: none;
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .hero-image {
+      margin-bottom: 36px;
+    }
+
+    .hero-image img {
+      width: 100%;
+      max-width: 340px;
+    }
+
+    .hero-label {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-family: var(--serif);
+      font-size: clamp(48px, 7.5vw, 80px);
+      font-weight: 700;
+      line-height: 1.08;
+      letter-spacing: -0.025em;
+      color: var(--text);
+      margin-bottom: 28px;
+    }
+
+    h1 .file { color: var(--accent); }
+
+    .hero-sub {
+      font-size: 19px;
+      color: var(--text-muted);
+      max-width: 560px;
+      line-height: 1.65;
+      margin: 0 auto 32px;
+      font-weight: 400;
+    }
+
+    .hero-meta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .meta-pill {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    .meta-sep { color: var(--border); }
+
+    /* ── Section headings ── */
+    h2 {
+      font-family: var(--serif);
+      font-size: 30px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+
+    .section-intro {
+      font-size: 17px;
+      color: var(--text-muted);
+      max-width: 640px;
+      margin-bottom: 48px;
+      line-height: 1.7;
+    }
+
+    h3 {
+      font-family: var(--serif);
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    p { margin-bottom: 16px; color: var(--text-muted); }
+    p:last-child { margin-bottom: 0; }
+
+    /* ── Inline code ── */
+    code {
+      font-family: var(--mono);
+      font-size: 13px;
+      background: #F5F1EB;
+      border: 1px solid #E8E3DA;
+      padding: 2px 7px;
+      border-radius: 5px;
+      color: var(--accent);
+    }
+
+    /* ── Code blocks ── */
+    pre {
+      background: #F5F1EB;
+      border: 1px solid #E8E3DA;
+      border-radius: var(--radius-sm);
+      padding: 20px 24px;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.7;
+      color: #3A2F28;
+      margin: 20px 0;
+    }
+
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      border-radius: 0;
+      color: inherit;
+    }
+
+    .hl-key { color: var(--accent); }
+    .hl-str { color: var(--accent-2); }
+    .hl-comment { color: var(--text-dim); font-style: italic; }
+    .hl-num { color: var(--amber); }
+
+    /* ── Principles grid ── */
+    .principles {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 18px;
+      margin-top: 44px;
+    }
+
+    .principle {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .principle-icon {
+      font-size: 24px;
+      margin-bottom: 14px;
+    }
+
+    .principle h3 {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .principle p {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── File structure / Tree ── */
+    .tree {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0 32px 28px;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 2.1;
+      margin: 32px 0;
+      box-shadow: var(--card-shadow);
+    }
+
+    .tree-icon {
+      display: flex;
+      justify-content: flex-start;
+      padding: 24px 0 20px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tree-icon img {
+      width: 110px;
+    }
+
+    .tree-item { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+    .tree-name { color: var(--text); }
+    .tree-name.dir { color: var(--accent-2); font-weight: 600; }
+    .tree-name.req { color: var(--text); }
+
+    .tree-tag {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 99px;
+    }
+
+    .tag-required {
+      background: var(--accent-2-soft);
+      color: var(--accent-2);
+      border: 1px solid rgba(74, 135, 112, 0.25);
+    }
+
+    .tag-optional {
+      background: rgba(176, 166, 154, 0.12);
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+
+    .tree-desc {
+      color: var(--text-dim);
+      font-size: 12px;
+      font-family: var(--sans);
+    }
+
+    /* ── Required files ── */
+    .file-cards {
+      display: grid;
+      gap: 22px;
+      margin-top: 40px;
+    }
+
+    .file-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+    }
+
+    .file-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 28px;
+      border-bottom: 1px solid var(--border);
+      background: #FDFAF6;
+    }
+
+    .file-name {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .file-card-body { padding: 24px 28px; }
+    .file-card-body p { font-size: 15px; }
+    .file-card pre { margin: 18px 0 0; }
+
+    /* ── Provenance ── */
+    .provenance-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      margin-top: 40px;
+    }
+
+    @media (max-width: 600px) {
+      .provenance-grid { grid-template-columns: 1fr; }
+    }
+
+    .prov-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .prov-card h3 { font-size: 17px; margin-bottom: 8px; }
+    .prov-card p { font-size: 14px; }
+
+    /* ── Tools grid ── */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+      margin-top: 36px;
+    }
+
+    .tool-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .tool-chip .tool-name {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .tool-chip p {
+      font-size: 13px;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    /* ── Conventions list ── */
+    .convention-list {
+      list-style: none;
+      display: grid;
+      gap: 12px;
+      margin-top: 36px;
+    }
+
+    .convention-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 24px;
+      font-size: 15px;
+      color: var(--text-muted);
+      box-shadow: var(--card-shadow);
+      line-height: 1.65;
+    }
+
+    .convention-list li::before {
+      content: '';
+      display: block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      margin-top: 9px;
+      flex-shrink: 0;
+    }
+
+    /* ── Status / roadmap ── */
+    .status-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px 40px;
+      margin-top: 36px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .status-col h3 { font-size: 17px; margin-bottom: 8px; }
+    .status-col p { font-size: 15px; }
+
+    .open-qs {
+      list-style: none;
+      display: grid;
+      gap: 12px;
+      margin-top: 28px;
+      padding-top: 28px;
+      border-top: 1px solid var(--border);
+    }
+
+    .open-qs li {
+      font-size: 15px;
+      color: var(--text-muted);
+      padding-left: 22px;
+      position: relative;
+      line-height: 1.6;
+    }
+
+    .open-qs li::before {
+      content: '?';
+      position: absolute;
+      left: 0;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text-dim);
+      font-weight: 700;
+    }
+
+    /* ── Footer ── */
+    footer {
+      padding: 48px 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    footer p {
+      font-size: 14px;
+      color: var(--text-dim);
+      margin: 0;
+    }
+
+    /* ── Utility ── */
+    .row { display: flex; align-items: center; gap: 12px; }
+
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      section { padding: 56px 0; }
+      #hero { padding: 68px 0 56px; }
+      .principles { grid-template-columns: 1fr; }
+      .status-box { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Navigation ── -->
+<nav>
+  <div class="inner">
+    <a class="nav-brand" href="#hero"><span>.context</span></a>
+    <ul class="nav-links">
+      <li><a href="#what">What it is</a></li>
+      <li><a href="#structure">Structure</a></li>
+      <li><a href="#files">Required files</a></li>
+      <li><a href="#provenance">Provenance</a></li>
+      <li><a href="#tooling">Tooling</a></li>
+      <li><a href="#status">Status</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section id="hero">
+  <div class="container">
+    <div class="hero-image">
+      <img src="images/Metal.PNG" alt="A metal travel case covered in destination stickers — a metaphor for portable, packed knowledge">
+    </div>
+    <p class="hero-label">Open Context Format</p>
+    <h1>Pack knowledge.<br>Make it <span class="file">portable</span>.</h1>
+    <p class="hero-sub">
+      <code>.context</code> is an open file format for capturing organisational, project, or domain-specific knowledge in a portable, machine-readable form — ready to load into AI assistants, knowledge tools, or your own applications.
+    </p>
+    <div class="hero-meta">
+      <span class="badge badge-draft">Version 0.1 — Working Draft</span>
+      <span class="meta-pill meta-sep">·</span>
+      <span class="meta-pill">Licence: CC BY 4.0</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── What it is ── -->
+<section id="what">
+  <div class="container">
+    <p class="section-label">What it is</p>
+    <h2>One file, all the context</h2>
+    <p class="section-intro">
+      Teams build up deep, hard-won knowledge about their organisations, processes, and decisions. That knowledge lives in notes, transcripts, and the heads of the people who were in the room. <code>.context</code> is a standard for bundling it — so it travels, ages well, and can be reasoned over by AI tools that didn't attend the meetings.
+    </p>
+
+    <p>A <code>.context</code> file is a ZIP archive with a defined internal structure. It bundles structured knowledge — interview notes, process documentation, stakeholder profiles, decisions, learnings — into a single artefact. Any tool that implements the spec can open it.</p>
+
+    <div class="principles">
+      <div class="principle">
+        <div class="principle-icon">&#x1F4E6;</div>
+        <h3>Portable</h3>
+        <p>Readable by any tool that implements the spec. Not tied to a vendor, model, or platform.</p>
+      </div>
+      <div class="principle">
+        <div class="principle-icon">&#x1F50D;</div>
+        <h3>Auditable</h3>
+        <p>Every claim traceable to its source. Provenance metadata is a first-class citizen of the format.</p>
+      </div>
+      <div class="principle">
+        <div class="principle-icon">&#x1F4CB;</div>
+        <h3>Versionable</h3>
+        <p>Diffable, revisable, and historically navigable. Just a ZIP — works with any version control system.</p>
+      </div>
+      <div class="principle">
+        <div class="principle-icon">&#x1F916;</div>
+        <h3>Agent-ready</h3>
+        <p>Self-describing for AI consumers. The <code>AGENTS.md</code> file tells an AI agent exactly how to reason with the contents.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Structure ── -->
+<section id="structure">
+  <div class="container">
+    <p class="section-label">File structure</p>
+    <h2>A ZIP with a shape</h2>
+    <p class="section-intro">
+      A <code>.context</code> file is a standard ZIP archive. Rename any <code>.context</code> file to <code>.zip</code> and open it with any archive tool. The structure inside is what the spec defines.
+    </p>
+
+    <div class="tree">
+      <div class="tree-icon">
+        <img src="images/Metal-Open-Short.PNG" alt="Open metal case packed with documents">
+      </div>
+      <div class="tree-item">
+        <span class="tree-name dir">mybrain.context/</span>
+      </div>
+      <div class="tree-item" style="padding-left:20px">
+        <span class="tree-name req">├── manifest.json</span>
+        <span class="tree-tag tag-required">required</span>
+        <span class="tree-desc">Format version, metadata, integrity</span>
+      </div>
+      <div class="tree-item" style="padding-left:20px">
+        <span class="tree-name req">├── README.md</span>
+        <span class="tree-tag tag-required">required</span>
+        <span class="tree-desc">Human-readable overview</span>
+      </div>
+      <div class="tree-item" style="padding-left:20px">
+        <span class="tree-name req">├── AGENTS.md</span>
+        <span class="tree-tag tag-required">required</span>
+        <span class="tree-desc">Orientation document for AI agents</span>
+      </div>
+      <div class="tree-item" style="padding-left:20px">
+        <span class="tree-name dir">├── 00_meta/</span>
+        <span class="tree-tag tag-optional">optional</span>
+        <span class="tree-desc">Format-level metadata, schemas</span>
+      </div>
+      <div class="tree-item" style="padding-left:20px">
+        <span class="tree-name dir">├── 01_context/</span>
+        <span class="tree-tag tag-required">required</span>
+        <span class="tree-desc">Background, environment, constraints</span>
+      </div>
+      <div class="tree-item" style="padding-left:20px">
+        <span class="tree-name dir">├── 02_stakeholders/</span>
+        <span class="tree-tag tag-optional">optional</span>
+        <span class="tree-desc">People, roles, relationships</span>
+      </div>
+      <div class="tree-item" style="padding-left:20px">
+        <span class="tree-name dir">├── 03_processes/</span>
+        <span class="tree-tag tag-optional">optional</span>
+        <span class="tree-desc">How things work today</span>
+      </div>
+      <div class="tree-item" style="padding-left:20px">
+        <span class="tree-name dir">├── 04_artefacts/</span>
+        <span class="tree-tag tag-optional">optional</span>
+        <span class="tree-desc">Documents, decisions, outputs</span>
+      </div>
+      <div class="tree-item" style="padding-left:20px">
+        <span class="tree-name dir">├── 05_learnings/</span>
+        <span class="tree-tag tag-optional">optional</span>
+        <span class="tree-desc">What's been tried, what worked</span>
+      </div>
+      <div class="tree-item" style="padding-left:20px">
+        <span class="tree-name dir">└── 06_open_questions/</span>
+        <span class="tree-tag tag-optional">optional</span>
+        <span class="tree-desc">Known gaps, ambiguities</span>
+      </div>
+    </div>
+
+    <p>Folder numbering is conventional, not enforced — readers must not rely on order. The folder <em>names</em> (after the numeric prefix) are part of the spec and must be used as shown.</p>
+  </div>
+</section>
+
+<!-- ── Required files ── -->
+<section id="files">
+  <div class="container">
+    <p class="section-label">Required files</p>
+    <h2>Three files make a valid brain</h2>
+    <p class="section-intro">
+      A valid <code>.context</code> file must contain exactly three files at its root. These three together give you machine-readable identity, human orientation, and AI orientation.
+    </p>
+
+    <div class="file-cards">
+
+      <!-- manifest.json -->
+      <div class="file-card">
+        <div class="file-card-header">
+          <span class="file-name">manifest.json</span>
+          <span class="badge" style="background:var(--accent-soft);color:var(--accent);border:1px solid rgba(26,102,68,0.2)">Machine-readable</span>
+        </div>
+        <div class="file-card-body">
+          <p>The only mandatory machine-readable file. Identifies the brain, declares its format version, and carries metadata. A reader uses this to determine whether it can open the file and how to present it.</p>
+          <pre><span class="hl-comment">// Minimum viable manifest.json</span>
+{
+  <span class="hl-key">"context_format_version"</span>: <span class="hl-str">"0.1"</span>,
+  <span class="hl-key">"id"</span>: <span class="hl-str">"acme-project-2026"</span>,
+  <span class="hl-key">"title"</span>: <span class="hl-str">"Acme — Project Alpha Context"</span>,
+  <span class="hl-key">"created"</span>: <span class="hl-str">"2026-05-01T10:00:00Z"</span>,
+  <span class="hl-key">"updated"</span>: <span class="hl-str">"2026-05-01T10:00:00Z"</span>,
+  <span class="hl-key">"version"</span>: <span class="hl-str">"1.0.0"</span>,
+  <span class="hl-key">"authors"</span>: [
+    { <span class="hl-key">"name"</span>: <span class="hl-str">"Your Team"</span> }
+  ],
+  <span class="hl-key">"licence"</span>: <span class="hl-str">"proprietary"</span>,
+  <span class="hl-key">"summary"</span>: <span class="hl-str">"One sentence. What this brain is."</span>
+}
+</pre>
+          <p style="font-size:13px;margin-top:14px;color:var(--text-dim)">Optional fields: <code>tags</code>, <code>domain</code>, <code>language</code>, <code>successor_of</code>, <code>dependencies</code>, <code>provenance_policy</code>.</p>
+        </div>
+      </div>
+
+      <!-- README.md -->
+      <div class="file-card">
+        <div class="file-card-header">
+          <span class="file-name">README.md</span>
+          <span class="badge" style="background:var(--accent-2-soft);color:var(--accent-2);border:1px solid rgba(74,140,110,0.25)">Human-readable</span>
+        </div>
+        <div class="file-card-body">
+          <p>A human-readable overview for someone browsing the file in a file manager, IDE, or text editor. It should answer four questions:</p>
+          <ul style="list-style:none;display:grid;gap:10px;margin-top:14px">
+            <li style="font-size:15px;color:var(--text-muted);padding-left:18px;position:relative"><span style="position:absolute;left:0;color:var(--accent)">›</span> What is this?</li>
+            <li style="font-size:15px;color:var(--text-muted);padding-left:18px;position:relative"><span style="position:absolute;left:0;color:var(--accent)">›</span> Who is it for?</li>
+            <li style="font-size:15px;color:var(--text-muted);padding-left:18px;position:relative"><span style="position:absolute;left:0;color:var(--accent)">›</span> How is it organised?</li>
+            <li style="font-size:15px;color:var(--text-muted);padding-left:18px;position:relative"><span style="position:absolute;left:0;color:var(--accent)">›</span> Who maintains it, and what's the licence?</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- AGENTS.md -->
+      <div class="file-card">
+        <div class="file-card-header">
+          <span class="file-name">AGENTS.md</span>
+          <span class="badge" style="background:var(--accent-2-soft);color:var(--accent-2);border:1px solid rgba(74,140,110,0.2)">Agent-readable</span>
+        </div>
+        <div class="file-card-body">
+          <p>An orientation document for AI agents — and for humans reasoning <em>with</em> the brain rather than <em>about</em> it. This is what makes <code>.context</code> more than a generic ZIP of documents: it is self-describing for AI consumers.</p>
+          <p>An agent loading a brain should read <code>AGENTS.md</code> first and use it to calibrate every subsequent retrieval and response.</p>
+          <p>It should include:</p>
+          <ul style="list-style:none;display:grid;gap:10px;margin-top:14px">
+            <li style="font-size:15px;color:var(--text-muted);padding-left:18px;position:relative"><span style="position:absolute;left:0;color:var(--accent-2)">›</span> <strong>What this is</strong> — scope and purpose, one paragraph</li>
+            <li style="font-size:15px;color:var(--text-muted);padding-left:18px;position:relative"><span style="position:absolute;left:0;color:var(--accent-2)">›</span> <strong>How to use it</strong> — which documents to trust, when to verify against sources</li>
+            <li style="font-size:15px;color:var(--text-muted);padding-left:18px;position:relative"><span style="position:absolute;left:0;color:var(--accent-2)">›</span> <strong>State of things</strong> — current phase, last update, known gaps</li>
+            <li style="font-size:15px;color:var(--text-muted);padding-left:18px;position:relative"><span style="position:absolute;left:0;color:var(--accent-2)">›</span> <strong>Key principles</strong> — reasoning constraints and epistemic rules</li>
+            <li style="font-size:15px;color:var(--text-muted);padding-left:18px;position:relative"><span style="position:absolute;left:0;color:var(--accent-2)">›</span> <strong>Pointers</strong> — recommended entry points for common queries</li>
+            <li style="font-size:15px;color:var(--text-muted);padding-left:18px;position:relative"><span style="position:absolute;left:0;color:var(--accent-2)">›</span> <strong>Out of scope</strong> — what this brain does NOT contain</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Provenance ── -->
+<section id="provenance">
+  <div class="container">
+    <p class="section-label">Provenance</p>
+    <h2>Every claim traceable</h2>
+    <p class="section-intro">
+      Knowledge without provenance is noise. Every document in a <code>.context</code> file should declare where its claims came from, who said them, and how confident the author was.
+    </p>
+
+    <div class="provenance-grid">
+      <div class="prov-card">
+        <h3>Inline citation</h3>
+        <p>Claims include source attribution in the document body.</p>
+        <pre style="margin-top:16px;font-size:12px"><span class="hl-comment">According to Tanya (2026-04-15
+interview), the approval process
+takes 6–8 weeks in most regions…</span></pre>
+      </div>
+      <div class="prov-card">
+        <h3>Document-level frontmatter</h3>
+        <p>A YAML block at the top of the file declares sources, date, and confidence.</p>
+        <pre style="margin-top:16px;font-size:12px"><span class="hl-key">---</span>
+<span class="hl-key">sources</span>:
+  - <span class="hl-key">type</span>: <span class="hl-str">interview</span>
+    <span class="hl-key">person</span>: <span class="hl-str">Tanya</span>
+    <span class="hl-key">date</span>: <span class="hl-str">2026-04-15</span>
+<span class="hl-key">confidence</span>: <span class="hl-str">high</span>
+<span class="hl-key">last_verified</span>: <span class="hl-str">2026-05-01</span>
+<span class="hl-key">---</span></pre>
+      </div>
+    </div>
+
+    <p style="margin-top:10px">Documents without provenance are valid but should be flagged by readers. A well-formed brain tells an AI agent not just <em>what</em> the answer is, but <em>how confident to be</em> in it.</p>
+  </div>
+</section>
+
+<!-- ── Content conventions ── -->
+<section id="conventions">
+  <div class="container">
+    <p class="section-label">Content conventions</p>
+    <h2>What goes inside</h2>
+    <p class="section-intro">
+      All content follows a small set of conventions that make brains consistent and interoperable across tools.
+    </p>
+
+    <ul class="convention-list">
+      <li>All text content is <strong>Markdown</strong> (CommonMark + GFM tables). Any spec-compliant tool can render it.</li>
+      <li>Structured data — stakeholder lists, process steps, metadata — may use <strong>YAML frontmatter</strong> at the top of a Markdown file, or sibling <strong><code>.yaml</code> files</strong>.</li>
+      <li>File names are <strong>lowercase, hyphenated, and descriptive</strong>: <code>tanya-interview-2026-04-15.md</code>.</li>
+      <li>Embedded images use <strong>relative paths</strong> within the archive — no external URLs.</li>
+      <li>Raw source materials (interview transcripts, original documents) may be included in their <strong>original format</strong> (<code>.txt</code>, <code>.pdf</code>, <code>.html</code>) when fidelity to the source matters.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ── Tooling ── -->
+<section id="tooling">
+  <div class="container">
+    <p class="section-label">Tooling</p>
+    <h2>Context Reader — reference implementation</h2>
+    <p class="section-intro">
+      Context Reader is the desktop application that implements the v0.1 spec. It is the artefact that makes the format real: browse any <code>.context</code> file, validate it against the spec, search it, and — via a built-in MCP server — expose it to AI tools like Claude Desktop or Cursor.
+    </p>
+
+    <p>Built with <strong>Tauri 2</strong> (Rust backend), <strong>Nuxt 3</strong> (frontend), and an embedded <strong>Model Context Protocol</strong> server. It runs on macOS and Windows.</p>
+
+    <p>When Context Reader is open, it binds a local MCP server at <code>127.0.0.1</code> (default port <code>7878</code>). Any MCP-compatible AI client can connect and query the loaded brains through a set of purpose-built tools:</p>
+
+    <div class="tools-grid">
+      <div class="tool-chip">
+        <div class="tool-name">list_brains</div>
+        <p>Discover what brains are currently loaded. Call this first.</p>
+      </div>
+      <div class="tool-chip">
+        <div class="tool-name">read_agents_md</div>
+        <p>Read the AI orientation document for a brain. Read this before anything else.</p>
+      </div>
+      <div class="tool-chip">
+        <div class="tool-name">read_manifest</div>
+        <p>Return parsed identity and metadata for a brain.</p>
+      </div>
+      <div class="tool-chip">
+        <div class="tool-name">read_readme</div>
+        <p>Return the human-readable overview.</p>
+      </div>
+      <div class="tool-chip">
+        <div class="tool-name">list_tree</div>
+        <p>Browse the folder and file structure, optionally scoped to a sub-path.</p>
+      </div>
+      <div class="tool-chip">
+        <div class="tool-name">read_file</div>
+        <p>Read any file. Markdown files return parsed content and frontmatter.</p>
+      </div>
+      <div class="tool-chip">
+        <div class="tool-name">search</div>
+        <p>Full-text search across one brain or the whole workspace.</p>
+      </div>
+      <div class="tool-chip">
+        <div class="tool-name">list_open_questions</div>
+        <p>Return all documented gaps and ambiguities.</p>
+      </div>
+      <div class="tool-chip">
+        <div class="tool-name">list_stakeholders</div>
+        <p>Return parsed stakeholder profiles.</p>
+      </div>
+      <div class="tool-chip">
+        <div class="tool-name">get_provenance</div>
+        <p>Return source metadata for a specific file.</p>
+      </div>
+      <div class="tool-chip">
+        <div class="tool-name">validate_brain</div>
+        <p>Run spec validation and return issues with suggested fixes.</p>
+      </div>
+    </div>
+
+    <p style="margin-top:32px">A companion <strong>REST API</strong> (default port range <code>7980–7999</code>) exposes the same operations over plain HTTP for non-MCP integrations.</p>
+  </div>
+</section>
+
+<!-- ── Status ── -->
+<section id="status">
+  <div class="container">
+    <p class="section-label">Status &amp; roadmap</p>
+    <h2>Where things stand</h2>
+
+    <div class="status-box">
+      <div class="status-row">
+        <div class="status-col">
+          <h3>Version 0.1 — Working Draft</h3>
+          <p>The spec is stable enough to build against. The reference implementation (Context Reader v1) validates the format in production use. The format is in active use; the spec may receive backward-compatible clarifications before a 1.0 release.</p>
+        </div>
+        <div>
+          <span class="badge badge-draft">Draft</span>
+        </div>
+      </div>
+
+      <ul class="open-qs">
+        <li>Should the format support deltas or patches between versions?</li>
+        <li>How should sensitive sections (PII, commercial confidentiality) be marked and optionally encrypted?</li>
+        <li>Should there be a standard schema for stakeholder profiles, or is that left to convention?</li>
+        <li>What is the relationship between multiple <code>.context</code> files — composition, inheritance, cross-references?</li>
+        <li>Should <code>AGENTS.md</code> have a structured schema, or remain free-form prose?</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="container">
+    <p>The <code>.context</code> Open Format Specification — Version 0.1 Working Draft — Licence: CC BY 4.0</p>
+  </div>
+</footer>
+
+</body>
+</html>
