@@ -455,6 +455,13 @@
       color: var(--text-muted);
       box-shadow: var(--card-shadow);
       line-height: 1.65;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-width: 0;
+    }
+
+    .convention-list li code {
+      word-break: break-all;
     }
 
     .convention-list li::before {
@@ -538,6 +545,9 @@
       #hero { padding: 68px 0 56px; }
       .principles { grid-template-columns: 1fr; }
       .status-box { padding: 24px 20px; }
+      .convention-list li { padding: 14px 18px; font-size: 14px; }
+      .file-card-header { flex-wrap: wrap; gap: 10px; padding: 14px 20px; }
+      .file-card-body { padding: 18px 20px; }
     }
   </style>
 </head>
