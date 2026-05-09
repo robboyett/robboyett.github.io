@@ -435,6 +435,47 @@
       line-height: 1.5;
     }
 
+    /* ── Tooling illustration ── */
+    .tooling-illustration {
+      margin: 40px 0 48px;
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .tooling-illustration img {
+      width: 100%;
+      display: block;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--card-shadow);
+    }
+
+    /* ── App feature grid ── */
+    .app-features {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 18px;
+      margin-top: 40px;
+    }
+
+    .app-feature {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .app-feature h3 {
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+
+    .app-feature p {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
     /* ── Conventions list ── */
     .convention-list {
       list-style: none;
@@ -831,63 +872,43 @@ takes 6–8 weeks in most regions…</span></pre>
 <section id="tooling">
   <div class="container">
     <p class="section-label">Tooling</p>
-    <h2>Context Reader — reference implementation</h2>
+    <h2>Turn fragments into context, and context into better decisions</h2>
     <p class="section-intro">
-      Context Reader is the desktop application that implements the v0.1 spec. It is the artefact that makes the format real: browse any <code>.context</code> file, validate it against the spec, search it, and — via a built-in MCP server — expose it to AI tools like Claude Desktop or Cursor.
+      A native macOS application for collecting research fragments from anywhere, letting AI find what matters, and exporting clean <code>.context</code> files ready for any AI tool.
     </p>
 
-    <p>Built with <strong>Tauri 2</strong> (Rust backend), <strong>Nuxt 3</strong> (frontend), and an embedded <strong>Model Context Protocol</strong> server. It runs on macOS and Windows.</p>
-
-    <p>When Context Reader is open, it binds a local MCP server at <code>127.0.0.1</code> (default port <code>7878</code>). Any MCP-compatible AI client can connect and query the loaded brains through a set of purpose-built tools:</p>
-
-    <div class="tools-grid">
-      <div class="tool-chip">
-        <div class="tool-name">list_brains</div>
-        <p>Discover what brains are currently loaded. Call this first.</p>
-      </div>
-      <div class="tool-chip">
-        <div class="tool-name">read_agents_md</div>
-        <p>Read the AI orientation document for a brain. Read this before anything else.</p>
-      </div>
-      <div class="tool-chip">
-        <div class="tool-name">read_manifest</div>
-        <p>Return parsed identity and metadata for a brain.</p>
-      </div>
-      <div class="tool-chip">
-        <div class="tool-name">read_readme</div>
-        <p>Return the human-readable overview.</p>
-      </div>
-      <div class="tool-chip">
-        <div class="tool-name">list_tree</div>
-        <p>Browse the folder and file structure, optionally scoped to a sub-path.</p>
-      </div>
-      <div class="tool-chip">
-        <div class="tool-name">read_file</div>
-        <p>Read any file. Markdown files return parsed content and frontmatter.</p>
-      </div>
-      <div class="tool-chip">
-        <div class="tool-name">search</div>
-        <p>Full-text search across one brain or the whole workspace.</p>
-      </div>
-      <div class="tool-chip">
-        <div class="tool-name">list_open_questions</div>
-        <p>Return all documented gaps and ambiguities.</p>
-      </div>
-      <div class="tool-chip">
-        <div class="tool-name">list_stakeholders</div>
-        <p>Return parsed stakeholder profiles.</p>
-      </div>
-      <div class="tool-chip">
-        <div class="tool-name">get_provenance</div>
-        <p>Return source metadata for a specific file.</p>
-      </div>
-      <div class="tool-chip">
-        <div class="tool-name">validate_brain</div>
-        <p>Run spec validation and return issues with suggested fixes.</p>
-      </div>
+    <div class="tooling-illustration">
+      <img src="images/context-app-ui.png" alt="Context app — collect sources, AI organises and surfaces insights, export a clean .context file">
     </div>
 
-    <p style="margin-top:32px">A companion <strong>REST API</strong> (default port range <code>7980–7999</code>) exposes the same operations over plain HTTP for non-MCP integrations.</p>
+    <p>Import Markdown, PDFs, transcripts, Apple Notes, and web links. The AI sorts and organises every import, spots significance, finds patterns, and checks progress against your knowledge base — you review and approve. When you're ready, export a portable, LLM-ready <code>.context</code> file in one click.</p>
+
+    <div class="app-features">
+      <div class="app-feature">
+        <h3>Collect anything</h3>
+        <p>Drag in files or paste URLs. Supports Markdown, PDF, plain text, Apple Notes, and web links.</p>
+      </div>
+      <div class="app-feature">
+        <h3>AI-powered organisation</h3>
+        <p>The AI sorts imports, spots significance, finds repeated themes, and matches against your existing knowledge base.</p>
+      </div>
+      <div class="app-feature">
+        <h3>One workspace</h3>
+        <p>Sources, notes, people, and open questions — all in one place, with tags to navigate across projects.</p>
+      </div>
+      <div class="app-feature">
+        <h3>Quick capture</h3>
+        <p>Keyboard shortcuts for adding notes, links, and transcripts without breaking your flow.</p>
+      </div>
+      <div class="app-feature">
+        <h3>Context health</h3>
+        <p>Live indicators for metadata completeness, source linkage, provenance clarity, and export readiness.</p>
+      </div>
+      <div class="app-feature">
+        <h3>Export .context</h3>
+        <p>One click produces a portable, minimal, LLM-ready <code>.context</code> file from your workspace.</p>
+      </div>
+    </div>
   </div>
 </section>
 
