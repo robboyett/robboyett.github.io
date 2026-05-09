@@ -187,7 +187,6 @@
       font-family: var(--serif);
       font-size: 30px;
       font-weight: 600;
-      line-height: 1.15;
       letter-spacing: -0.01em;
       color: var(--text);
       margin-bottom: 10px;
@@ -406,36 +405,6 @@
     .prov-card h3 { font-size: 17px; margin-bottom: 8px; }
     .prov-card p { font-size: 14px; }
 
-    /* ── Tools grid ── */
-    .tools-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 14px;
-      margin-top: 36px;
-    }
-
-    .tool-chip {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 20px;
-      box-shadow: var(--card-shadow);
-    }
-
-    .tool-chip .tool-name {
-      font-family: var(--mono);
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--accent);
-      margin-bottom: 6px;
-    }
-
-    .tool-chip p {
-      font-size: 13px;
-      margin: 0;
-      line-height: 1.5;
-    }
-
     /* ── Tooling illustration ── */
     .tooling-illustration {
       margin: 40px 0 48px;
@@ -497,11 +466,6 @@
       color: var(--text-muted);
       box-shadow: var(--card-shadow);
       line-height: 1.65;
-    }
-
-    .convention-list li > span {
-      min-width: 0;
-      overflow-wrap: break-word;
     }
 
     .convention-list li::before {
@@ -585,9 +549,6 @@
       #hero { padding: 68px 0 56px; }
       .principles { grid-template-columns: 1fr; }
       .status-box { padding: 24px 20px; }
-      .convention-list li { padding: 14px 18px; font-size: 14px; }
-      .file-card-header { flex-wrap: wrap; gap: 10px; padding: 14px 20px; }
-      .file-card-body { padding: 18px 20px; }
     }
   </style>
 </head>
@@ -677,7 +638,7 @@
         <img src="images/Metal-Open-Short.PNG" alt="Open metal case packed with documents">
       </div>
       <div class="tree-item">
-        <span class="tree-name dir">mybrain.context/</span>
+        <span class="tree-name dir">acme-project.context/</span>
       </div>
       <div class="tree-item" style="padding-left:20px">
         <span class="tree-name req">├── manifest.json</span>
@@ -739,7 +700,7 @@
 <section id="files">
   <div class="container">
     <p class="section-label">Required files</p>
-    <h2>Three files make a valid brain</h2>
+    <h2>Three files make a valid context</h2>
     <p class="section-intro">
       A valid <code>.context</code> file must contain exactly three files at its root. These three together give you machine-readable identity, human orientation, and AI orientation.
     </p>
@@ -753,7 +714,7 @@
           <span class="badge" style="background:var(--accent-soft);color:var(--accent);border:1px solid rgba(26,102,68,0.2)">Machine-readable</span>
         </div>
         <div class="file-card-body">
-          <p>The only mandatory machine-readable file. Identifies the brain, declares its format version, and carries metadata. A reader uses this to determine whether it can open the file and how to present it.</p>
+          <p>The only mandatory machine-readable file. Identifies the context, declares its format version, and carries metadata. A reader uses this to determine whether it can open the file and how to present it.</p>
           <pre><span class="hl-comment">// Minimum viable manifest.json</span>
 {
   <span class="hl-key">"context_format_version"</span>: <span class="hl-str">"0.1"</span>,
@@ -766,7 +727,7 @@
     { <span class="hl-key">"name"</span>: <span class="hl-str">"Your Team"</span> }
   ],
   <span class="hl-key">"licence"</span>: <span class="hl-str">"proprietary"</span>,
-  <span class="hl-key">"summary"</span>: <span class="hl-str">"One sentence. What this brain is."</span>
+  <span class="hl-key">"summary"</span>: <span class="hl-str">"One sentence. What this context is."</span>
 }
 </pre>
           <p style="font-size:13px;margin-top:14px;color:var(--text-dim)">Optional fields: <code>tags</code>, <code>domain</code>, <code>language</code>, <code>successor_of</code>, <code>dependencies</code>, <code>provenance_policy</code>.</p>
@@ -797,8 +758,8 @@
           <span class="badge" style="background:var(--accent-2-soft);color:var(--accent-2);border:1px solid rgba(74,140,110,0.2)">Agent-readable</span>
         </div>
         <div class="file-card-body">
-          <p>An orientation document for AI agents — and for humans reasoning <em>with</em> the brain rather than <em>about</em> it. This is what makes <code>.context</code> more than a generic ZIP of documents: it is self-describing for AI consumers.</p>
-          <p>An agent loading a brain should read <code>AGENTS.md</code> first and use it to calibrate every subsequent retrieval and response.</p>
+          <p>An orientation document for AI agents — and for humans reasoning <em>with</em> the context rather than <em>about</em> it. This is what makes <code>.context</code> more than a generic ZIP of documents: it is self-describing for AI consumers.</p>
+          <p>An agent loading a <code>.context</code> file should read <code>AGENTS.md</code> first and use it to calibrate every subsequent retrieval and response.</p>
           <p>It should include:</p>
           <ul style="list-style:none;display:grid;gap:10px;margin-top:14px">
             <li style="font-size:15px;color:var(--text-muted);padding-left:18px;position:relative"><span style="position:absolute;left:0;color:var(--accent-2)">›</span> <strong>What this is</strong> — scope and purpose, one paragraph</li>
@@ -806,7 +767,7 @@
             <li style="font-size:15px;color:var(--text-muted);padding-left:18px;position:relative"><span style="position:absolute;left:0;color:var(--accent-2)">›</span> <strong>State of things</strong> — current phase, last update, known gaps</li>
             <li style="font-size:15px;color:var(--text-muted);padding-left:18px;position:relative"><span style="position:absolute;left:0;color:var(--accent-2)">›</span> <strong>Key principles</strong> — reasoning constraints and epistemic rules</li>
             <li style="font-size:15px;color:var(--text-muted);padding-left:18px;position:relative"><span style="position:absolute;left:0;color:var(--accent-2)">›</span> <strong>Pointers</strong> — recommended entry points for common queries</li>
-            <li style="font-size:15px;color:var(--text-muted);padding-left:18px;position:relative"><span style="position:absolute;left:0;color:var(--accent-2)">›</span> <strong>Out of scope</strong> — what this brain does NOT contain</li>
+            <li style="font-size:15px;color:var(--text-muted);padding-left:18px;position:relative"><span style="position:absolute;left:0;color:var(--accent-2)">›</span> <strong>Out of scope</strong> — what this context does NOT contain</li>
           </ul>
         </div>
       </div>
@@ -846,7 +807,7 @@ takes 6–8 weeks in most regions…</span></pre>
       </div>
     </div>
 
-    <p style="margin-top:10px">Documents without provenance are valid but should be flagged by readers. A well-formed brain tells an AI agent not just <em>what</em> the answer is, but <em>how confident to be</em> in it.</p>
+    <p style="margin-top:10px">Documents without provenance are valid but should be flagged by readers. A well-formed <code>.context</code> file tells an AI agent not just <em>what</em> the answer is, but <em>how confident to be</em> in it.</p>
   </div>
 </section>
 
@@ -856,15 +817,15 @@ takes 6–8 weeks in most regions…</span></pre>
     <p class="section-label">Content conventions</p>
     <h2>What goes inside</h2>
     <p class="section-intro">
-      All content follows a small set of conventions that make brains consistent and interoperable across tools.
+      All content follows a small set of conventions that make <code>.context</code> files consistent and interoperable across tools.
     </p>
 
     <ul class="convention-list">
-      <li><span>All text content is <strong>Markdown</strong> (CommonMark + GFM tables). Any spec-compliant tool can render it.</span></li>
-      <li><span>Structured data — stakeholder lists, process steps, metadata — may use <strong>YAML frontmatter</strong> at the top of a Markdown file, or sibling <strong><code>.yaml</code> files</strong>.</span></li>
-      <li><span>File names are <strong>lowercase, hyphenated, and descriptive</strong>: <code>tanya-interview-2026-04-15.md</code>.</span></li>
-      <li><span>Embedded images use <strong>relative paths</strong> within the archive — no external URLs.</span></li>
-      <li><span>Raw source materials (interview transcripts, original documents) may be included in their <strong>original format</strong> (<code>.txt</code>, <code>.pdf</code>, <code>.html</code>) when fidelity to the source matters.</span></li>
+      <li>All text content is <strong>Markdown</strong> (CommonMark + GFM tables). Any spec-compliant tool can render it.</li>
+      <li>Structured data — stakeholder lists, process steps, metadata — may use <strong>YAML frontmatter</strong> at the top of a Markdown file, or sibling <strong><code>.yaml</code> files</strong>.</li>
+      <li>File names are <strong>lowercase, hyphenated, and descriptive</strong>: <code>tanya-interview-2026-04-15.md</code>.</li>
+      <li>Embedded images use <strong>relative paths</strong> within the archive — no external URLs.</li>
+      <li>Raw source materials (interview transcripts, original documents) may be included in their <strong>original format</strong> (<code>.txt</code>, <code>.pdf</code>, <code>.html</code>) when fidelity to the source matters.</li>
     </ul>
   </div>
 </section>
@@ -879,7 +840,7 @@ takes 6–8 weeks in most regions…</span></pre>
     </p>
 
     <div class="tooling-illustration">
-      <img src="images/context-app-ui.png" alt="Context app — collect sources, AI organises and surfaces insights, export a clean .context file">
+      <img src="images/App.png" alt="Context app — collect sources, AI organises and surfaces insights, export a clean .context file">
     </div>
 
     <p>Import Markdown, PDFs, transcripts, Apple Notes, and web links. The AI sorts and organises every import, spots significance, finds patterns, and checks progress against your knowledge base — you review and approve. When you're ready, export a portable, LLM-ready <code>.context</code> file in one click.</p>
