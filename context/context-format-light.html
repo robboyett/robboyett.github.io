@@ -457,25 +457,29 @@
     .convention-list li {
       display: flex;
       align-items: flex-start;
-      gap: 16px;
+      gap: 14px;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 24px;
+      border-radius: var(--radius-sm);
+      padding: 14px 18px;
       font-size: 15px;
       color: var(--text-muted);
-      box-shadow: var(--card-shadow);
       line-height: 1.65;
+    }
+
+    .convention-list li > span {
+      min-width: 0;
+      overflow-wrap: anywhere;
     }
 
     .convention-list li::before {
       content: '';
       display: block;
-      width: 7px;
-      height: 7px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
       background: var(--accent);
-      margin-top: 9px;
+      margin-top: 10px;
       flex-shrink: 0;
     }
 
@@ -573,7 +577,7 @@
 <section id="hero">
   <div class="container">
     <div class="hero-image">
-      <img src="images/Metal.PNG" alt="A metal travel case covered in destination stickers — a metaphor for portable, packed knowledge">
+      <img src="images/Metal.webp" alt="A metal travel case covered in destination stickers — a metaphor for portable, packed knowledge">
     </div>
     <p class="hero-label">Open Context Format</p>
     <h1>Pack knowledge.<br>Make it <span class="file">portable</span>.</h1>
@@ -635,7 +639,7 @@
 
     <div class="tree">
       <div class="tree-icon">
-        <img src="images/Metal-Open-Short.PNG" alt="Open metal case packed with documents">
+        <img src="images/Metal-Open-Short.webp" alt="Open metal case packed with documents">
       </div>
       <div class="tree-item">
         <span class="tree-name dir">acme-project.context/</span>
@@ -789,7 +793,7 @@
       <div class="prov-card">
         <h3>Inline citation</h3>
         <p>Claims include source attribution in the document body.</p>
-        <pre style="margin-top:16px;font-size:12px"><span class="hl-comment">According to Tanya (2026-04-15
+        <pre style="margin-top:16px;font-size:12px"><span class="hl-comment">According to Maya (2026-04-15
 interview), the approval process
 takes 6–8 weeks in most regions…</span></pre>
       </div>
@@ -799,7 +803,7 @@ takes 6–8 weeks in most regions…</span></pre>
         <pre style="margin-top:16px;font-size:12px"><span class="hl-key">---</span>
 <span class="hl-key">sources</span>:
   - <span class="hl-key">type</span>: <span class="hl-str">interview</span>
-    <span class="hl-key">person</span>: <span class="hl-str">Tanya</span>
+    <span class="hl-key">person</span>: <span class="hl-str">Maya</span>
     <span class="hl-key">date</span>: <span class="hl-str">2026-04-15</span>
 <span class="hl-key">confidence</span>: <span class="hl-str">high</span>
 <span class="hl-key">last_verified</span>: <span class="hl-str">2026-05-01</span>
@@ -821,11 +825,11 @@ takes 6–8 weeks in most regions…</span></pre>
     </p>
 
     <ul class="convention-list">
-      <li>All text content is <strong>Markdown</strong> (CommonMark + GFM tables). Any spec-compliant tool can render it.</li>
-      <li>Structured data — stakeholder lists, process steps, metadata — may use <strong>YAML frontmatter</strong> at the top of a Markdown file, or sibling <strong><code>.yaml</code> files</strong>.</li>
-      <li>File names are <strong>lowercase, hyphenated, and descriptive</strong>: <code>tanya-interview-2026-04-15.md</code>.</li>
-      <li>Embedded images use <strong>relative paths</strong> within the archive — no external URLs.</li>
-      <li>Raw source materials (interview transcripts, original documents) may be included in their <strong>original format</strong> (<code>.txt</code>, <code>.pdf</code>, <code>.html</code>) when fidelity to the source matters.</li>
+      <li><span>All text content is <strong>Markdown</strong> (CommonMark + GFM tables). Any spec-compliant tool can render it.</span></li>
+      <li><span>Structured data — stakeholder lists, process steps, metadata — may use <strong>YAML frontmatter</strong> at the top of a Markdown file, or sibling <strong><code>.yaml</code> files</strong>.</span></li>
+      <li><span>File names are <strong>lowercase, hyphenated, and descriptive</strong>: <code>maya-interview-2026-04-15.md</code>.</span></li>
+      <li><span>Embedded images use <strong>relative paths</strong> within the archive — no external URLs.</span></li>
+      <li><span>Raw source materials (interview transcripts, original documents) may be included in their <strong>original format</strong> (<code>.txt</code>, <code>.pdf</code>, <code>.html</code>) when fidelity to the source matters.</span></li>
     </ul>
   </div>
 </section>
@@ -840,7 +844,7 @@ takes 6–8 weeks in most regions…</span></pre>
     </p>
 
     <div class="tooling-illustration">
-      <img src="images/App.png" alt="Context app — collect sources, AI organises and surfaces insights, export a clean .context file">
+      <img src="images/App.webp" alt="Context app — collect sources, AI organises and surfaces insights, export a clean .context file">
     </div>
 
     <p>Import Markdown, PDFs, transcripts, Apple Notes, and web links. The AI sorts and organises every import, spots significance, finds patterns, and checks progress against your knowledge base — you review and approve. When you're ready, export a portable, LLM-ready <code>.context</code> file in one click.</p>
