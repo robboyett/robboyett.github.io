@@ -122,10 +122,22 @@ class CopyAsMarkdownButton extends HTMLElement {
 
   connectedCallback() {
     this._render();
+    // Pre-generate the markdown so the click handler can write to the
+    // clipboard synchronously inside the user-gesture context. Browsers
+    // like Safari and some embedded webviews (e.g. the Cursor browser
+    // panel) will reject clipboard writes if you await between the click
+    // and the write call.
+    this._primeMarkdown();
   }
 
   attributeChangedCallback() {
     if (this.shadowRoot.innerHTML) this._render();
+  }
+
+  _primeMarkdown() {
+    this._getMarkdown().catch(err => {
+      console.warn("[copy-as-markdown-button] pre-generation failed", err);
+    });
   }
 
   _render() {
@@ -177,14 +189,77 @@ class CopyAsMarkdownButton extends HTMLElement {
     });
   }
 
-  async _handleCopy() {
+  _handleCopy() {
+    // Fast path: markdown is already prepared, write inside the user
+    // gesture so strict browsers honour the clipboard call.
+    if (this._markdown) {
+      this._writeToClipboard(this._markdown);
+      return;
+    }
+    // Slow path: pre-generation hasn't finished yet, fall back to the
+    // async flow.
+    this._handleCopyAsync();
+  }
+
+  async _handleCopyAsync() {
     try {
       const md = await this._getMarkdown();
-      await navigator.clipboard.writeText(md);
-      this._showToast("Copied to clipboard");
+      this._writeToClipboard(md);
     } catch (err) {
       console.error("[copy-as-markdown-button]", err);
       this._showToast("Error: " + err.message);
+    }
+  }
+
+  _writeToClipboard(text) {
+    const onSuccess = () => this._showToast("Copied to clipboard");
+    const onFailure = err => {
+      console.warn("[copy-as-markdown-button] clipboard API failed, falling back", err);
+      if (this._legacyCopy(text)) {
+        onSuccess();
+      } else {
+        this._showToast("Error: " + (err && err.message ? err.message : "copy failed"));
+      }
+    };
+
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+      try {
+        const result = navigator.clipboard.writeText(text);
+        if (result && typeof result.then === "function") {
+          result.then(onSuccess, onFailure);
+        } else {
+          onSuccess();
+        }
+      } catch (err) {
+        onFailure(err);
+      }
+    } else {
+      if (this._legacyCopy(text)) {
+        onSuccess();
+      } else {
+        this._showToast("Error: clipboard unavailable");
+      }
+    }
+  }
+
+  _legacyCopy(text) {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.top = "0";
+      ta.style.left = "0";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, text.length);
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch (err) {
+      console.error("[copy-as-markdown-button] legacy copy failed", err);
+      return false;
     }
   }
 

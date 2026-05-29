@@ -6,7 +6,15 @@
         <link>https://robboyett.com</link>
         <atom:link href="https://robboyett.com/feed.xml" rel="self" type="application/rss+xml"/>
         <language>en-gb</language>
-        <lastBuildDate>Tue, 31 Mar 2026 00:00:00 +0000</lastBuildDate>
+        <lastBuildDate>Sat, 30 May 2026 00:00:00 +0000</lastBuildDate>
+        
+        <item>
+            <title>Reflections for designers of AI advisors in banking</title>
+            <link>https://robboyett.com/journal/ai-advisors-in-banking/</link>
+            <guid>https://robboyett.com/journal/ai-advisors-in-banking/</guid>
+            <pubDate>Sat, 30 May 2026 00:00:00 +0000</pubDate>
+            <description>A short version, for HCI and product practitioners working in retail finance. Why an LLM advisor in a bank is a relay whose corpus has interests, how over-trust and sycophancy compound the harm, and why satisfaction scores aren't a safe governance signal.</description>
+        </item>
         
         <item>
             <title>The designer's eval loop</title>

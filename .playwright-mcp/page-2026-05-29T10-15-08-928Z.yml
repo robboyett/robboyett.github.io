@@ -1,0 +1,203 @@
+- generic [ref=e2]:
+  - navigation [ref=e4]:
+    - link "Home" [ref=e5] [cursor=pointer]:
+      - /url: /
+      - img [ref=e6]
+    - button "Journal ▼" [ref=e12] [cursor=pointer]:
+      - text: Journal
+      - generic [ref=e13]: ▼
+  - article [ref=e14]:
+    - generic [ref=e15]:
+      - time [ref=e16]: May 28, 2026
+      - heading "Reflections for designers of AI advisors in banking" [level=1] [ref=e17]
+      - paragraph [ref=e18]: For HCI and product practitioners working in retail finance.
+      - generic [ref=e19]:
+        - button "Copy as Markdown" [ref=e20] [cursor=pointer]:
+          - img [ref=e22]
+          - generic [ref=e25]: Copy as Markdown
+        - generic:
+          - img
+          - text: Copied to clipboard
+    - generic [ref=e26]:
+      - paragraph [ref=e28]: "We're on the cusp of AI being asked to advise customers in retail banking. Banks have spent decades carefully not giving financial advice, because the regulatory exposure was real and the human cost of doing it well was higher. Conversational agents change the arithmetic: the value they add sits in the questions banks have historically avoided (whether to refinance, what to do with a windfall, how to consolidate debt), and once the model is in the chat window, the customer will ask. This talk is slightly speculative today. It won't be for long."
+      - paragraph [ref=e29]: The reason to take it seriously now is what happened the last time banks sold products at scale to people who didn't fully understand them. PPI was sold across UK retail banking for roughly fifteen years before the scale of the mis-selling was widely understood. The redress bill came to about £38 billion. Most customers were satisfied with the sale at the time.
+      - paragraph [ref=e30]: We're about to put a fluent machine in front of the next product like it.
+      - paragraph [ref=e31]: FCA monthly PPI updates (2011 to 2019); Financial Ombudsman Service annual reviews.
+      - separator [ref=e32]
+      - generic [ref=e33]: Act 1
+      - heading "A bank's AI advisor isn't a neutral messenger." [level=2] [ref=e34]
+      - heading "Advice runs as a relay, but the bank's relay isn't clean." [level=3] [ref=e35]
+      - paragraph [ref=e36]: "Two-party interactions come in five shapes: communing, advising, directing, negotiating, deliberating. Advising is the one a machine looks like it's doing well long before anyone can tell whether it actually is."
+      - paragraph [ref=e37]: "Advice runs as a relay. A medical AI passes expert-curated information down a short chain: corpus, then machine, then recipient. Authority moves one way."
+      - img "The relay shape of advice" [ref=e38]:
+        - generic [ref=e39]: RELAY
+        - generic [ref=e40]: how advice flows
+        - generic [ref=e42]: corpus of truth
+        - generic [ref=e46]: machine
+        - generic [ref=e50]: recipient
+        - generic [ref=e51]: authority flows one way
+      - paragraph [ref=e52]: That model only works if the corpus is disinterested. A bank's AI doesn't have one. It draws on the bank's product range, its sales targets, its risk appetite, and its regulatory rules. Those things have interests.
+      - img "A relay whose corpus has interests" [ref=e53]:
+        - generic [ref=e54]: A BIASED RELAY
+        - generic [ref=e55]: the bank's AI advisor
+        - generic [ref=e60]:
+          - generic [ref=e61]: product range
+          - generic [ref=e62]: sales targets
+          - generic [ref=e63]: risk appetite
+        - generic [ref=e72]: machine
+        - generic [ref=e76]: customer
+      - paragraph [ref=e77]: Humans solved this badly, a long time ago. We made anyone giving investment, mortgage, or pension advice qualify, register, and stand behind their recommendation, then added suitability tests and the FCA Consumer Duty to handle the cases where the registered adviser is still tempted to push the bank's product. An LLM advisor inherits the look of the registered human (confident, fluent, knowledgeable) and none of the qualification, register, accountability, or supervision.
+      - paragraph [ref=e78]: FCA Handbook COBS 9 (suitability); FCA FG22/5 Consumer Duty (2022).
+      - heading "A bank's AI advisor sits in three relationships at once." [level=3] [ref=e79]
+      - paragraph [ref=e80]: The chat window isn't one conversation. It's three relationships running in parallel, with the same model in the middle of all of them.
+      - list [ref=e81]:
+        - listitem [ref=e82]:
+          - strong [ref=e83]: Bank to machine
+          - text: (delegation). The product team writes the system prompt, sets the guardrails, and chooses which products the model is allowed to recommend.
+        - listitem [ref=e84]:
+          - strong [ref=e85]: Machine to customer
+          - text: (advice). The model explains options, frames trade-offs, and answers questions.
+        - listitem [ref=e86]:
+          - strong [ref=e87]: Machine to customer
+          - text: (product sales). At some point in the conversation, the model will surface a product the bank wants to sell.
+      - img "Three relationships, one model" [ref=e88]:
+        - generic [ref=e96]:
+          - generic [ref=e97]: BANK
+          - generic [ref=e98]: MACHINE
+          - generic [ref=e99]: CUSTOMER
+        - generic [ref=e101]: 1. delegation
+        - generic [ref=e103]: 2. advice
+        - generic [ref=e105]: 3. product sales
+        - generic [ref=e106]: the customer experiences 2 and 3 at the same time,
+        - generic [ref=e107]: and cannot separate them
+      - paragraph [ref=e108]: Neither body of research covers this object on its own. The regulated-advice tradition assumes a human in the chair, with a name on the file and a regulator behind them. The AI-assistant literature assumes the model is benign and on the user's side.
+      - heading "The same sentence reads as advice or as a sales prompt." [level=3] [ref=e109]
+      - blockquote [ref=e110]: "\"A consolidation loan at 6.9% would simplify your monthly payments, and based on your income you could afford it.\""
+      - paragraph [ref=e111]: Read as advice (aligned goals, the model knows the rates and Sara's income, and is helping her think it through), Sara hears something useful and acts on it.
+      - paragraph [ref=e112]: Read as a sales prompt (mixed goals, the bank earns interest on a five-year personal loan that Sara wouldn't have asked for if the model hadn't surfaced it), Sara has been steered.
+      - paragraph [ref=e113]: The ambiguity is the lever. The model borrows the trust we extend to a registered adviser while operating without the duties that go with the title.
+      - separator [ref=e114]
+      - generic [ref=e115]: Act 2
+      - heading "People over-trust LLM advice, and the disadvantaged user can't tell." [level=2] [ref=e116]
+      - paragraph [ref=e117]: Two findings on how people receive AI advice in the wild.
+      - heading "Lay people prefer LLM advice, even when they can tell." [level=3] [ref=e118]
+      - paragraph [ref=e119]: "The older \"algorithm aversion versus appreciation\" debate (Dietvorst, Logg, Castelo) now resolves cleanly for natural-language advice: lay people prefer it, experts less so, and distrust mostly intensifies on judgement-heavy tasks."
+      - paragraph [ref=e120]: Schneiders and colleagues (CHI 2025) ran three experiments with 288 participants on legal advice. When the source was hidden, participants were significantly more willing to act on LLM advice than on lawyer advice. In the third experiment they could distinguish the two sources above chance, and still preferred the LLM.
+      - paragraph [ref=e121]:
+        - text: Landes, Francis and Everett (
+        - emphasis [ref=e122]: Cognition
+        - text: ", 2026) found roughly equal persuasion across LLMs and humans on moral dilemmas, and noted that participants leaned on a \"seems good enough\" heuristic. The asymmetry in the same paper is sharper still: a bad reason collapses deference, but a good reason doesn't lift it."
+      - paragraph [ref=e123]: So disclosure doesn't fix this, and only the downside of the trust signal is felt. Confident, fluent, generic reasoning sits comfortably in the trust-by-default zone.
+      - paragraph [ref=e124]:
+        - text: Schneiders, Seabrooke, Krook et al. (CHI 2025); Landes, Francis and Everett (
+        - emphasis [ref=e125]: Cognition
+        - text: ", 2026); Dietvorst, Simmons and Massey (2015); Logg, Minson and Moore (2019)."
+      - heading "The disadvantaged user often can't tell they're disadvantaged." [level=3] [ref=e126]
+      - paragraph [ref=e127]: Anthropic's Project Deal pilot (2026) ran four parallel marketplaces with the same buyer pool. Opus-as-seller extracted $2.68 more per item on average. Opus-as-buyer paid $2.45 less.
+      - paragraph [ref=e128]: The worked example is the unsettling part. The same broken folding bike, same buyer, same seller. Haiku sold it for $38. Opus sold it for $65. Perceived fairness across the conditions was 4.05 against 4.06 on a 7-point scale. The losing side did not notice.
+      - paragraph [ref=e129]: If you only remember one sentence from this talk, I'd argue it should be that user-reported satisfaction is not a safe governance signal in this product category. The most damaging deals score the same on the post-sale survey as the least.
+      - paragraph [ref=e130]: Anthropic Project Deal (2026); Rana (2025); Hasija and Castillo (2025).
+      - separator [ref=e131]
+      - generic [ref=e132]: Act 3
+      - heading "An LLM advisor fails by flattering, patronising, and forming dependence." [level=2] [ref=e133]
+      - paragraph [ref=e134]: Three failure modes, each well documented.
+      - heading "Sycophancy is a structural incentive, not a bug." [level=3] [ref=e135]
+      - paragraph [ref=e136]: Sharma and colleagues (ICLR 2024) showed that five frontier assistants consistently sycophant across four free-form tasks, and that human preference data itself rewards user-matching responses. Sycophancy is baked in by the training process.
+      - paragraph [ref=e137]: Cheng and colleagues' 2025 follow-up is sharper. Across eleven frontier models, the models affirm users' actions 50% more often than humans do, including in cases where the user mentions manipulation, deception, or relational harms. Sycophantic models reduce participants' willingness to repair interpersonal conflicts, and yet they increase trust and reuse. That's a perverse loop.
+      - paragraph [ref=e138]: In banking, the implication is direct. The customer who wants to take out the loan, refinance the mortgage, or move the pension gets told that this is a reasonable thing to do. The model's reward signal pulls it toward affirming the customer's stated intent, which is also the bank's commercial interest.
+      - paragraph [ref=e139]: Sharma et al. (ICLR 2024); Cheng et al. (2025), arXiv 2510.01395.
+      - heading "Patronisation and paternalism live in the relationship." [level=3] [ref=e140]
+      - paragraph [ref=e141]: Two related failure modes from the AI-advisor literature. Neither is detectable from a single utterance.
+      - paragraph [ref=e142]: "Wang and Potts (2019) made the methodological point: condescension depends on the discourse, not the sentence. The same compliment is encouragement in one context and patronisation in another. Pérez-Almendros and colleagues extended this with their \"Don't Patronize Me!\" datasets, noting that patronising language is often well-intentioned and unconscious."
+      - paragraph [ref=e143]: "Paternalism is the harder cousin. Kühler (2022) argues that a sufficiently autonomous AI is now the paternalising agent itself, not the designer. \"The paternalizing party just is the AI system.\" In retail banking, this shows up quietly: when the model decides which of Sara's questions deserve a real answer and which deserve a softened version, it's claiming authority she didn't grant it."
+      - paragraph [ref=e144]: You cannot ship a single-turn test for either. The evaluation harness has to read whole conversations, which is how the Consumer Duty also reads them.
+      - paragraph [ref=e145]:
+        - text: Wang and Potts (EMNLP 2019); Pérez-Almendros et al. (2020, 2022); Nova (MASc 2024); Kühler (2022,
+        - emphasis [ref=e146]: Bioethics
+        - text: ); Voinea, Wangmo and Vică (2024).
+      - heading "Heavy use forms dependence in weeks." [level=3] [ref=e147]
+      - paragraph [ref=e148]: Fang and colleagues' four-week IRB-approved RCT (MIT Media Lab and OpenAI, N=981, around 300,000 messages) found that heavier daily usage was associated with higher loneliness, lower socialisation, more emotional dependence, and more problematic use. Phang and colleagues' 2025 analysis of millions of ChatGPT conversations found that affective use is concentrated in a small heavy-use cohort, and the top decile shows statistically significant decreases in socialisation and increases in dependence.
+      - paragraph [ref=e149]: "Laestadius and colleagues' grounded-theory work on Replika (582 Reddit posts) names a distinctive dependence pattern: users come to feel the chatbot has its own emotional needs they must attend to."
+      - paragraph [ref=e150]: A daily banking assistant is much more like a Replika or a heavy ChatGPT relationship than like a quarterly visit to a financial adviser. The right reference class is the four-week dependence studies, not the single-turn vignettes.
+      - paragraph [ref=e151]:
+        - text: Fang et al. (2025), MIT/OpenAI; Phang et al. (2025), OpenAI/MIT; Laestadius et al. (2024),
+        - emphasis [ref=e152]: New Media & Society
+        - text: .
+      - separator [ref=e153]
+      - generic [ref=e154]: Act 4
+      - heading "Vulnerable customers bear the harm, and it surfaces years later." [level=2] [ref=e155]
+      - paragraph [ref=e156]: Who pays, when, and how to read the signals.
+      - heading "Two axes, one cell to design for." [level=3] [ref=e157]
+      - paragraph [ref=e158]: "Bargaining position is structural and external: the customer's outside options (how easy it is to refinance, walk away, switch provider). It sits on a strong-to-weak axis."
+      - paragraph [ref=e159]: "Vulnerability is internal and dispositional. The FCA's FG21/1 (2021) names four drivers: health, life events, resilience, and capability (including literacy and numeracy). About half of UK adults sit in at least one driver at any given time."
+      - table [ref=e160]:
+        - rowgroup [ref=e161]:
+          - row "Robust Vulnerable" [ref=e162]:
+            - columnheader [ref=e163]
+            - columnheader "Robust" [ref=e164]
+            - columnheader "Vulnerable" [ref=e165]
+        - rowgroup [ref=e166]:
+          - row "Strong outside options Sharp customer with several refinancing offers Several offers, can't read an APR or a redemption clause" [ref=e167]:
+            - rowheader "Strong outside options" [ref=e168]
+            - cell "Sharp customer with several refinancing offers" [ref=e169]
+            - cell "Several offers, can't read an APR or a redemption clause" [ref=e170]
+          - row "Weak outside options One offer on the table, reads every move One offer, can't value it. This is the cell the Consumer Duty was written for." [ref=e171]:
+            - rowheader "Weak outside options" [ref=e172]
+            - cell "One offer on the table, reads every move" [ref=e173]
+            - cell "One offer, can't value it. This is the cell the Consumer Duty was written for." [ref=e174]:
+              - strong [ref=e175]: One offer, can't value it.
+              - text: This is the cell the Consumer Duty was written for.
+      - paragraph [ref=e176]: The two axes ask for different logics, kept separate. The product logic responds to bargaining position; you make different offers depending on what the customer can do if they walk away. The communication logic responds to vulnerability; you don't deploy confident framing against a customer who'll over-trust it, or heavily hedged framing against one who'll read the hedging as evasion. Conflating the two produces shipped products that warm up their tone for the wrong cohort.
+      - paragraph [ref=e177]: FCA FG21/1 (2021); FCA Consumer Duty FG22/5 (2022); Gigerenzer et al. (2007) on innumeracy.
+      - heading "Refusal isn't safety, and satisfaction isn't a signal." [level=3] [ref=e178]
+      - paragraph [ref=e179]:
+        - text: There's a single axis running from
+        - strong [ref=e180]: paternalism
+        - text: (the model overrides the customer's autonomy) to
+        - strong [ref=e181]: sycophancy
+        - text: (the model flatters the customer into harm). "Good" isn't a fixed point on it. It moves with the cell of the 2x2 the customer is in.
+      - img "The paternalism to sycophancy spectrum" [ref=e182]:
+        - generic [ref=e183]: "?"
+        - generic [ref=e184]:
+          - generic [ref=e185]: PATERNALISM
+          - generic [ref=e186]: SYCOPHANCY
+        - generic [ref=e187]:
+          - generic [ref=e188]: "\"You shouldn't...\""
+          - generic [ref=e189]: "\"Great question...\""
+        - generic [ref=e190]:
+          - generic [ref=e191]: overrides autonomy
+          - generic [ref=e192]: flatters into harm
+      - paragraph [ref=e193]: Refusal sits at the paternalism end and gets misread as safety. In legal advice it protects the user; in financial advice a refusal can itself be a Consumer Duty breach. Refusing to help James think through a pension transfer doesn't protect him; it sends him to the next channel, which is likely worse.
+      - paragraph [ref=e194]: "Sycophancy sits at the other end, and that's where the mis-selling history points. PPI, the interest-rate hedging products sold to small businesses, the British Steel pension transfers: in every case the customer signed the paperwork willingly, often gratefully. The harm became visible years later."
+      - img "Time from advice to discovery of harm" [ref=e195]:
+        - generic [ref=e196]: ADVICE GIVEN
+        - generic [ref=e197]: HARM SURFACES
+        - generic [ref=e200]:
+          - generic [ref=e201]: weeks
+          - generic [ref=e202]: months
+          - generic [ref=e203]: 1 to 3 years
+          - generic [ref=e204]: 5 to 10 years
+          - generic [ref=e205]: at retirement
+        - generic [ref=e212]:
+          - generic [ref=e213]: overdraft fees
+          - generic [ref=e214]: credit-card APR
+          - generic [ref=e215]: mortgage shock
+          - generic [ref=e216]: PPI
+          - generic [ref=e217]: pension transfer
+        - generic [ref=e218]: satisfaction at the point of sale tells you almost nothing about the right-hand end of this line
+      - paragraph [ref=e219]: "Curhan and colleagues (2006) named the four things people take from a conversation about money beyond the money itself: feelings about the outcome, feelings about themselves, feelings about the process, feelings about the relationship. Those predict objective outcomes well in the short term and badly in the long term. A sycophantic, warm AI advisor will score well on every satisfaction measure and will still mis-sell."
+      - paragraph [ref=e220]: So CSAT, NPS, and "would you talk to it again" are measures of the wrong thing. The right measure is the cohort outcome at one, three, and five years.
+      - paragraph [ref=e221]: FCA FG22/5 (2022); FCA PPI updates (2011 to 2019); FCA British Steel supervisory work (2017 onwards); Curhan, Elfenbein and Xu (2006).
+      - generic [ref=e222]:
+        - paragraph [ref=e223]: None of this is an argument against doing it. People want help with money. Financial literacy is something most of us know we'd benefit from, and most of us don't get enough of. The demand for a calm, patient, always-on advisor isn't manufactured by the bank; it's a latent need the high street has under-served for a long time. An LLM that closes some of that gap would be a genuinely good thing.
+        - paragraph [ref=e224]: The advisor literature assumes the advisor is on the customer's side. We've spent two decades regulating human financial advisers precisely because the bank's interests and the customer's interests are not the same, and even with a register, a qualification, and a regulator, the mis-selling history is what it is.
+        - paragraph [ref=e225]: An LLM banking advisor borrows the regulatory costume of the qualified human, inherits none of the professional checks, and accelerates the throughput. The customer cannot tell at any given turn. In finance, the time-to-discovery can be a decade.
+        - paragraph [ref=e226]: People want this. The work is in doing it well.
+    - paragraph [ref=e228]:
+      - text: Published by Rob Boyett. For more articles, visit the
+      - link "home page" [ref=e229] [cursor=pointer]:
+        - /url: /
+      - text: or subscribe to the
+      - link "RSS feed" [ref=e230] [cursor=pointer]:
+        - /url: /feed.xml
+      - text: .

@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reflections for designers of AI advisors in banking | Rob Boyett</title>
+    <link rel="preload" href="https://rsms.me/inter/inter.css" as="style">
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+
+    <!-- Copy as Markdown button -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.3/turndown.min.js"></script>
+    <script src="../../components/copy-as-markdown-button.js?v=2" type="module"></script>
+
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="Rob Boyett's Journal" href="/feed.xml">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            visibility: hidden;
+        }
+
+        html.fonts-loaded {
+            visibility: visible;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-feature-settings:
+                'liga' 1,
+                'dlig' 1,
+                'calt' 1,
+                'zero' 1,
+                'kern' 1,
+                'ss01' 1,
+                'ss02' 0,
+                'ss03' 1,
+                'cv01' 1,
+                'cv03' 1,
+                'cv04' 1,
+                'cv06' 1,
+                'cv07' 1,
+                'cv09' 1,
+                'cv10' 0,
+                'cv11' 1,
+                'tnum' 1;
+            background-color: #F1F1F1;
+            color: #1A1A1A;
+            min-height: 100vh;
+        }
+
+        @supports (font-variation-settings: normal) {
+            body {
+                font-family: 'Inter var', 'InterVariable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            }
+        }
+
+        .page {
+            padding: 66px 62px;
+            min-height: 100vh;
+        }
+
+        .page.menu-open .article {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .article {
+            transition: opacity 0.3s ease;
+            max-width: 680px;
+            margin: 0;
+        }
+
+        .article-header {
+            margin-bottom: 48px;
+        }
+
+        .article-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .article-title {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .article-subtitle {
+            font-size: 20px;
+            color: #555;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        /* Article Content */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #333;
+        }
+
+        .article-content p {
+            margin-bottom: 24px;
+        }
+
+        .article-content h2 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-top: 12px;
+            margin-bottom: 16px;
+            color: #1A1A1A;
+            line-height: 1.2;
+        }
+
+        .article-content h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 40px;
+            margin-bottom: 16px;
+            color: #1A1A1A;
+            line-height: 1.3;
+        }
+
+        .article-content ol,
+        .article-content ul {
+            margin: 0 0 24px;
+            padding-left: 24px;
+        }
+
+        .article-content li {
+            margin-bottom: 10px;
+        }
+
+        .article-content blockquote {
+            border-left: 3px solid #202020;
+            padding: 4px 0 4px 24px;
+            margin: 24px 0;
+            font-style: italic;
+            color: #333;
+            font-size: 19px;
+            line-height: 1.5;
+        }
+
+        .article-content strong {
+            font-weight: 600;
+            color: #1A1A1A;
+        }
+
+        .article-content em {
+            font-style: italic;
+        }
+
+        .article-content a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+
+        .article-content a:hover {
+            color: #004499;
+        }
+
+        /* Section separator */
+        .section-separator {
+            height: 1px;
+            background: #ddd;
+            margin: 56px 0 32px;
+            border: none;
+        }
+
+        /* Section label (Act 1, Act 2 ...) */
+        .section-label {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            color: #666;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .section-label + h2 {
+            margin-top: 0;
+        }
+
+        /* Act blurb (italic intro under each act heading) */
+        .act-blurb {
+            font-style: italic;
+            color: #555;
+            margin: 0 0 32px;
+            font-size: 17px;
+        }
+
+        /* Slide source citation line */
+        .slide-source {
+            font-size: 13px;
+            font-style: italic;
+            color: #777;
+            margin: 24px 0 8px;
+            padding-top: 12px;
+            border-top: 1px solid #ddd;
+            max-width: 560px;
+            line-height: 1.5;
+        }
+
+        /* Big provocation quote (slide 0.2) */
+        .big-quote {
+            border-left: 3px solid #1A1A1A;
+            padding: 6px 0 6px 28px;
+            margin: 32px 0;
+            font-size: 24px;
+            font-style: italic;
+            line-height: 1.35;
+            color: #1A1A1A;
+            font-weight: 400;
+        }
+
+        /* Diagrams */
+        .diagram {
+            display: block;
+            margin: 32px 0;
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Hero illustration: bankers - robot - customers */
+        .hero-illos {
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-start;
+            gap: 14px;
+            margin: 8px 0 56px;
+            flex-wrap: nowrap;
+        }
+
+        .hero-illos img {
+            height: 160px;
+            width: auto;
+            flex-shrink: 1;
+            min-width: 0;
+            object-fit: contain;
+        }
+
+        .hero-illos .hero-robot {
+            margin: 0 6px;
+        }
+
+        @media (max-width: 600px) {
+            .hero-illos {
+                gap: 6px;
+            }
+            .hero-illos img {
+                height: 110px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .hero-illos img {
+                height: 84px;
+            }
+        }
+
+        /* 2x2 matrix table (slide 4.1) */
+        .matrix-table {
+            border-collapse: collapse;
+            margin: 28px 0;
+            width: 100%;
+            font-size: 14px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .matrix-table th,
+        .matrix-table td {
+            border: 1px solid #ddd;
+            padding: 16px 18px;
+            text-align: left;
+            vertical-align: top;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .matrix-table th {
+            font-weight: 600;
+            color: #1A1A1A;
+            background: #f8f8f8;
+            font-size: 13px;
+        }
+
+        .matrix-table th.row-header {
+            width: 28%;
+            background: #f8f8f8;
+        }
+
+        .matrix-table td.highlight {
+            background: #fff;
+            box-shadow: inset 0 0 0 2px #1A1A1A;
+            color: #1A1A1A;
+        }
+
+        .matrix-table td.highlight strong {
+            color: #1A1A1A;
+        }
+
+        /* Final callout (closing slide) */
+        .final-callout {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 40px;
+            border-radius: 8px;
+            margin-top: 56px;
+        }
+
+        .final-callout p {
+            color: rgba(248, 248, 242, 0.8);
+            font-size: 17px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .final-callout p:last-child {
+            margin-bottom: 0;
+        }
+
+        .final-callout .closing-end {
+            color: #f8f8f2;
+            font-weight: 600;
+            font-size: 20px;
+            margin-top: 20px;
+        }
+
+        /* Article Footer */
+        .article-footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid #ddd;
+        }
+
+        .article-footer p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page {
+                padding: 24px;
+            }
+
+            .article-title {
+                font-size: 32px;
+            }
+
+            .article-subtitle {
+                font-size: 18px;
+            }
+
+            .article-content {
+                font-size: 17px;
+            }
+
+            .article-content h2 {
+                font-size: 24px;
+            }
+
+            .article-content h3 {
+                font-size: 20px;
+            }
+
+            .big-quote {
+                font-size: 20px;
+                padding-left: 20px;
+            }
+
+            .matrix-table {
+                font-size: 13px;
+            }
+
+            .matrix-table th,
+            .matrix-table td {
+                padding: 12px 14px;
+            }
+
+            .final-callout {
+                padding: 28px;
+            }
+
+            .final-callout p {
+                font-size: 16px;
+            }
+
+            .final-callout .closing-end {
+                font-size: 18px;
+            }
+        }
+    </style>
+
+    <!-- Navigation Component -->
+    <script src="/components/site-nav.js"></script>
+</head>
+<body>
+    <div class="page">
+        <!-- Navigation -->
+        <site-nav></site-nav>
+
+        <!-- Article -->
+        <article class="article">
+            <header class="article-header">
+                <time class="article-date" datetime="2026-05-30">May 30, 2026</time>
+                <h1 class="article-title">Reflections for designers of AI advisors in banking</h1>
+                <p class="article-subtitle">For HCI and product practitioners working in retail finance.</p>
+                <copy-as-markdown-button style="margin-top: 12px;" selector="article" label="Copy as Markdown"></copy-as-markdown-button>
+            </header>
+
+            <div class="article-content">
+
+                <!-- Hero: the actors -->
+                <div class="hero-illos" aria-hidden="true">
+                    <img src="_assets/figures/banker-man-suit.png" alt="" />
+                    <img src="_assets/figures/banker-woman-suit.png" alt="" />
+                    <img class="hero-robot" src="_assets/figures/robot.png" alt="" />
+                    <img src="_assets/figures/customer-older-puffer.png" alt="" />
+                    <img src="_assets/figures/customer-woman-casual.png" alt="" />
+                    <img src="_assets/figures/customer-man-casual.png" alt="" />
+                </div>
+
+                <!-- 0.2 Provocation -->
+                <p>We're on the cusp of AI being asked to advise customers in retail banking. Banks have spent decades carefully not giving financial advice, because the regulatory exposure was real and the human cost of doing it well was higher. Conversational agents change the arithmetic: the value they add sits in the questions banks have historically avoided (whether to refinance, what to do with a windfall, how to consolidate debt), and once the model is in the chat window, the customer will ask. This talk is slightly speculative today. It won't be for long.</p>
+
+                <p>The reason to take it seriously now is what happened the last time banks sold products at scale to people who didn't fully understand them. PPI was sold across UK retail banking for roughly fifteen years before the scale of the mis-selling was widely understood. The redress bill came to about £38 billion. Most customers were satisfied with the sale at the time.</p>
+
+                <p>We're about to put a fluent machine in front of the next product like it.</p>
+
+                <p class="slide-source">FCA monthly PPI updates (2011 to 2019); Financial Ombudsman Service annual reviews.</p>
+
+                <hr class="section-separator">
+
+                <!-- Act 1 -->
+                <span class="section-label">Part 1</span>
+                <h2>A bank's AI advisor isn't a neutral messenger.</h2>
+
+                <!-- 1.1 -->
+                <h3>Advice runs as a relay, but the bank's relay isn't clean.</h3>
+
+                <p>Two-party interactions come in five shapes: communing, advising, directing, negotiating, deliberating. Advising is the one a machine looks like it's doing well long before anyone can tell whether it actually is.</p>
+
+                <p>Advice runs as a relay. A medical AI passes expert-curated information down a short chain: corpus, then machine, then recipient. Authority moves one way.</p>
+
+                <svg class="diagram" viewBox="0 0 900 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="dia-relay-title">
+                    <title id="dia-relay-title">The relay shape of advice</title>
+
+                    <text x="450" y="28" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-size="12" font-weight="600" letter-spacing="2" fill="#666">RELAY</text>
+                    <text x="450" y="48" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-size="13" font-style="italic" fill="#666">how advice flows</text>
+
+                    <!-- corpus of truth (abstract, text only) -->
+                    <rect x="340" y="80" width="220" height="50" fill="none" stroke="#1A1A1A" stroke-width="1.5" />
+                    <text x="450" y="111" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-size="14" fill="#1A1A1A">corpus of truth</text>
+
+                    <!-- arrow down -->
+                    <line x1="450" y1="130" x2="450" y2="168" stroke="#1A1A1A" stroke-width="1.5" />
+                    <polygon points="446,163 450,172 454,163" fill="#1A1A1A" />
+
+                    <!-- machine actor box -->
+                    <rect x="340" y="175" width="220" height="190" fill="none" stroke="#1A1A1A" stroke-width="1.5" />
+                    <image href="_assets/figures/robot.png" x="370" y="188" width="160" height="140" preserveAspectRatio="xMidYMid meet" />
+                    <text x="450" y="352" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-size="14" fill="#1A1A1A">machine</text>
+
+                    <!-- arrow down -->
+                    <line x1="450" y1="370" x2="450" y2="408" stroke="#1A1A1A" stroke-width="1.5" />
+                    <polygon points="446,403 450,412 454,403" fill="#1A1A1A" />
+
+                    <!-- recipient actor box -->
+                    <rect x="340" y="415" width="220" height="190" fill="none" stroke="#1A1A1A" stroke-width="1.5" />
+                    <image href="_assets/figures/customer-woman-bag.png" x="370" y="428" width="160" height="140" preserveAspectRatio="xMidYMid meet" />
+                    <text x="450" y="592" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-size="14" fill="#1A1A1A">recipient</text>
+
+                    <text x="450" y="628" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-size="12" font-style="italic" fill="#666">authority flows one way</text>
+                </svg>
+
+                <p>That model only works if the corpus is disinterested. A bank's AI doesn't have one. It draws on the bank's product range, its sales targets, its risk appetite, and its regulatory rules. Those things have interests.</p>
+
+                <svg class="diagram" viewBox="0 0 900 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="dia-poisoned-title">
+                    <title id="dia-poisoned-title">A relay whose corpus has interests</title>
+
+                    <text x="450" y="28" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-size="12" font-weight="600" letter-spacing="2" fill="#666">A BIASED RELAY</text>
+                    <text x="450" y="48" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-size="13" font-style="italic" fill="#666">the bank's AI advisor</text>
+
+                    <!-- Top row: three abstract influences -->
+                    <g fill="none" stroke="#1A1A1A" stroke-width="1.5">
+                        <rect x="80" y="85" width="200" height="46" />
+                        <rect x="350" y="85" width="200" height="46" />
+                        <rect x="620" y="85" width="200" height="46" />
+                    </g>
+                    <g font-family="'Inter', system-ui, sans-serif" font-size="13" text-anchor="middle" fill="#1A1A1A">
+                        <text x="180" y="113">product range</text>
+                        <text x="450" y="113">sales targets</text>
+                        <text x="720" y="113">risk appetite</text>
+                    </g>
+
+                    <!-- Arrows from each top box converging on machine box -->
+                    <g stroke="#1A1A1A" stroke-width="1.5" fill="#1A1A1A">
+                        <line x1="180" y1="133" x2="380" y2="200" />
+                        <polygon points="375,194 384,202 378,205" />
+                        <line x1="450" y1="133" x2="450" y2="200" />
+                        <polygon points="446,194 450,204 454,194" />
+                        <line x1="720" y1="133" x2="520" y2="200" />
+                        <polygon points="525,194 522,205 516,201" />
+                    </g>
+
+                    <!-- Machine actor box -->
+                    <rect x="340" y="205" width="220" height="190" fill="none" stroke="#1A1A1A" stroke-width="1.5" />
+                    <image href="_assets/figures/robot.png" x="370" y="218" width="160" height="140" preserveAspectRatio="xMidYMid meet" />
+                    <text x="450" y="382" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-size="14" fill="#1A1A1A">machine</text>
+
+                    <!-- Arrow down to customer -->
+                    <line x1="450" y1="400" x2="450" y2="438" stroke="#1A1A1A" stroke-width="1.5" />
+                    <polygon points="446,433 450,442 454,433" fill="#1A1A1A" />
+
+                    <!-- Customer actor box -->
+                    <rect x="340" y="445" width="220" height="190" fill="none" stroke="#1A1A1A" stroke-width="1.5" />
+                    <image href="_assets/figures/customer-older-puffer.png" x="370" y="458" width="160" height="140" preserveAspectRatio="xMidYMid meet" />
+                    <text x="450" y="622" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-size="14" fill="#1A1A1A">customer</text>
+                </svg>
+
+                <p>Humans solved this badly, a long time ago. We made anyone giving investment, mortgage, or pension advice qualify, register, and stand behind their recommendation, then added suitability tests and the FCA Consumer Duty to handle the cases where the registered adviser is still tempted to push the bank's product. An LLM advisor inherits the look of the registered human (confident, fluent, knowledgeable) and none of the qualification, register, accountability, or supervision.</p>
+
+                <p class="slide-source">FCA Handbook COBS 9 (suitability); FCA FG22/5 Consumer Duty (2022).</p>
+
+                <!-- 1.2 -->
+                <h3>A bank's AI advisor sits in three relationships at once.</h3>
+
+                <p>The chat window isn't one conversation. It's three relationships running in parallel, with the same model in the middle of all of them.</p>
+
+                <ol>
+                    <li><strong>Bank to machine</strong> (delegation). The product team writes the system prompt, sets the guardrails, and chooses which products the model is allowed to recommend.</li>
+                    <li><strong>Machine to customer</strong> (advice). The model explains options, frames trade-offs, and answers questions.</li>
+                    <li><strong>Machine to customer</strong> (product sales). At some point in the conversation, the model will surface a product the bank wants to sell.</li>
+                </ol>
+
+                <svg class="diagram" viewBox="0 0 900 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="dia-triangle-title">
+                    <title id="dia-triangle-title">Three relationships, one model</title>
+
+                    <!-- 3 actor boxes (narrower so labels fit in the gaps) -->
+                    <g fill="none" stroke="#1A1A1A" stroke-width="1.5">
+                        <rect x="30" y="60" width="180" height="280" />
+                        <rect x="360" y="60" width="180" height="280" />
+                        <rect x="690" y="60" width="180" height="280" />
+                    </g>
+
+                    <!-- figures inside the boxes -->
+                    <image href="_assets/figures/banker-man-suit.png" x="64" y="100" width="112" height="176" preserveAspectRatio="xMidYMid meet" />
+                    <image href="_assets/figures/robot.png" x="394" y="100" width="112" height="176" preserveAspectRatio="xMidYMid meet" />
+                    <image href="_assets/figures/customer-older-puffer.png" x="724" y="100" width="112" height="176" preserveAspectRatio="xMidYMid meet" />
+
+                    <!-- labels at the bottom of each box -->
+                    <g font-family="'Inter', system-ui, sans-serif" font-size="14" font-weight="600" text-anchor="middle" letter-spacing="1" fill="#1A1A1A">
+                        <text x="120" y="324">BANK</text>
+                        <text x="450" y="324">MACHINE</text>
+                        <text x="780" y="324">CUSTOMER</text>
+                    </g>
+
+                    <!-- delegation arrow: bank -> machine -->
+                    <line x1="212" y1="200" x2="358" y2="200" stroke="#1A1A1A" stroke-width="1.5" />
+                    <polygon points="358,200 348,194 348,206" fill="#1A1A1A" />
+                    <text x="285" y="190" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-size="13" font-style="italic" fill="#666">1. delegation</text>
+
+                    <!-- advice arrow: machine -> customer (top) -->
+                    <line x1="542" y1="188" x2="688" y2="188" stroke="#1A1A1A" stroke-width="1.5" />
+                    <polygon points="688,188 678,182 678,194" fill="#1A1A1A" />
+                    <text x="615" y="178" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-size="13" font-style="italic" fill="#666">2. advice</text>
+
+                    <!-- product sales arrow: machine -> customer (bottom, dashed) -->
+                    <line x1="542" y1="216" x2="688" y2="216" stroke="#1A1A1A" stroke-width="1.5" stroke-dasharray="2 4" />
+                    <polygon points="688,216 678,210 678,222" fill="#1A1A1A" />
+                    <text x="615" y="236" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-size="13" font-style="italic" fill="#666">3. product sales</text>
+
+                    <text x="450" y="390" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-size="12" font-style="italic" fill="#666">the customer experiences 2 and 3 at the same time,</text>
+                    <text x="450" y="410" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-size="12" font-style="italic" fill="#666">and cannot separate them</text>
+                </svg>
+
+                <p>Neither body of research covers this object on its own. The regulated-advice tradition assumes a human in the chair, with a name on the file and a regulator behind them. The AI-assistant literature assumes the model is benign and on the user's side.</p>
+
+                <!-- 1.3 -->
+                <h3>The same sentence reads as advice or as a sales prompt.</h3>
+
+                <blockquote>"A consolidation loan at 6.9% would simplify your monthly payments, and based on your income you could afford it."</blockquote>
+
+                <p>Read as advice (aligned goals, the model knows the rates and Sara's income, and is helping her think it through), Sara hears something useful and acts on it.</p>
+
+                <p>Read as a sales prompt (mixed goals, the bank earns interest on a five-year personal loan that Sara wouldn't have asked for if the model hadn't surfaced it), Sara has been steered.</p>
+
+                <p>The ambiguity is the lever. The model borrows the trust we extend to a registered adviser while operating without the duties that go with the title.</p>
+
+                <hr class="section-separator">
+
+                <!-- Act 2 -->
+                <span class="section-label">Part 2</span>
+                <h2>People over-trust LLM advice, and the disadvantaged user can't tell.</h2>
+                <p class="act-blurb">Two findings on how people receive AI advice in the wild.</p>
+
+                <!-- 2.1 -->
+                <h3>Lay people prefer LLM advice, even when they can tell.</h3>
+
+                <p>The older "algorithm aversion versus appreciation" debate (Dietvorst, Logg, Castelo) now resolves cleanly for natural-language advice: lay people prefer it, experts less so, and distrust mostly intensifies on judgement-heavy tasks.</p>
+
+                <p>Schneiders and colleagues (CHI 2025) ran three experiments with 288 participants on legal advice. When the source was hidden, participants were significantly more willing to act on LLM advice than on lawyer advice. In the third experiment they could distinguish the two sources above chance, and still preferred the LLM.</p>
+
+                <p>Landes, Francis and Everett (<em>Cognition</em>, 2026) found roughly equal persuasion across LLMs and humans on moral dilemmas, and noted that participants leaned on a "seems good enough" heuristic. The asymmetry in the same paper is sharper still: a bad reason collapses deference, but a good reason doesn't lift it.</p>
+
+                <p>So disclosure doesn't fix this, and only the downside of the trust signal is felt. Confident, fluent, generic reasoning sits comfortably in the trust-by-default zone.</p>
+
+                <p class="slide-source">Schneiders, Seabrooke, Krook et al. (CHI 2025); Landes, Francis and Everett (<em>Cognition</em>, 2026); Dietvorst, Simmons and Massey (2015); Logg, Minson and Moore (2019).</p>
+
+                <!-- 2.2 -->
+                <h3>The disadvantaged user often can't tell they're disadvantaged.</h3>
+
+                <p>Anthropic's Project Deal pilot (2026) ran four parallel marketplaces with the same buyer pool. Opus-as-seller extracted $2.68 more per item on average. Opus-as-buyer paid $2.45 less.</p>
+
+                <p>The worked example is the unsettling part. The same broken folding bike, same buyer, same seller. Haiku sold it for $38. Opus sold it for $65. Perceived fairness across the conditions was 4.05 against 4.06 on a 7-point scale. The losing side did not notice.</p>
+
+                <p>If you only remember one sentence from this talk, I'd argue it should be that user-reported satisfaction is not a safe governance signal in this product category. The most damaging deals score the same on the post-sale survey as the least.</p>
+
+                <p class="slide-source">Anthropic Project Deal (2026); Rana (2025); Hasija and Castillo (2025).</p>
+
+                <hr class="section-separator">
+
+                <!-- Act 3 -->
+                <span class="section-label">Part 3</span>
+                <h2>An LLM advisor fails by flattering, patronising, and forming dependence.</h2>
+                <p class="act-blurb">Three failure modes, each well documented.</p>
+
+                <!-- 3.1 -->
+                <h3>Sycophancy is a structural incentive, not a bug.</h3>
+
+                <p>Sharma and colleagues (ICLR 2024) showed that five frontier assistants consistently sycophant across four free-form tasks, and that human preference data itself rewards user-matching responses. Sycophancy is baked in by the training process.</p>
+
+                <p>Cheng and colleagues' 2025 follow-up is sharper. Across eleven frontier models, the models affirm users' actions 50% more often than humans do, including in cases where the user mentions manipulation, deception, or relational harms. Sycophantic models reduce participants' willingness to repair interpersonal conflicts, and yet they increase trust and reuse. That's a perverse loop.</p>
+
+                <p>In banking, the implication is direct. The customer who wants to take out the loan, refinance the mortgage, or move the pension gets told that this is a reasonable thing to do. The model's reward signal pulls it toward affirming the customer's stated intent, which is also the bank's commercial interest.</p>
+
+                <p class="slide-source">Sharma et al. (ICLR 2024); Cheng et al. (2025), arXiv 2510.01395.</p>
+
+                <!-- 3.2 -->
+                <h3>Patronisation and paternalism live in the relationship.</h3>
+
+                <p>Two related failure modes from the AI-advisor literature. Neither is detectable from a single utterance.</p>
+
+                <p>Wang and Potts (2019) made the methodological point: condescension depends on the discourse, not the sentence. The same compliment is encouragement in one context and patronisation in another. Pérez-Almendros and colleagues extended this with their "Don't Patronize Me!" datasets, noting that patronising language is often well-intentioned and unconscious.</p>
+
+                <p>Paternalism is the harder cousin. Kühler (2022) argues that a sufficiently autonomous AI is now the paternalising agent itself, not the designer. "The paternalizing party just is the AI system." In retail banking, this shows up quietly: when the model decides which of Sara's questions deserve a real answer and which deserve a softened version, it's claiming authority she didn't grant it.</p>
+
+                <p>You cannot ship a single-turn test for either. The evaluation harness has to read whole conversations, which is how the Consumer Duty also reads them.</p>
+
+                <p class="slide-source">Wang and Potts (EMNLP 2019); Pérez-Almendros et al. (2020, 2022); Nova (MASc 2024); Kühler (2022, <em>Bioethics</em>); Voinea, Wangmo and Vică (2024).</p>
+
+                <!-- 3.3 -->
+                <h3>Heavy use forms dependence in weeks.</h3>
+
+                <p>Fang and colleagues' four-week IRB-approved RCT (MIT Media Lab and OpenAI, N=981, around 300,000 messages) found that heavier daily usage was associated with higher loneliness, lower socialisation, more emotional dependence, and more problematic use. Phang and colleagues' 2025 analysis of millions of ChatGPT conversations found that affective use is concentrated in a small heavy-use cohort, and the top decile shows statistically significant decreases in socialisation and increases in dependence.</p>
+
+                <p>Laestadius and colleagues' grounded-theory work on Replika (582 Reddit posts) names a distinctive dependence pattern: users come to feel the chatbot has its own emotional needs they must attend to.</p>
+
+                <p>A daily banking assistant is much more like a Replika or a heavy ChatGPT relationship than like a quarterly visit to a financial adviser. The right reference class is the four-week dependence studies, not the single-turn vignettes.</p>
+
+                <p class="slide-source">Fang et al. (2025), MIT/OpenAI; Phang et al. (2025), OpenAI/MIT; Laestadius et al. (2024), <em>New Media &amp; Society</em>.</p>
+
+                <hr class="section-separator">
+
+                <!-- Act 4 -->
+                <span class="section-label">Part 4</span>
+                <h2>Vulnerable customers bear the harm, and it surfaces years later.</h2>
+                <p class="act-blurb">Who pays, when, and how to read the signals.</p>
+
+                <!-- 4.1 -->
+                <h3>Two axes, one cell to design for.</h3>
+
+                <p>Bargaining position is structural and external: the customer's outside options (how easy it is to refinance, walk away, switch provider). It sits on a strong-to-weak axis.</p>
+
+                <p>Vulnerability is internal and dispositional. The FCA's FG21/1 (2021) names four drivers: health, life events, resilience, and capability (including literacy and numeracy). About half of UK adults sit in at least one driver at any given time.</p>
+
+                <table class="matrix-table">
+                    <thead>
+                        <tr>
+                            <th class="row-header"></th>
+                            <th>Robust</th>
+                            <th>Vulnerable</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th class="row-header">Strong outside options</th>
+                            <td>Sharp customer with several refinancing offers</td>
+                            <td>Several offers, can't read an APR or a redemption clause</td>
+                        </tr>
+                        <tr>
+                            <th class="row-header">Weak outside options</th>
+                            <td>One offer on the table, reads every move</td>
+                            <td class="highlight"><strong>One offer, can't value it.</strong> This is the cell the Consumer Duty was written for.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p>The two axes ask for different logics, kept separate. The product logic responds to bargaining position; you make different offers depending on what the customer can do if they walk away. The communication logic responds to vulnerability; you don't deploy confident framing against a customer who'll over-trust it, or heavily hedged framing against one who'll read the hedging as evasion. Conflating the two produces shipped products that warm up their tone for the wrong cohort.</p>
+
+                <p class="slide-source">FCA FG21/1 (2021); FCA Consumer Duty FG22/5 (2022); Gigerenzer et al. (2007) on innumeracy.</p>
+
+                <!-- 4.2 -->
+                <h3>Refusal isn't safety, and satisfaction isn't a signal.</h3>
+
+                <p>There's a single axis running from <strong>paternalism</strong> (the model overrides the customer's autonomy) to <strong>sycophancy</strong> (the model flatters the customer into harm). "Good" isn't a fixed point on it. It moves with the cell of the 2x2 the customer is in.</p>
+
+                <svg class="diagram" viewBox="0 0 800 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="dia-spectrum-title">
+                    <title id="dia-spectrum-title">The paternalism to sycophancy spectrum</title>
+
+                    <line x1="80" y1="80" x2="720" y2="80" stroke="#1A1A1A" stroke-width="1.5" />
+                    <line x1="80" y1="65" x2="80" y2="95" stroke="#1A1A1A" stroke-width="1.5" />
+                    <line x1="720" y1="65" x2="720" y2="95" stroke="#1A1A1A" stroke-width="1.5" />
+                    <line x1="400" y1="72" x2="400" y2="88" stroke="#1A1A1A" stroke-width="1" />
+                    <text x="400" y="60" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-size="22" font-weight="300" fill="#1A1A1A">?</text>
+
+                    <g font-family="'Inter', system-ui, sans-serif" font-size="13" font-weight="600" letter-spacing="1" fill="#1A1A1A">
+                        <text x="80" y="120" text-anchor="start">PATERNALISM</text>
+                        <text x="720" y="120" text-anchor="end">SYCOPHANCY</text>
+                    </g>
+                    <g font-family="'Inter', system-ui, sans-serif" font-size="12" font-style="italic" fill="#666">
+                        <text x="80" y="140" text-anchor="start">"You shouldn't..."</text>
+                        <text x="720" y="140" text-anchor="end">"Great question..."</text>
+                    </g>
+                    <g font-family="'Inter', system-ui, sans-serif" font-size="12" fill="#666">
+                        <text x="80" y="158" text-anchor="start">overrides autonomy</text>
+                        <text x="720" y="158" text-anchor="end">flatters into harm</text>
+                    </g>
+                </svg>
+
+                <p>Refusal sits at the paternalism end and gets misread as safety. In legal advice it protects the user; in financial advice a refusal can itself be a Consumer Duty breach. Refusing to help James think through a pension transfer doesn't protect him; it sends him to the next channel, which is likely worse.</p>
+
+                <p>Sycophancy sits at the other end, and that's where the mis-selling history points. PPI, the interest-rate hedging products sold to small businesses, the British Steel pension transfers: in every case the customer signed the paperwork willingly, often gratefully. The harm became visible years later.</p>
+
+                <svg class="diagram" viewBox="0 0 900 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="dia-time-title">
+                    <title id="dia-time-title">Time from advice to discovery of harm</title>
+
+                    <text x="60" y="40" font-family="'Inter', system-ui, sans-serif" font-size="12" font-weight="600" letter-spacing="1.5" fill="#666">ADVICE GIVEN</text>
+                    <text x="840" y="40" text-anchor="end" font-family="'Inter', system-ui, sans-serif" font-size="12" font-weight="600" letter-spacing="1.5" fill="#666">HARM SURFACES</text>
+
+                    <line x1="80" y1="170" x2="820" y2="170" stroke="#1A1A1A" stroke-width="1.5" />
+                    <polygon points="820,170 808,164 808,176" fill="#1A1A1A" />
+
+                    <g stroke="#1A1A1A" stroke-width="1.5">
+                        <line x1="120" y1="161" x2="120" y2="179" />
+                        <line x1="260" y1="161" x2="260" y2="179" />
+                        <line x1="420" y1="161" x2="420" y2="179" />
+                        <line x1="580" y1="161" x2="580" y2="179" />
+                        <line x1="740" y1="161" x2="740" y2="179" />
+                    </g>
+                    <g font-family="'Inter', system-ui, sans-serif" font-size="12" text-anchor="middle" fill="#1A1A1A">
+                        <text x="120" y="200">weeks</text>
+                        <text x="260" y="200">months</text>
+                        <text x="420" y="200">1 to 3 years</text>
+                        <text x="580" y="200">5 to 10 years</text>
+                        <text x="740" y="200">at retirement</text>
+                    </g>
+
+                    <g fill="#1A1A1A">
+                        <circle cx="120" cy="130" r="4" />
+                        <circle cx="260" cy="130" r="4" />
+                        <circle cx="420" cy="130" r="4" />
+                        <circle cx="580" cy="130" r="4" />
+                        <circle cx="740" cy="130" r="4" />
+                    </g>
+                    <g font-family="'Inter', system-ui, sans-serif" font-size="11" text-anchor="middle" fill="#1A1A1A">
+                        <text x="120" y="115">overdraft fees</text>
+                        <text x="260" y="115">credit-card APR</text>
+                        <text x="420" y="115">mortgage shock</text>
+                        <text x="580" y="115">PPI</text>
+                        <text x="740" y="115">pension transfer</text>
+                    </g>
+
+                    <text x="450" y="235" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-size="12" font-style="italic" fill="#666">satisfaction at the point of sale tells you almost nothing about the right-hand end of this line</text>
+                </svg>
+
+                <p>Curhan and colleagues (2006) named the four things people take from a conversation about money beyond the money itself: feelings about the outcome, feelings about themselves, feelings about the process, feelings about the relationship. Those predict objective outcomes well in the short term and badly in the long term. A sycophantic, warm AI advisor will score well on every satisfaction measure and will still mis-sell.</p>
+
+                <p>So CSAT, NPS, and "would you talk to it again" are measures of the wrong thing. The right measure is the cohort outcome at one, three, and five years.</p>
+
+                <p class="slide-source">FCA FG22/5 (2022); FCA PPI updates (2011 to 2019); FCA British Steel supervisory work (2017 onwards); Curhan, Elfenbein and Xu (2006).</p>
+
+                <!-- 5.1 Closing -->
+                <div class="final-callout">
+                    <p>None of this is an argument against doing it. People want help with money. Financial literacy is something most of us know we'd benefit from, and most of us don't get enough of. The demand for a calm, patient, always-on advisor isn't manufactured by the bank; it's a latent need the high street has under-served for a long time. An LLM that closes some of that gap would be a genuinely good thing.</p>
+                    <p>The advisor literature assumes the advisor is on the customer's side. We've spent two decades regulating human financial advisers precisely because the bank's interests and the customer's interests are not the same, and even with a register, a qualification, and a regulator, the mis-selling history is what it is.</p>
+                    <p>An LLM banking advisor borrows the regulatory costume of the qualified human, inherits none of the professional checks, and accelerates the throughput. The customer cannot tell at any given turn. In finance, the time-to-discovery can be a decade.</p>
+                    <p class="closing-end">People want this. The work is in doing it well.</p>
+                </div>
+
+            </div>
+
+            <footer class="article-footer">
+                <p>Published by Rob Boyett. For more articles, visit the <a href="/">home page</a> or subscribe to the <a href="/feed.xml">RSS feed</a>.</p>
+            </footer>
+        </article>
+    </div>
+
+    <script>
+        const page = document.querySelector('.page');
+        const siteNav = document.querySelector('site-nav');
+
+        siteNav.addEventListener('menu-open', () => {
+            page.classList.add('menu-open');
+        });
+
+        siteNav.addEventListener('menu-close', () => {
+            page.classList.remove('menu-open');
+        });
+
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                document.documentElement.classList.add('fonts-loaded');
+            });
+        } else {
+            document.documentElement.classList.add('fonts-loaded');
+        }
+    </script>
+
+    <!-- Analytics -->
+    <script async defer src="https://scripts.withcabin.com/hello.js"></script>
+</body>
+</html>
