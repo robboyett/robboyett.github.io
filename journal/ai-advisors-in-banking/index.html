@@ -437,7 +437,7 @@
                 </div>
 
                 <!-- 0.2 Provocation -->
-                <p>We're on the cusp of AI being asked to advise customers in retail banking. Banks have spent decades carefully not giving financial advice, because the regulatory exposure was real and the human cost of doing it well was higher. Conversational agents change the arithmetic: the value they add sits in the questions banks have historically avoided (whether to refinance, what to do with a windfall, how to consolidate debt), and once the model is in the chat window, the customer will ask. This talk is slightly speculative today. It won't be for long.</p>
+                <p>We're on the cusp of AI being asked to advise customers in retail banking. Banks have spent decades carefully staying on the right side of the regulatory perimeter that defines advice: give a personal recommendation on a mortgage, pension, or investment and you have to qualify for it, register, and stand behind it. Conversational agents change the landscape. The value they add sits in the questions banks have historically avoided (whether to refinance, what to do with a windfall, how to consolidate debt), and some of those sit outside the perimeter altogether, where the protections were never built. Once the model is in the chat window, the customer will ask, and it will answer in the grammar of advice whether the regulation calls it that or not. This talk is slightly speculative today. It won't be for long.</p>
 
                 <p>The reason to take it seriously now is what happened the last time banks sold products at scale to people who didn't fully understand them. PPI was sold across UK retail banking for roughly fifteen years before the scale of the mis-selling was widely understood. The redress bill came to about £38 billion. Most customers were satisfied with the sale at the time.</p>
 
@@ -534,9 +534,9 @@
                     <text x="450" y="622" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-size="14" fill="#1A1A1A">customer</text>
                 </svg>
 
-                <p>Humans solved this badly, a long time ago. We made anyone giving investment, mortgage, or pension advice qualify, register, and stand behind their recommendation, then added suitability tests and the FCA Consumer Duty to handle the cases where the registered adviser is still tempted to push the bank's product. An LLM advisor inherits the look of the registered human (confident, fluent, knowledgeable) and none of the qualification, register, accountability, or supervision.</p>
+                <p>Humans solved this badly, a long time ago. We drew a perimeter around a specific activity, the personal recommendation on an investment, mortgage, or pension, and loaded it with duties: anyone giving that advice has to qualify, register, and stand behind their recommendation, with suitability tests and the FCA Consumer Duty layered on to catch the cases where the registered adviser is still tempted to push the bank's product. Everything outside the perimeter (consolidation loans, overdrafts, credit-card decisions) got promotion rules under CONC and nothing resembling an adviser duty. The boundary held for one reason: producing advice at scale outside it was slow and expensive, because a human had to sit there and say it. An LLM advisor inherits the look of the registered human (confident, fluent, knowledgeable) and none of the qualification, register, accountability, or supervision. The perimeter policed something that was hard to produce, and the model makes it cheap.</p>
 
-                <p class="slide-source">FCA Handbook COBS 9 (suitability); FCA FG22/5 Consumer Duty (2022).</p>
+                <p class="slide-source">FCA Handbook COBS 9 (suitability); FCA Handbook CONC 3 (credit promotions); FCA FG22/5 Consumer Duty (2022).</p>
 
                 <!-- 1.2 -->
                 <h3>A bank's AI advisor sits in three relationships at once.</h3>
@@ -601,7 +601,9 @@
 
                 <p>Read as a sales prompt (mixed goals, the bank earns interest on a five-year personal loan that Sara wouldn't have asked for if the model hadn't surfaced it), Sara has been steered.</p>
 
-                <p>The ambiguity is the lever. The model borrows the trust we extend to a registered adviser while operating without the duties that go with the title.</p>
+                <p>Here's the catch the wording hides. A consolidation loan sits outside regulated advice: it's a CONC promotion, not a personal recommendation, so no suitability test and no adviser duty attach to it. Yet "based on your income you could afford it" is exactly what a suitability-tested recommendation sounds like.</p>
+
+                <p>That's the lever. The model produces advice-shaped output in a zone where the advice duties were never built, borrowing the trust we extend to a registered adviser while carrying none of the obligations that come with the title.</p>
 
                 <hr class="section-separator">
 
@@ -744,7 +746,7 @@
                     </g>
                 </svg>
 
-                <p>Refusal sits at the paternalism end and gets misread as safety. In legal advice it protects the user; in financial advice a refusal can itself be a Consumer Duty breach. Refusing to help James think through a pension transfer doesn't protect him; it sends him to the next channel, which is likely worse.</p>
+                <p>Refusal sits at the paternalism end and gets misread as safety. In legal advice it protects the user; in financial advice a refusal can itself be a Consumer Duty breach. Consumer Duty is the one rule that doesn't respect the old perimeter: it reaches across retail products whether or not regulated advice is happening, which is why it, and not COBS 9, is the real governance surface for the zone the model exploits. Refusing to help James think through a pension transfer doesn't protect him; it sends him to the next channel, which is likely worse.</p>
 
                 <p>Sycophancy sits at the other end, and that's where the mis-selling history points. PPI, the interest-rate hedging products sold to small businesses, the British Steel pension transfers: in every case the customer signed the paperwork willingly, often gratefully. The harm became visible years later.</p>
 
