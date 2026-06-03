@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRIMEWAVE — a place, sonified</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --ink: #0a0a0a;
+    --bone: #e8e4d8;
+    --blood: #ff2d2d;
+    --acid: #c6ff00;
+    --grid: rgba(232,228,216,0.07);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--ink);
+    color: var(--bone);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .grain {
+    position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  header {
+    padding: 5vh 6vw 3vh;
+    border-bottom: 2px solid var(--bone);
+  }
+  h1 {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(3rem, 14vw, 11rem);
+    line-height: 0.82;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+  h1 .red { color: var(--blood); }
+  .tagline {
+    margin-top: 1.2rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.6;
+    max-width: 42ch;
+    line-height: 1.6;
+  }
+
+  .controls {
+    padding: 4vh 6vw;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+  }
+  .field { display: flex; flex-direction: column; gap: 0.4rem; }
+  label {
+    font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.5;
+  }
+  input {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--bone);
+    color: var(--bone);
+    font-family: 'Space Mono', monospace;
+    font-size: 1.1rem;
+    padding: 0.4rem 0;
+    width: 160px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  input:focus { outline: none; border-color: var(--acid); }
+  input::placeholder { color: rgba(232,228,216,0.3); }
+
+  button {
+    font-family: 'Anton', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: var(--bone);
+    color: var(--ink);
+    border: none;
+    padding: 0.7rem 1.6rem;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  button:hover { background: var(--acid); }
+  button:disabled { opacity: 0.3; cursor: wait; }
+  button.ghost { background: transparent; color: var(--bone); border: 2px solid var(--bone); }
+  button.ghost:hover { background: var(--blood); border-color: var(--blood); color: var(--bone); }
+  button.playing { background: var(--blood); color: var(--bone); }
+
+  .status {
+    padding: 0 6vw;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+    min-height: 1.4em;
+  }
+  .status .acid { color: var(--acid); }
+  .status .red { color: var(--blood); }
+
+  .readout {
+    padding: 4vh 6vw 10vh;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 2px;
+    background: var(--bone);
+    margin: 4vh 0 0;
+    opacity: 0;
+    transition: opacity 0.6s;
+  }
+  .readout.live { opacity: 1; }
+  .cell {
+    background: var(--ink);
+    padding: 1.6rem 1.4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .cell .bar {
+    position: absolute; bottom: 0; left: 0; height: 3px;
+    background: var(--blood); transition: width 0.8s;
+  }
+  .cell .cat { font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.5; }
+  .cell .num { font-family: 'Anton', sans-serif; font-size: 3rem; line-height: 1; margin-top: 0.5rem; }
+  .cell .role { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.6rem; color: var(--acid); opacity: 0.75; }
+
+  .bigstat {
+    grid-column: 1 / -1;
+    display: flex; flex-wrap: wrap; gap: 3rem;
+    padding: 2.4rem 1.4rem;
+  }
+  .bigstat .item .num { font-size: 4.5rem; }
+  .bigstat .item .cat { font-size: 0.7rem; }
+
+  footer { padding: 3vh 6vw 6vh; font-size: 0.65rem; opacity: 0.4; letter-spacing: 0.1em; line-height: 1.8; }
+  footer a { color: var(--acid); }
+
+  .pulse { animation: pulse 0.3s ease-out; }
+  @keyframes pulse { 0% { background: var(--blood); } 100% { background: var(--ink); } }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<header>
+  <h1>CRIME<span class="red">WAVE</span></h1>
+  <p class="tagline">A location, rendered as techno. Live UK street-crime data drives a generative engine. The place you stand in decides how it sounds.</p>
+</header>
+
+<div class="controls">
+  <div class="field">
+    <label>Postcode</label>
+    <input id="postcode" placeholder="E1 6AN" maxlength="8">
+  </div>
+  <button id="locate" class="ghost">Use my location</button>
+  <button id="load">Read the area</button>
+  <button id="play" disabled>▶ Play</button>
+</div>
+
+<div class="status" id="status">Enter a UK postcode, or use your location, then read the area.</div>
+
+<div class="readout" id="readout"></div>
+
+<footer>
+  Source: data.police.uk open API — street-level crime, monthly, anonymised to ~1 mile. Data lags ~2 months, so this is the <em>mood of a place</em>, not a live feed.<br>
+  Audio: Tone.js, generated entirely in-browser. Scotland reports only via British Transport Police, so crime there reads artificially low.
+</footer>
+
+<script>
+// ---- crime category -> sonic role mapping --------------------------------
+// Each category steers a different parameter of the engine, not just tempo.
+const MAP = {
+  'violent-crime':         { role: 'distortion + minor key',  weight: 'distortion' },
+  'anti-social-behaviour': { role: 'hi-hat density',          weight: 'hats' },
+  'burglary':              { role: 'sub-bass weight',         weight: 'sub' },
+  'criminal-damage-arson': { role: 'noise / texture',         weight: 'noise' },
+  'drugs':                 { role: 'acid 303 filter',         weight: 'acid' },
+  'public-order':          { role: 'swing / syncopation',     weight: 'swing' },
+  'vehicle-crime':         { role: 'industrial clank',        weight: 'clank' },
+  'robbery':               { role: 'stab intensity',          weight: 'stab' },
+  'other-theft':          { role: 'percussion fills',        weight: 'fills' },
+  'shoplifting':           { role: 'rim / clave',             weight: 'rim' },
+  'theft-from-the-person': { role: 'ghost notes',             weight: 'ghost' },
+  'bicycle-theft':         { role: 'tempo nudge',             weight: 'tempo' },
+  'possession-of-weapons': { role: 'kick punch',              weight: 'kick' },
+  'public-order':          { role: 'swing / syncopation',     weight: 'swing' },
+  'other-crime':           { role: 'reverb size',             weight: 'space' }
+};
+
+let crimeData = null, totals = {}, total = 0;
+
+// ---- geocode + fetch ------------------------------------------------------
+const $ = id => document.getElementById(id);
+const setStatus = (html) => { $('status').innerHTML = html; };
+
+async function geocodePostcode(pc) {
+  const r = await fetch('https://api.postcodes.io/postcodes/' + encodeURIComponent(pc.trim()));
+  if (!r.ok) throw new Error('Postcode not found');
+  const j = await r.json();
+  return { lat: j.result.latitude, lng: j.result.longitude, name: j.result.admin_district };
+}
+
+// the API only has data up to ~2 months ago; walk back until one returns rows
+async function fetchCrime(lat, lng) {
+  const now = new Date();
+  for (let back = 1; back <= 6; back++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - back, 1);
+    const date = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    const url = `https://data.police.uk/api/crimes-street/all-crime?lat=${lat}&lng=${lng}&date=${date}`;
+    try {
+      const r = await fetch(url);
+      if (r.status === 200) {
+        const j = await r.json();
+        if (Array.isArray(j) && j.length) return { rows: j, date };
+      }
+    } catch (e) { /* keep walking back */ }
+  }
+  return { rows: [], date: null };
+}
+
+function tally(rows) {
+  const t = {};
+  rows.forEach(c => { t[c.category] = (t[c.category] || 0) + 1; });
+  return t;
+}
+
+async function load(lat, lng, label) {
+  $('load').disabled = true; $('play').disabled = true;
+  setStatus(`Reading <span class="acid">${label}</span> …`);
+  try {
+    const { rows, date } = await fetchCrime(lat, lng);
+    if (!rows.length) {
+      setStatus(`No crime records returned for that point. Try a denser urban postcode.`);
+      $('load').disabled = false; return;
+    }
+    crimeData = rows; totals = tally(rows); total = rows.length;
+    render(label, date);
+    configureEngine();
+    setStatus(`<span class="acid">${total}</span> crimes near <span class="acid">${label}</span> (${date}). Engine tuned. Hit play.`);
+    $('play').disabled = false;
+  } catch (e) {
+    setStatus(`<span class="red">Failed:</span> ${e.message}. The Police API or geocoder may be blocking the request — try again or check network settings.`);
+  }
+  $('load').disabled = false;
+}
+
+function render(label, date) {
+  const ro = $('readout');
+  const bpm = computeBPM();
+  const violentPct = Math.round(((totals['violent-crime']||0) / total) * 100);
+  let html = `<div class="bigstat">
+    <div class="item"><div class="cat">Total crimes</div><div class="num">${total}</div></div>
+    <div class="item"><div class="cat">Tempo (BPM)</div><div class="num" style="color:var(--blood)">${bpm}</div></div>
+    <div class="item"><div class="cat">Violent share</div><div class="num">${violentPct}%</div></div>
+  </div>`;
+  const max = Math.max(...Object.values(totals));
+  Object.entries(totals).sort((a,b)=>b[1]-a[1]).forEach(([cat, n]) => {
+    const m = MAP[cat] || { role: '—' };
+    html += `<div class="cell">
+      <div class="cat">${cat.replace(/-/g,' ')}</div>
+      <div class="num">${n}</div>
+      <div class="role">▸ ${m.role}</div>
+      <div class="bar" style="width:0"></div>
+    </div>`;
+  });
+  ro.innerHTML = html; ro.classList.add('live');
+  // animate bars
+  setTimeout(() => {
+    document.querySelectorAll('.cell').forEach(c => {
+      const n = +c.querySelector('.num').textContent;
+      c.querySelector('.bar').style.width = (n/max*100) + '%';
+    });
+  }, 50);
+}
+
+// ---- the engine -----------------------------------------------------------
+let nodes = null, loop = null, playing = false;
+
+function w(cat) { return (totals[cat] || 0) / Math.max(total, 1); } // 0..1 share
+function computeBPM() {
+  // base 124, density pushes up, weapons/violence push harder, bike theft nudges
+  const base = 124;
+  const density = Math.min(total / 200, 1);          // crime volume
+  const heat = w('violent-crime') + w('possession-of-weapons');
+  return Math.round(base + density*18 + heat*40 + w('bicycle-theft')*6);
+}
+
+function buildEngine() {
+  const reverb = new Tone.Reverb({ decay: 1.5 + w('other-crime')*6, wet: 0.2 + w('other-crime')*0.4 }).toDestination();
+  const dist = new Tone.Distortion(Math.min(w('violent-crime')*3.5, 0.9)).connect(reverb);
+
+  const kick = new Tone.MembraneSynth({
+    octaves: 6, pitchDecay: 0.04,
+    envelope: { attack: 0.001, decay: 0.32 + w('possession-of-weapons')*0.15, sustain: 0 }
+  }).connect(reverb);
+
+  const sub = new Tone.MonoSynth({
+    oscillator: { type: 'sine' },
+    envelope: { attack: 0.01, decay: 0.3, sustain: 0.4, release: 0.2 },
+    volume: -8 + w('burglary')*10
+  }).connect(reverb);
+
+  const acidFilter = new Tone.Filter(200 + w('drugs')*1800, 'lowpass').connect(dist);
+  const acid = new Tone.MonoSynth({
+    oscillator: { type: 'sawtooth' },
+    filter: { Q: 6 + w('drugs')*8 },
+    envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.1 },
+    filterEnvelope: { attack: 0.01, decay: 0.2, baseFrequency: 200, octaves: 3 + w('drugs')*4 },
+    volume: -14 + w('drugs')*12
+  }).connect(acidFilter);
+
+  const hats = new Tone.MetalSynth({
+    envelope: { attack: 0.001, decay: 0.05 + w('anti-social-behaviour')*0.08, release: 0.01 },
+    harmonicity: 5.1, resonance: 4000, volume: -22 + w('anti-social-behaviour')*14
+  }).connect(reverb);
+
+  const noise = new Tone.NoiseSynth({
+    noise: { type: 'pink' },
+    envelope: { attack: 0.005, decay: 0.1, sustain: 0 },
+    volume: -30 + w('criminal-damage-arson')*16
+  }).connect(dist);
+
+  const stab = new Tone.PolySynth(Tone.Synth, {
+    oscillator: { type: 'square' },
+    envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.1 },
+    volume: -20 + w('robbery')*12
+  }).connect(reverb);
+
+  const clank = new Tone.MetalSynth({
+    frequency: 80, envelope: { attack: 0.001, decay: 0.3, release: 0.1 },
+    harmonicity: 3.1, modulationIndex: 16, resonance: 1200,
+    volume: -34 + w('vehicle-crime')*14
+  }).connect(dist);
+
+  return { reverb, dist, kick, sub, acid, hats, noise, stab, clank };
+}
+
+function configureEngine() {
+  if (nodes) { Object.values(nodes).forEach(n => { try{n.dispose&&n.dispose()}catch(e){} }); }
+  nodes = buildEngine();
+  Tone.Transport.bpm.value = computeBPM();
+  Tone.Transport.swing = Math.min(w('public-order')*1.4, 0.6);
+  Tone.Transport.swingSubdivision = '16n';
+
+  // minor vs darker scale shifts with violence
+  const dark = w('violent-crime') > 0.18;
+  const root = dark ? ['A1','A2','C3','E3'] : ['C2','C3','G2','D3'];
+  const acidNotes = dark ? ['A2','C3','D3','E3','G3'] : ['C3','D3','E3','G3','A3'];
+  const stabNotes = dark ? ['A3','C4','E4'] : ['C4','E4','G4'];
+
+  let step = 0;
+  if (loop) loop.dispose();
+  loop = new Tone.Loop((time) => {
+    const s = step % 16;
+    // KICK — four on the floor, weapon share thickens it
+    if (s % 4 === 0) nodes.kick.triggerAttackRelease('C1', '8n', time);
+    // SUB — burglary weight, plays on off-pulses
+    if (s % 4 === 2 && w('burglary') > 0.05) nodes.sub.triggerAttackRelease(root[step%root.length], '8n', time);
+    // HATS — anti-social density gates how many 16ths fire
+    const hatGate = 0.25 + w('anti-social-behaviour')*0.7;
+    if (Math.random() < hatGate && s % 2 === 1) nodes.hats.triggerAttackRelease('16n', time);
+    // ACID — drugs share; runs a wandering line
+    if (w('drugs') > 0.04 && (s % 2 === 0 || Math.random() < w('drugs'))) {
+      nodes.acid.triggerAttackRelease(acidNotes[Math.floor(Math.random()*acidNotes.length)], '16n', time);
+    }
+    // NOISE sweep — criminal damage / arson, on the bar
+    if (s === 0 && w('criminal-damage-arson') > 0.03) nodes.noise.triggerAttackRelease('8n', time);
+    // STAB — robbery, syncopated hit
+    if (w('robbery') > 0.03 && (s === 6 || s === 14)) {
+      nodes.stab.triggerAttackRelease(stabNotes, '16n', time);
+    }
+    // CLANK — vehicle crime, mechanical accent
+    if (w('vehicle-crime') > 0.05 && s === 10) nodes.clank.triggerAttackRelease('16n', time);
+
+    // visual pulse on the downbeat
+    if (s % 4 === 0) {
+      const cells = document.querySelectorAll('.cell');
+      if (cells[0]) { cells[0].classList.remove('pulse'); void cells[0].offsetWidth; cells[0].classList.add('pulse'); }
+    }
+    step++;
+  }, '16n');
+}
+
+async function togglePlay() {
+  await Tone.start();
+  if (!playing) {
+    Tone.Transport.start();
+    loop.start(0);
+    playing = true;
+    $('play').textContent = '■ Stop'; $('play').classList.add('playing');
+  } else {
+    Tone.Transport.stop(); loop.stop();
+    playing = false;
+    $('play').textContent = '▶ Play'; $('play').classList.remove('playing');
+  }
+}
+
+// ---- wiring ---------------------------------------------------------------
+$('load').addEventListener('click', async () => {
+  const pc = $('postcode').value.trim();
+  if (!pc) { setStatus('Enter a postcode, or use your location.'); return; }
+  try {
+    setStatus('Geocoding …');
+    const { lat, lng, name } = await geocodePostcode(pc);
+    await load(lat, lng, name || pc.toUpperCase());
+  } catch (e) {
+    setStatus(`<span class="red">${e.message}.</span> Check the postcode.`);
+  }
+});
+
+$('locate').addEventListener('click', () => {
+  if (!navigator.geolocation) { setStatus('Geolocation unavailable in this browser.'); return; }
+  setStatus('Requesting location …');
+  navigator.geolocation.getCurrentPosition(
+    p => load(p.coords.latitude, p.coords.longitude, 'your location'),
+    e => setStatus(`<span class="red">Location denied.</span> Enter a postcode instead.`)
+  );
+});
+
+$('play').addEventListener('click', togglePlay);
+$('postcode').addEventListener('keydown', e => { if (e.key === 'Enter') $('load').click(); });
+</script>
+</body>
+</html>

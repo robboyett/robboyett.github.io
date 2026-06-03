@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRIMEWAVE — a place, sonified</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --ink: #0a0a0a;
+    --bone: #e8e4d8;
+    --blood: #ff2d2d;
+    --acid: #c6ff00;
+    --grid: rgba(232,228,216,0.07);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--ink);
+    color: var(--bone);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .grain {
+    position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  header {
+    padding: 5vh 6vw 3vh;
+    border-bottom: 2px solid var(--bone);
+  }
+  h1 {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(3rem, 14vw, 11rem);
+    line-height: 0.82;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+  h1 .red { color: var(--blood); }
+  .tagline {
+    margin-top: 1.2rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.6;
+    max-width: 42ch;
+    line-height: 1.6;
+  }
+
+  .controls {
+    padding: 4vh 6vw;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+  }
+  .field { display: flex; flex-direction: column; gap: 0.4rem; }
+  label {
+    font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.5;
+  }
+  input {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--bone);
+    color: var(--bone);
+    font-family: 'Space Mono', monospace;
+    font-size: 1.1rem;
+    padding: 0.4rem 0;
+    width: 160px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  input:focus { outline: none; border-color: var(--acid); }
+  input::placeholder { color: rgba(232,228,216,0.3); }
+
+  button {
+    font-family: 'Anton', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: var(--bone);
+    color: var(--ink);
+    border: none;
+    padding: 0.7rem 1.6rem;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  button:hover { background: var(--acid); }
+  button:disabled { opacity: 0.3; cursor: wait; }
+  button.ghost { background: transparent; color: var(--bone); border: 2px solid var(--bone); }
+  button.ghost:hover { background: var(--blood); border-color: var(--blood); color: var(--bone); }
+  button.playing { background: var(--blood); color: var(--bone); }
+
+  .status {
+    padding: 0 6vw;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+    min-height: 1.4em;
+  }
+  .status .acid { color: var(--acid); }
+  .status .red { color: var(--blood); }
+
+  .readout {
+    padding: 4vh 6vw 10vh;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 2px;
+    background: var(--bone);
+    margin: 4vh 0 0;
+    opacity: 0;
+    transition: opacity 0.6s;
+  }
+  .readout.live { opacity: 1; }
+  .cell {
+    background: var(--ink);
+    padding: 1.6rem 1.4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .cell .bar {
+    position: absolute; bottom: 0; left: 0; height: 3px;
+    background: var(--blood); transition: width 0.8s;
+  }
+  .cell .cat { font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.5; }
+  .cell .num { font-family: 'Anton', sans-serif; font-size: 3rem; line-height: 1; margin-top: 0.5rem; }
+  .cell .role { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.6rem; color: var(--acid); opacity: 0.75; }
+
+  .bigstat {
+    grid-column: 1 / -1;
+    display: flex; flex-wrap: wrap; gap: 3rem;
+    padding: 2.4rem 1.4rem;
+  }
+  .bigstat .item .num { font-size: 4.5rem; }
+  .bigstat .item .cat { font-size: 0.7rem; }
+
+  footer { padding: 3vh 6vw 6vh; font-size: 0.65rem; opacity: 0.4; letter-spacing: 0.1em; line-height: 1.8; }
+  footer a { color: var(--acid); }
+
+  .pulse { animation: pulse 0.3s ease-out; }
+  @keyframes pulse { 0% { background: var(--blood); } 100% { background: var(--ink); } }
+
+  .walkbar { padding: 3vh 6vw 1vh; }
+  .walkbar-label { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.5; margin-bottom: 1.2rem; }
+  .walk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 2px; background: rgba(232,228,216,0.15); }
+  .loc {
+    background: var(--ink); border: none; color: var(--bone);
+    font-family: 'Space Mono', monospace; text-transform: none; letter-spacing: 0;
+    text-align: left; padding: 0.9rem 1rem; cursor: pointer; transition: all 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .loc:hover { background: rgba(198,255,0,0.12); }
+  .loc .pin { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.45; }
+  .loc .nm { font-family: 'Anton', sans-serif; font-size: 1.15rem; line-height: 1.05; margin-top: 0.25rem; letter-spacing: 0.01em; }
+  .loc .meta { font-size: 0.58rem; opacity: 0.5; margin-top: 0.35rem; letter-spacing: 0.05em; min-height: 1em; }
+  .loc.loading .meta::after { content: '…reading'; color: var(--acid); }
+  .loc.active { background: var(--blood); color: var(--bone); }
+  .loc.active .pin, .loc.active .meta { opacity: 0.8; }
+  .loc.target { box-shadow: inset 0 0 0 2px var(--acid); }
+  .loc .prog { position: absolute; bottom: 0; left: 0; height: 3px; background: var(--acid); width: 0; }
+
+  .modeswitch { display: flex; border: 2px solid var(--bone); }
+  .mode {
+    font-family: 'Space Mono', monospace; font-size: 0.8rem; letter-spacing: 0.08em;
+    text-transform: uppercase; background: transparent; color: var(--bone);
+    border: none; padding: 0.55rem 1rem; cursor: pointer; transition: all 0.15s;
+  }
+  .mode.active { background: var(--acid); color: var(--ink); }
+  .mode:not(.active):hover { background: rgba(232,228,216,0.1); }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<header>
+  <h1>CRIME<span class="red">WAVE</span></h1>
+  <p class="tagline">A location, rendered as electronic music. Live UK street-crime data drives a generative engine — techno or Kraftwerk-style. Walk between places and the track morphs, one uninterrupted set.</p>
+</header>
+
+<div class="walkbar" id="walkbar">
+  <div class="walkbar-label">Simulate a walk — tap a location to drift toward it</div>
+  <div class="walk-grid" id="walkGrid"></div>
+</div>
+
+<div class="controls">
+  <div class="field">
+    <label>Postcode</label>
+    <input id="postcode" placeholder="E1 6AN" maxlength="8">
+  </div>
+  <div class="field">
+    <label>or Lat, Long</label>
+    <input id="coords" placeholder="51.5155, -0.0922" style="width:200px;text-transform:none">
+  </div>
+  <button id="locate" class="ghost">Use my location</button>
+  <button id="load">Read the area</button>
+  <div class="field">
+    <label>Style</label>
+    <div class="modeswitch" id="modeswitch">
+      <button class="mode active" data-mode="techno">Techno</button>
+      <button class="mode" data-mode="kraftwerk">Kraftwerk</button>
+    </div>
+  </div>
+  <button id="play" disabled>▶ Play set</button>
+</div>
+
+<div class="status" id="status">Enter a UK postcode or lat/long, or use your location, then read the area.</div>
+
+<div class="readout" id="readout"></div>
+
+<footer>
+  Source: data.police.uk open API — street-level crime, monthly, anonymised to ~1 mile. Data lags ~2 months, so this is the <em>mood of a place</em>, not a live feed.<br>
+  Audio: Tone.js, generated entirely in-browser. Scotland reports only via British Transport Police, so crime there reads artificially low.
+</footer>
+
+<script>
+// ---- crime category -> sonic role mapping --------------------------------
+// Each category steers a different parameter of the engine, not just tempo.
+const MAP = {
+  'violent-crime':         { role: 'distortion + minor key',  weight: 'distortion' },
+  'anti-social-behaviour': { role: 'hi-hat density',          weight: 'hats' },
+  'burglary':              { role: 'sub-bass weight',         weight: 'sub' },
+  'criminal-damage-arson': { role: 'noise / texture',         weight: 'noise' },
+  'drugs':                 { role: 'acid 303 filter',         weight: 'acid' },
+  'public-order':          { role: 'swing / syncopation',     weight: 'swing' },
+  'vehicle-crime':         { role: 'industrial clank',        weight: 'clank' },
+  'robbery':               { role: 'stab intensity',          weight: 'stab' },
+  'other-theft':          { role: 'percussion fills',        weight: 'fills' },
+  'shoplifting':           { role: 'rim / clave',             weight: 'rim' },
+  'theft-from-the-person': { role: 'ghost notes',             weight: 'ghost' },
+  'bicycle-theft':         { role: 'tempo nudge',             weight: 'tempo' },
+  'possession-of-weapons': { role: 'kick punch',              weight: 'kick' },
+  'public-order':          { role: 'swing / syncopation',     weight: 'swing' },
+  'other-crime':           { role: 'reverb size',             weight: 'space' }
+};
+
+let crimeData = null, totals = {}, total = 0;
+
+// ---- geocode + fetch ------------------------------------------------------
+const $ = id => document.getElementById(id);
+const setStatus = (html) => { $('status').innerHTML = html; };
+
+async function geocodePostcode(pc) {
+  const r = await fetch('https://api.postcodes.io/postcodes/' + encodeURIComponent(pc.trim()));
+  if (!r.ok) throw new Error('Postcode not found');
+  const j = await r.json();
+  return { lat: j.result.latitude, lng: j.result.longitude, name: j.result.admin_district };
+}
+
+// the API only has data up to ~2 months ago; walk back until one returns rows
+async function fetchCrime(lat, lng) {
+  const now = new Date();
+  for (let back = 1; back <= 6; back++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - back, 1);
+    const date = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    const url = `https://data.police.uk/api/crimes-street/all-crime?lat=${lat}&lng=${lng}&date=${date}`;
+    try {
+      const r = await fetch(url);
+      if (r.status === 200) {
+        const j = await r.json();
+        if (Array.isArray(j) && j.length) return { rows: j, date };
+      }
+    } catch (e) { /* keep walking back */ }
+  }
+  return { rows: [], date: null };
+}
+
+function tally(rows) {
+  const t = {};
+  rows.forEach(c => { t[c.category] = (t[c.category] || 0) + 1; });
+  return t;
+}
+
+// ---- the 10 walk locations ------------------------------------------------
+// A loose drift across London, low-crime fringe to high-crime centre and back.
+const LOCS = [
+  { name: 'Richmond Park',   lat: 51.4419, lng: -0.2750 },
+  { name: 'Clapham Common',  lat: 51.4615, lng: -0.1480 },
+  { name: 'Brixton',         lat: 51.4613, lng: -0.1156 },
+  { name: 'Vauxhall',        lat: 51.4861, lng: -0.1253 },
+  { name: 'Elephant & Castle',lat: 51.4954, lng: -0.1000 },
+  { name: 'Soho',            lat: 51.5137, lng: -0.1340 },
+  { name: 'Camden Town',     lat: 51.5390, lng: -0.1426 },
+  { name: 'Shoreditch',      lat: 51.5265, lng: -0.0780 },
+  { name: 'Canary Wharf',    lat: 51.5054, lng: -0.0235 },
+  { name: 'Greenwich Park',  lat: 51.4769, lng: 0.0005 }
+];
+
+function renderWalkGrid() {
+  const g = $('walkGrid');
+  g.innerHTML = LOCS.map((l,i) => `
+    <button class="loc loading" data-i="${i}">
+      <div class="pin">${String(i+1).padStart(2,'0')}</div>
+      <div class="nm">${l.name}</div>
+      <div class="meta"></div>
+      <div class="prog"></div>
+    </button>`).join('');
+  g.querySelectorAll('.loc').forEach(el => {
+    el.addEventListener('click', () => {
+      const i = +el.dataset.i;
+      if (!LOCS[i].profile) return;
+      if (!started || !playing) {
+        // first tap: prime weights instantly, then start playing, then it's the base
+        primeTo(i);
+        if (!playing) togglePlay();
+      } else {
+        driftTo(i);
+      }
+    });
+  });
+}
+
+// instantly set the engine state to a location (used for the very first tap)
+function primeTo(i) {
+  const loc = LOCS[i];
+  CATS.forEach(c => live[c] = loc.profile[c] || 0);
+  liveDensity = Math.min(loc.total/200,1);
+  const bpm = bpmFromProfile(loc.profile, loc.total); // mode-aware
+  liveBPM = bpm; targetBPM = bpm;
+  Tone.Transport.bpm.value = bpm;
+  arpSeq = buildArp(loc.profile, loc.total);   // build this place's motif
+  document.querySelectorAll('.loc').forEach(el => el.classList.remove('active','target'));
+  document.querySelectorAll('.loc')[i].classList.add('active');
+  pendingLoc = loc; pendingTileEl = document.querySelectorAll('.loc')[i];
+  renderReadout(loc);
+  setStatus(`Starting at <span class="acid">${loc.name}</span> — ${loc.total} crimes, ${bpm} BPM.`);
+}
+
+async function prefetchLocations() {
+  setStatus('Reading all 10 locations from the Police API …');
+  const tiles = document.querySelectorAll('.loc');
+  let done = 0;
+  await Promise.all(LOCS.map(async (loc, i) => {
+    try {
+      const { rows, date } = await fetchCrime(loc.lat, loc.lng);
+      loc.total = rows.length;
+      loc.profile = profileFromTotals(tally(rows), rows.length);
+      loc.bpm = bpmFromProfile(loc.profile, rows.length);
+      loc.date = date;
+      tiles[i].classList.remove('loading');
+      tiles[i].querySelector('.meta').textContent = `${rows.length} crimes · ${loc.bpm} BPM`;
+    } catch (e) {
+      tiles[i].classList.remove('loading');
+      tiles[i].querySelector('.meta').textContent = 'failed';
+    }
+    done++;
+    setStatus(`Loaded <span class="acid">${done}/10</span> locations …`);
+  }));
+  $('play').disabled = false;
+  setStatus(`All locations loaded. Tap one to begin — the track will drift as you walk between them.`);
+}
+
+// manual postcode / coords path — drifts to a custom point if playing, else primes
+async function load(lat, lng, label) {
+  $('load').disabled = true;
+  setStatus(`Reading <span class="acid">${label}</span> …`);
+  try {
+    const { rows, date } = await fetchCrime(lat, lng);
+    if (!rows.length) { setStatus(`No crime records there. Try a denser urban point.`); $('load').disabled=false; return; }
+    const custom = { name: label, total: rows.length, date,
+      profile: profileFromTotals(tally(rows), rows.length) };
+    custom.bpm = bpmFromProfile(custom.profile, rows.length);
+    // inject as an 11th transient target
+    LOCS.push(custom);
+    renderWalkGrid();
+    await reflectLoadedState();
+    const idx = LOCS.length - 1;
+    if (!started || !playing) { primeTo(idx); if(!playing) togglePlay(); }
+    else driftTo(idx);
+  } catch (e) {
+    setStatus(`<span class="red">Failed:</span> ${e.message}. Check network settings.`);
+  }
+  $('load').disabled = false;
+}
+// re-apply loaded metadata to freshly-rendered tiles (after grid rebuild)
+async function reflectLoadedState() {
+  const tiles = document.querySelectorAll('.loc');
+  LOCS.forEach((loc,i) => {
+    if (loc.profile) { tiles[i].classList.remove('loading');
+      tiles[i].querySelector('.meta').textContent = `${loc.total} crimes · ${loc.bpm} BPM`; }
+  });
+}
+
+// destination breakdown — numbers are the TARGET, bars ride the live interpolation
+function renderReadout(loc) {
+  const ro = $('readout');
+  const counts = {};
+  CATS.forEach(c => counts[c] = Math.round((loc.profile[c]||0) * loc.total));
+  const entries = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  let html = `<div class="bigstat">
+    <div class="item"><div class="cat">Destination</div><div class="num" style="font-size:2.6rem">${loc.name}</div></div>
+    <div class="item"><div class="cat">Crimes</div><div class="num">${loc.total}</div></div>
+    <div class="item"><div class="cat">Live BPM</div><div class="num" style="color:var(--blood)" id="liveBpm">${Math.round(liveBPM)}</div></div>
+  </div>`;
+  entries.forEach(([cat, n]) => {
+    const m = MAP[cat] || { role: '—' };
+    html += `<div class="cell" data-cat="${cat}">
+      <div class="cat">${cat.replace(/-/g,' ')}</div>
+      <div class="num">${n}</div>
+      <div class="role">▸ ${m.role}</div>
+      <div class="bar" style="width:0"></div>
+    </div>`;
+  });
+  ro.innerHTML = html; ro.classList.add('live');
+}
+
+// called every frame during a morph — bars follow `live`, BPM ticks up
+function updateReadoutLive() {
+  const bpmEl = $('liveBpm');
+  if (bpmEl) bpmEl.textContent = Math.round(liveBPM);
+  const cells = document.querySelectorAll('.cell');
+  let maxLive = 0.0001;
+  CATS.forEach(c => { if ((live[c]||0) > maxLive) maxLive = live[c]; });
+  cells.forEach(c => {
+    const cat = c.dataset.cat; if (!cat) return;
+    c.querySelector('.bar').style.width = ((live[cat]||0)/maxLive*100) + '%';
+  });
+}
+
+// ---- the engine -----------------------------------------------------------
+// Built ONCE. A `live` weights object glides toward whichever location is the
+// current target, so the track morphs continuously instead of restarting.
+let nodes = null, loop = null, playing = false, started = false;
+let MODE = 'techno';   // 'techno' | 'kraftwerk'
+
+let live = {};      // currently-sounding weights (interpolated)
+let target = {};    // weights we're drifting toward
+let liveDensity = 0, targetDensity = 0;   // 0..1, drives BPM
+let liveBPM = 124,  targetBPM = 124;
+let morphActive = false, morphStart = 0, morphDur = 10000; // ms
+let liveFrom = {}, densityFrom = 0, bpmFrom = 124;
+
+const CATS = Object.keys(MAP);
+
+function profileFromTotals(t, tot) {
+  const p = {};
+  CATS.forEach(c => p[c] = (t[c] || 0) / Math.max(tot, 1));
+  return p;
+}
+function bpmFromProfile(p, tot) {
+  const density = Math.min(tot / 200, 1);
+  const heat = (p['violent-crime']||0) + (p['possession-of-weapons']||0);
+  if (MODE === 'kraftwerk') {
+    // compressed, slower range — sits around 118–128
+    return Math.round(118 + density*7 + heat*6);
+  }
+  return Math.round(124 + density*18 + heat*40 + (p['bicycle-theft']||0)*6);
+}
+
+// engine reads weights through this — always the interpolated `live` value
+function w(cat) { return live[cat] || 0; }
+
+function buildEngine() {
+  const reverb = new Tone.Reverb({ decay: 4, wet: 0.25 }).toDestination();
+  const dist = new Tone.Distortion(0.1).connect(reverb);
+
+  const kick = new Tone.MembraneSynth({
+    octaves: 6, pitchDecay: 0.04,
+    envelope: { attack: 0.001, decay: 0.34, sustain: 0 }
+  }).connect(reverb);
+
+  const sub = new Tone.MonoSynth({
+    oscillator: { type: 'sine' },
+    envelope: { attack: 0.01, decay: 0.3, sustain: 0.4, release: 0.2 },
+    volume: -10
+  }).connect(reverb);
+
+  const acidFilter = new Tone.Filter(400, 'lowpass').connect(dist);
+  const acid = new Tone.MonoSynth({
+    oscillator: { type: 'sawtooth' },
+    filter: { Q: 8 },
+    envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.1 },
+    filterEnvelope: { attack: 0.01, decay: 0.2, baseFrequency: 200, octaves: 4 },
+    volume: -16
+  }).connect(acidFilter);
+
+  const hats = new Tone.MetalSynth({
+    envelope: { attack: 0.001, decay: 0.08, release: 0.01 },
+    harmonicity: 5.1, resonance: 4000, volume: -24
+  }).connect(reverb);
+
+  const noise = new Tone.NoiseSynth({
+    noise: { type: 'pink' },
+    envelope: { attack: 0.005, decay: 0.1, sustain: 0 }, volume: -30
+  }).connect(dist);
+
+  const stab = new Tone.PolySynth(Tone.Synth, {
+    oscillator: { type: 'square' },
+    envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.1 }, volume: -22
+  }).connect(reverb);
+
+  const clank = new Tone.MetalSynth({
+    frequency: 80, envelope: { attack: 0.001, decay: 0.3, release: 0.1 },
+    harmonicity: 3.1, modulationIndex: 16, resonance: 1200, volume: -34
+  }).connect(dist);
+
+  // --- Kraftwerk-mode voices: clean, dry, retro -----------------------------
+  // a touch of analogue-style delay for the arpeggio, synced to the transport
+  const arpDelay = new Tone.FeedbackDelay({ delayTime: '8n.', feedback: 0.32, wet: 0.22 }).connect(reverb);
+  const arp = new Tone.Synth({
+    oscillator: { type: 'triangle' },
+    envelope: { attack: 0.005, decay: 0.18, sustain: 0.05, release: 0.12 },
+    portamento: 0, volume: -14
+  }).connect(arpDelay);
+  // clean sequenced bass — pure, no distortion
+  const cleanBass = new Tone.MonoSynth({
+    oscillator: { type: 'square' },
+    filter: { type: 'lowpass', Q: 2 },
+    envelope: { attack: 0.01, decay: 0.2, sustain: 0.3, release: 0.1 },
+    filterEnvelope: { attack: 0.01, decay: 0.15, baseFrequency: 300, octaves: 2 },
+    volume: -12
+  }).connect(reverb);
+  // tight retro clap/snare for the backbeat
+  const clap = new Tone.NoiseSynth({
+    noise: { type: 'white' },
+    envelope: { attack: 0.001, decay: 0.12, sustain: 0 }, volume: -20
+  }).connect(reverb);
+  // a clean blip for hats — short triangle, not metallic
+  const blip = new Tone.Synth({
+    oscillator: { type: 'square' },
+    envelope: { attack: 0.001, decay: 0.03, sustain: 0, release: 0.01 },
+    volume: -26
+  }).connect(reverb);
+
+  return { reverb, dist, kick, sub, acid, hats, noise, stab, clank, acidFilter,
+           arp, arpDelay, cleanBass, clap, blip };
+}
+
+// note-sets for both "moods" — we blend between them by violence share
+const NOTES = {
+  bright: { root:['C2','C3','G2','D3'], acid:['C3','D3','E3','G3','A3'], stab:['C4','E4','G4'] },
+  dark:   { root:['A1','A2','C3','E3'], acid:['A2','C3','D3','E3','G3'], stab:['A3','C4','E4'] }
+};
+function pickNotes() {
+  // crossfade: above ~0.18 violence we favour the dark set, with a soft zone
+  const v = w('violent-crime');
+  const t = Math.max(0, Math.min(1, (v - 0.10) / 0.16));
+  return Math.random() < t ? NOTES.dark : NOTES.bright;
+}
+
+// --- Kraftwerk arpeggio: the crime profile builds a clean melodic sequence --
+// Scales as semitone offsets from a root. Minor/Phrygian read colder.
+const SCALES = {
+  minor:    [0,2,3,5,7,8,10],     // natural minor — the default Kraftwerk melancholy
+  phrygian: [0,1,3,5,7,8,10],     // darker, used when violence is high
+  major:    [0,2,4,5,7,9,11]      // brighter, only when crime is very low
+};
+const MIDI = { C:0,'C#':1,D:2,'D#':3,E:4,F:5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11 };
+function midiToFreqName(rootMidi, semis, octave) {
+  const n = rootMidi + semis;
+  const oct = octave + Math.floor(n/12);
+  const names = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  return names[((n%12)+12)%12] + oct;
+}
+
+let arpSeq = [];     // current arpeggio note names
+let arpSeqTarget = []; // (kept simple: regenerated on each drift)
+
+// Build an arpeggio from a weights profile. Length, scale and contour all
+// come from the crime data, so each place has its own clean motif.
+function buildArp(p, tot) {
+  const violent = (p['violent-crime']||0) + (p['possession-of-weapons']||0);
+  const density = Math.min(tot/200, 1);
+  // scale choice: very low crime -> major, high violence -> phrygian, else minor
+  let scale = SCALES.minor;
+  if (tot < 30 && violent < 0.08) scale = SCALES.major;
+  else if (violent > 0.20) scale = SCALES.phrygian;
+  // root note: drift the key by theft share (a subtle transposition per place)
+  const roots = ['A','C','D','E','G'];
+  const rootName = roots[Math.floor(((p['other-theft']||0)+(p['burglary']||0)) * roots.length) % roots.length] || 'A';
+  const rootMidi = MIDI[rootName];
+  // sequence length: 4 to 16 steps, more crime = longer, busier motif
+  const len = Math.max(4, Math.round(4 + density*12));
+  // contour seed: dominant non-violent category nudges whether it climbs or rolls
+  const climb = (p['anti-social-behaviour']||0) > (p['drugs']||0);
+  const seq = [];
+  let idx = 0;
+  for (let i=0;i<len;i++){
+    // walk the scale: climbing or arpeggio-style thirds depending on contour
+    if (climb) idx = (idx + 1) % scale.length;
+    else       idx = (idx + 2) % scale.length;   // thirds -> classic arp shape
+    const oct = 3 + (i % 3 === 2 ? 1 : 0);        // occasional octave lift
+    seq.push(midiToFreqName(rootMidi, scale[idx], oct));
+  }
+  return seq;
+}
+
+// continuously pull modulatable params toward the live weights (called per frame)
+function updateLiveParams() {
+  if (!nodes || !started) return;
+  if (MODE === 'kraftwerk') {
+    // clean and cold: no distortion, no swing, gentle filter movement
+    nodes.dist.distortion = 0;
+    Tone.Transport.swing = 0;
+    nodes.reverb.wet.rampTo(0.16 + w('other-crime')*0.25, 0.3);
+    nodes.cleanBass.volume.rampTo(-14 + w('burglary')*10, 0.3);
+    nodes.arp.volume.rampTo(-16 + Math.min(liveDensity,1)*8, 0.3);
+    nodes.clap.volume.rampTo(-24 + w('anti-social-behaviour')*10, 0.3);
+    nodes.blip.volume.rampTo(-30 + w('drugs')*10, 0.3);
+    // mute techno-only voices
+    nodes.acid.volume.rampTo(-60, 0.3);
+    nodes.hats.volume.rampTo(-60, 0.3);
+    nodes.noise.volume.rampTo(-60, 0.3);
+    nodes.stab.volume.rampTo(-60, 0.3);
+    nodes.clank.volume.rampTo(-60, 0.3);
+    nodes.sub.volume.rampTo(-60, 0.3);
+    return;
+  }
+  // techno mode (original behaviour)
+  nodes.dist.distortion = Math.min(w('violent-crime')*3.5, 0.9);
+  nodes.acidFilter.frequency.rampTo(200 + w('drugs')*2200, 0.3);
+  nodes.reverb.wet.rampTo(0.18 + w('other-crime')*0.4, 0.3);
+  nodes.sub.volume.rampTo(-14 + w('burglary')*12, 0.3);
+  nodes.acid.volume.rampTo(-22 + w('drugs')*14, 0.3);
+  nodes.hats.volume.rampTo(-28 + w('anti-social-behaviour')*16, 0.3);
+  nodes.noise.volume.rampTo(-36 + w('criminal-damage-arson')*18, 0.3);
+  nodes.stab.volume.rampTo(-26 + w('robbery')*14, 0.3);
+  nodes.clank.volume.rampTo(-38 + w('vehicle-crime')*16, 0.3);
+  Tone.Transport.swing = Math.min(w('public-order')*1.4, 0.6);
+  // mute kraftwerk-only voices
+  nodes.arp.volume.rampTo(-60, 0.3);
+  nodes.cleanBass.volume.rampTo(-60, 0.3);
+  nodes.clap.volume.rampTo(-60, 0.3);
+  nodes.blip.volume.rampTo(-60, 0.3);
+}
+
+function startLoop() {
+  let step = 0;
+  loop = new Tone.Loop((time) => {
+    const s = step % 16;
+    if (MODE === 'kraftwerk') {
+      // KICK — steady four on the floor, no thickening
+      if (s % 4 === 0) nodes.kick.triggerAttackRelease('C1', '8n', time);
+      // CLEAN BASS — sequenced root/fifth on the offbeats (Trans-Europe pulse)
+      if (s % 2 === 0 && arpSeq.length) {
+        const bn = arpSeq[(step>>1) % arpSeq.length];
+        const bassNote = bn.replace(/\d$/, '1'); // drop to octave 1
+        nodes.cleanBass.triggerAttackRelease(bassNote, '8n', time);
+      }
+      // ARPEGGIO — the data-built motif, one note per 16th, metronomic
+      if (arpSeq.length) {
+        nodes.arp.triggerAttackRelease(arpSeq[step % arpSeq.length], '16n', time);
+      }
+      // CLAP — tight backbeat on 2 and 4
+      if (s === 4 || s === 12) nodes.clap.triggerAttackRelease('16n', time);
+      // BLIP — sparse, deliberate, only when drugs share present
+      if (w('drugs') > 0.05 && (s === 2 || s === 10)) nodes.blip.triggerAttackRelease('C5', '32n', time);
+    } else {
+      // ---- techno mode (original) ----
+      const N = pickNotes();
+      if (s % 4 === 0) nodes.kick.triggerAttackRelease('C1', '8n', time);
+      if (s % 4 === 2 && w('burglary') > 0.04) nodes.sub.triggerAttackRelease(N.root[step%N.root.length], '8n', time);
+      const hatGate = 0.2 + w('anti-social-behaviour')*0.7;
+      if (Math.random() < hatGate && s % 2 === 1) nodes.hats.triggerAttackRelease('16n', time);
+      if (w('drugs') > 0.03 && (s % 2 === 0 || Math.random() < w('drugs')))
+        nodes.acid.triggerAttackRelease(N.acid[Math.floor(Math.random()*N.acid.length)], '16n', time);
+      if (s === 0 && w('criminal-damage-arson') > 0.02) nodes.noise.triggerAttackRelease('8n', time);
+      if (w('robbery') > 0.02 && (s === 6 || s === 14)) nodes.stab.triggerAttackRelease(N.stab, '16n', time);
+      if (w('vehicle-crime') > 0.04 && s === 10) nodes.clank.triggerAttackRelease('16n', time);
+    }
+    if (s % 4 === 0) {
+      const cells = document.querySelectorAll('.cell');
+      if (cells[0]) { cells[0].classList.remove('pulse'); void cells[0].offsetWidth; cells[0].classList.add('pulse'); }
+    }
+    step++;
+  }, '16n');
+  loop.start(0);
+}
+
+// the morph tween — runs every animation frame while playing
+function tick() {
+  requestAnimationFrame(tick);
+  if (morphActive) {
+    const t = Math.min((performance.now() - morphStart) / morphDur, 1);
+    const e = t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2; // easeInOutQuad
+    CATS.forEach(c => { live[c] = (liveFrom[c]||0) + ((target[c]||0)-(liveFrom[c]||0))*e; });
+    liveDensity = densityFrom + (targetDensity-densityFrom)*e;
+    liveBPM = bpmFrom + (targetBPM-bpmFrom)*e;
+    Tone.Transport.bpm.value = liveBPM;
+    if (started) updateLiveParams();
+    updateReadoutLive();
+    // progress bar on the target tile
+    const tgt = document.querySelector('.loc.target .prog');
+    if (tgt) tgt.style.width = (e*100)+'%';
+    if (t >= 1) { morphActive = false; finishMorph(); }
+  }
+}
+
+function finishMorph() {
+  document.querySelectorAll('.loc').forEach(el => el.classList.remove('active','target'));
+  if (pendingTileEl) { pendingTileEl.classList.add('active'); pendingTileEl.querySelector('.prog').style.width='0'; }
+  if (pendingArp) { arpSeq = pendingArp; pendingArp = null; } // lock in new motif
+  const nm = pendingLoc ? pendingLoc.name : '';
+  setStatus(`Now at <span class="acid">${nm}</span> — ${pendingLoc.total} crimes, ${Math.round(liveBPM)} BPM. Tap another location to drift.`);
+}
+
+let pendingLoc = null, pendingTileEl = null, pendingArp = null;
+
+function driftTo(locIndex) {
+  const loc = LOCS[locIndex];
+  if (!loc.profile) { setStatus(`<span class="red">${loc.name} hasn't loaded yet.</span>`); return; }
+  // snapshot where we are now as the start of the tween
+  liveFrom = {}; CATS.forEach(c => liveFrom[c] = live[c] || 0);
+  densityFrom = liveDensity; bpmFrom = liveBPM;
+  target = loc.profile; targetDensity = Math.min(loc.total/200,1);
+  targetBPM = bpmFromProfile(loc.profile, loc.total); // mode-aware
+  pendingArp = buildArp(loc.profile, loc.total);      // locks in on arrival
+  pendingLoc = loc;
+
+  document.querySelectorAll('.loc').forEach(el => el.classList.remove('target'));
+  pendingTileEl = document.querySelectorAll('.loc')[locIndex];
+  pendingTileEl.classList.add('target');
+
+  renderReadout(loc); // show destination breakdown immediately, bars will ride `live`
+  morphStart = performance.now(); morphActive = true;
+  setStatus(`Drifting toward <span class="acid">${loc.name}</span> …`);
+}
+
+async function togglePlay() {
+  await Tone.start();
+  if (!started) { nodes = buildEngine(); startLoop(); started = true; }
+  if (!playing) {
+    Tone.Transport.start();
+    playing = true;
+    $('play').textContent = '■ Stop'; $('play').classList.add('playing');
+  } else {
+    Tone.Transport.stop();
+    playing = false;
+    $('play').textContent = '▶ Play'; $('play').classList.remove('playing');
+  }
+}
+requestAnimationFrame(tick);
+
+// ---- wiring ---------------------------------------------------------------
+$('load').addEventListener('click', async () => {
+  const coords = $('coords').value.trim();
+  const pc = $('postcode').value.trim();
+
+  // coordinates take priority if present
+  if (coords) {
+    const m = coords.split(/[, ]+/).map(Number).filter(n => !isNaN(n));
+    if (m.length !== 2) { setStatus('<span class="red">Coordinates must be: lat, long</span> e.g. 51.5155, -0.0922'); return; }
+    const [lat, lng] = m;
+    if (lat < 49 || lat > 61 || lng < -8 || lng > 2) {
+      setStatus('<span class="red">Those coordinates fall outside the UK.</span> The Police API only covers England, Wales & NI.');
+      return;
+    }
+    await load(lat, lng, `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+    return;
+  }
+
+  if (!pc) { setStatus('Enter a postcode or coordinates, or use your location.'); return; }
+  try {
+    setStatus('Geocoding …');
+    const { lat, lng, name } = await geocodePostcode(pc);
+    await load(lat, lng, name || pc.toUpperCase());
+  } catch (e) {
+    setStatus(`<span class="red">${e.message}.</span> Check the postcode.`);
+  }
+});
+
+$('locate').addEventListener('click', () => {
+  if (!navigator.geolocation) { setStatus('Geolocation unavailable in this browser.'); return; }
+  setStatus('Requesting location …');
+  navigator.geolocation.getCurrentPosition(
+    p => load(p.coords.latitude, p.coords.longitude, 'your location'),
+    e => setStatus(`<span class="red">Location denied.</span> Enter a postcode instead.`)
+  );
+});
+
+$('play').addEventListener('click', togglePlay);
+$('postcode').addEventListener('keydown', e => { if (e.key === 'Enter') $('load').click(); });
+$('coords').addEventListener('keydown', e => { if (e.key === 'Enter') $('load').click(); });
+
+// mode toggle — reshapes how crime weights map to sound, mid-set if needed
+$('modeswitch').addEventListener('click', (e) => {
+  const btn = e.target.closest('.mode'); if (!btn) return;
+  const newMode = btn.dataset.mode;
+  if (newMode === MODE) return;
+  MODE = newMode;
+  document.querySelectorAll('.mode').forEach(m => m.classList.toggle('active', m===btn));
+  // update tagline hint
+  $('walkbar').querySelector('.walkbar-label').textContent =
+    MODE === 'kraftwerk'
+      ? 'Kraftwerk mode — clean arpeggios, no swing. Tap a location to drift.'
+      : 'Simulate a walk — tap a location to drift toward it';
+  // if playing, re-derive tempo + motif for the current place so the switch lands musically
+  if (started && pendingLoc) {
+    const bpm = bpmFromProfile(pendingLoc.profile, pendingLoc.total);
+    targetBPM = bpm; liveBPM = bpm; Tone.Transport.bpm.rampTo(bpm, 2);
+    arpSeq = buildArp(pendingLoc.profile, pendingLoc.total);
+  }
+});
+
+// ---- init -----------------------------------------------------------------
+renderWalkGrid();
+prefetchLocations();
+</script>
+</body>
+</html>
