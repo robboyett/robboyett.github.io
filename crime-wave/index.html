@@ -177,6 +177,24 @@
   }
   .mode.active { background: var(--acid); color: var(--ink); }
   .mode:not(.active):hover { background: rgba(232,228,216,0.1); }
+
+  /* UK Shuffle tickertape */
+  .ticker { display: none; align-items: stretch; border-bottom: 2px solid var(--bone); background: var(--ink); overflow: hidden; }
+  .ticker.live { display: flex; }
+  .ticker-tag {
+    background: var(--acid); color: var(--ink); font-family: 'Anton', sans-serif;
+    letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.95rem;
+    padding: 0.55rem 1.2rem; display: flex; align-items: center; white-space: nowrap; flex-shrink: 0;
+  }
+  .ticker-track { position: relative; flex: 1; overflow: hidden; display: flex; align-items: center; }
+  .ticker-move {
+    display: inline-block; white-space: nowrap; will-change: transform;
+    font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase;
+    animation: ticker 26s linear infinite;
+  }
+  .ticker-move .hot { color: var(--blood); }
+  .ticker-move .lime { color: var(--acid); }
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 </style>
 </head>
 <body>
@@ -185,6 +203,11 @@
 <header>
   <h1>CRIME<span class="red">WAVE</span></h1>
 </header>
+
+<div class="ticker" id="ticker" hidden>
+  <div class="ticker-tag">⤬ UK Shuffle</div>
+  <div class="ticker-track"><div class="ticker-move" id="tickerMove"></div></div>
+</div>
 
 <div class="walkbar" id="walkbar">
   <div class="walk-grid" id="walkGrid"></div>
@@ -210,6 +233,7 @@
     </div>
   </div>
   <button id="play" disabled>▶ Play set</button>
+  <button id="shuffle" class="ghost" disabled>⤬ UK Shuffle</button>
 </div>
 
 <div class="status" id="status">Enter a UK postcode or lat/long, or use your location, then read the area.</div>
@@ -340,9 +364,9 @@ function renderWalkGrid() {
   });
 }
 
-// instantly set the engine state to a location (used for the very first tap)
-function primeTo(i) {
-  const loc = LOCS[i];
+// instantly set the engine state to a location (used for the very first tap).
+// tileEl is optional — off-grid (UK Shuffle) locations have no tile.
+function primeToLoc(loc, tileEl = null) {
   CATS.forEach(c => live[c] = loc.profile[c] || 0);
   liveDensity = Math.min(loc.total/200,1);
   const bpm = bpmFromProfile(loc.profile, loc.total); // mode-aware
@@ -350,12 +374,13 @@ function primeTo(i) {
   Tone.Transport.bpm.value = bpm;
   arpSeq = buildArp(loc.profile, loc.total);   // build this place's motif
   document.querySelectorAll('.loc').forEach(el => el.classList.remove('active','target'));
-  document.querySelectorAll('.loc')[i].classList.add('active');
-  pendingLoc = loc; pendingTileEl = document.querySelectorAll('.loc')[i];
+  if (tileEl) tileEl.classList.add('active');
+  pendingLoc = loc; pendingTileEl = tileEl;
   renderReadout(loc);
   if (started) updateLiveParams();   // apply this place's voice levels immediately
   setStatus(`Starting at <span class="acid">${loc.name}</span> — ${loc.total} crimes, ${bpm} BPM.`);
 }
+function primeTo(i) { primeToLoc(LOCS[i], document.querySelectorAll('.loc')[i]); }
 
 async function prefetchLocations() {
   setStatus('Reading all 10 locations from the Police API …');
@@ -380,6 +405,7 @@ async function prefetchLocations() {
     setStatus(`Loaded <span class="acid">${done}/10</span> locations …`);
   }));
   $('play').disabled = false;
+  $('shuffle').disabled = false;
   const anyData = LOCS.some(l => l.total > 0);
   if (!anyData) {
     setStatus(`<span class="red">No crime rows returned for any location.</span> The Police API may be unreachable or between data releases — try again shortly.`);
@@ -882,8 +908,8 @@ function finishMorph() {
 
 let pendingLoc = null, pendingTileEl = null;
 
-function driftTo(locIndex) {
-  const loc = LOCS[locIndex];
+// tileEl is optional — off-grid (UK Shuffle) locations have no tile.
+function driftToLoc(loc, tileEl = null) {
   if (!loc.profile) { setStatus(`<span class="red">${loc.name} hasn't loaded yet.</span>`); return; }
   // snapshot where we are now as the start of the tween
   liveFrom = {}; CATS.forEach(c => liveFrom[c] = live[c] || 0);
@@ -894,13 +920,14 @@ function driftTo(locIndex) {
   pendingLoc = loc;
 
   document.querySelectorAll('.loc').forEach(el => el.classList.remove('target'));
-  pendingTileEl = document.querySelectorAll('.loc')[locIndex];
-  pendingTileEl.classList.add('target');
+  pendingTileEl = tileEl;
+  if (tileEl) tileEl.classList.add('target');
 
   renderReadout(loc); // show destination breakdown immediately, bars will ride `live`
   morphStart = performance.now(); morphActive = true;
   setStatus(`Drifting toward <span class="acid">${loc.name}</span> …`);
 }
+function driftTo(locIndex) { driftToLoc(LOCS[locIndex], document.querySelectorAll('.loc')[locIndex]); }
 
 async function togglePlay() {
   await Tone.start();
@@ -988,6 +1015,117 @@ $('modeswitch').addEventListener('click', (e) => {
     if ($('liveBpm')) $('liveBpm').textContent = Math.round(bpm);
   }
 });
+
+// ---- UK Shuffle mode ------------------------------------------------------
+// Auto-drifts to a TRULY RANDOM UK location after a random interval (1–4 min),
+// fetching its crime data live and surfacing it in a scrolling tickertape.
+const SHUFFLE_MIN = 60000;   // 1 minute
+const SHUFFLE_MAX = 240000;  // 4 minutes
+let shuffleOn = false, shuffleTimer = null, shuffleTickerTimer = null, shuffleNextAt = 0;
+let shuffleBusy = false, shuffleSearching = false;
+
+// A land-biased bounding box over England & Wales (the Police API's coverage —
+// Scotland is BTP-only, so we cap the north to keep the data meaningful).
+const UK_BOX = { latMin: 50.2, latMax: 55.3, lngMin: -4.6, lngMax: 1.5 };
+
+// Reverse-geocode a point to a human place name via postcodes.io.
+async function reverseName(lat, lng) {
+  try {
+    const r = await fetch(`https://api.postcodes.io/postcodes?lat=${lat}&lon=${lng}&limit=1&radius=2000`);
+    if (r.ok) {
+      const j = await r.json();
+      const res = j.result && j.result[0];
+      if (res) return res.admin_ward || res.admin_district || res.parish || res.postcode;
+    }
+  } catch (e) { /* fall through to coords */ }
+  return `${lat.toFixed(3)}, ${lng.toFixed(3)}`;
+}
+
+// Pick random UK points until one returns crime data (sea/empty rural points
+// return nothing, so we retry a handful of times before giving up this round).
+async function fetchRandomUKLoc(maxTries = 8) {
+  for (let t = 0; t < maxTries && shuffleOn; t++) {
+    const lat = UK_BOX.latMin + Math.random() * (UK_BOX.latMax - UK_BOX.latMin);
+    const lng = UK_BOX.lngMin + Math.random() * (UK_BOX.lngMax - UK_BOX.lngMin);
+    try {
+      const { rows, date } = await fetchCrime(lat, lng);
+      if (rows.length) {
+        const name = await reverseName(lat, lng);
+        const loc = { name, lat, lng, total: rows.length, date,
+          profile: profileFromTotals(tally(rows), rows.length) };
+        loc.bpm = bpmFromProfile(loc.profile, loc.total);
+        return loc;
+      }
+    } catch (e) { /* keep trying */ }
+  }
+  return null;
+}
+
+function scheduleNextShuffle() {
+  const wait = SHUFFLE_MIN + Math.random() * (SHUFFLE_MAX - SHUFFLE_MIN);
+  shuffleNextAt = performance.now() + wait;
+  clearTimeout(shuffleTimer);
+  shuffleTimer = setTimeout(shuffleJump, wait);
+}
+
+async function shuffleJump() {
+  if (!shuffleOn || shuffleBusy) return;
+  shuffleBusy = true; shuffleSearching = true;
+  setStatus('<span class="acid">UK Shuffle</span> — scanning a random UK location …');
+  renderTicker();
+  const loc = await fetchRandomUKLoc();
+  shuffleBusy = false; shuffleSearching = false;
+  if (!shuffleOn) return;            // toggled off while fetching
+  if (!loc) { scheduleNextShuffle(); renderTicker(); return; }  // unlucky round, try again later
+  if (!started || !playing) { primeToLoc(loc); if (!playing) togglePlay(); }
+  else driftToLoc(loc);
+  scheduleNextShuffle();
+  renderTicker();
+}
+
+function renderTicker() {
+  const move = $('tickerMove'); if (!move) return;
+  const loc = pendingLoc;
+  const remain = Math.max(0, shuffleNextAt - performance.now());
+  const mm = String(Math.floor(remain / 60000)).padStart(2, '0');
+  const ss = String(Math.floor((remain % 60000) / 1000)).padStart(2, '0');
+  let seg;
+  if (shuffleSearching) {
+    seg = `<span class="lime">◆ UK SHUFFLE</span> &nbsp;&nbsp; SCANNING A RANDOM UK LOCATION… &nbsp;&nbsp;•&nbsp;&nbsp; `;
+  } else {
+    const name = (loc ? loc.name : '—').toUpperCase();
+    const crimes = loc ? loc.total : 0;
+    seg = `<span class="lime">◆ UK SHUFFLE</span> &nbsp;&nbsp; NOW DRIFTING TO <span class="hot">${name}</span>`
+      + ` &nbsp;&nbsp; ${crimes} CRIMES &nbsp;&nbsp; ${Math.round(liveBPM)} BPM`
+      + ` &nbsp;&nbsp; NEXT JUMP IN <span class="lime">${mm}:${ss}</span> &nbsp;&nbsp;•&nbsp;&nbsp; `;
+  }
+  const unit = seg.repeat(3);
+  move.innerHTML = unit + unit;   // two identical halves -> seamless -50% loop
+}
+
+function startShuffle() {
+  shuffleOn = true;
+  $('shuffle').classList.add('playing');
+  $('shuffle').textContent = '⤬ Shuffling…';
+  $('ticker').hidden = false;
+  $('ticker').classList.add('live');
+  // kick off immediately with a random jump (also starts playback if needed)
+  shuffleJump();
+  renderTicker();
+  shuffleTickerTimer = setInterval(renderTicker, 1000);
+}
+
+function stopShuffle() {
+  shuffleOn = false; shuffleSearching = false;
+  clearTimeout(shuffleTimer);
+  clearInterval(shuffleTickerTimer);
+  $('shuffle').classList.remove('playing');
+  $('shuffle').textContent = '⤬ UK Shuffle';
+  $('ticker').classList.remove('live');
+  $('ticker').hidden = true;
+}
+
+$('shuffle').addEventListener('click', () => shuffleOn ? stopShuffle() : startShuffle());
 
 // ---- init -----------------------------------------------------------------
 renderWalkGrid();
