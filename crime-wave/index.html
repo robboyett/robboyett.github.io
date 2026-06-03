@@ -230,6 +230,7 @@
       <button class="mode" data-mode="techno">Techno</button>
       <button class="mode active" data-mode="kraftwerk">Kraftwerk</button>
       <button class="mode" data-mode="lcd">LCD</button>
+      <button class="mode" data-mode="deephouse">Deep House</button>
     </div>
   </div>
   <button id="play" disabled>▶ Play set</button>
@@ -276,19 +277,51 @@ async function geocodePostcode(pc) {
   return { lat: j.result.latitude, lng: j.result.longitude, name: j.result.admin_district };
 }
 
+const sleep = ms => new Promise(res => setTimeout(res, ms));
+
+// Resilient JSON fetch: per-request timeout + retry/backoff on throttling (429)
+// and transient 5xx/network errors. Firing all our location reads at once was
+// getting us rate-limited into empty responses on first load — this softens that.
+// Returns parsed JSON, null for a clean "nothing here", or undefined if it
+// ultimately failed after all retries.
+async function fetchJSON(url, { tries = 4, timeout = 12000 } = {}) {
+  for (let attempt = 0; attempt < tries; attempt++) {
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), timeout);
+    try {
+      const r = await fetch(url, { signal: ctrl.signal });
+      clearTimeout(to);
+      if (r.status === 200) return await r.json();
+      if (r.status === 404) return null;
+      // throttled (429) or server error (5xx) -> wait with growing backoff, retry
+      if (r.status === 429 || r.status >= 500) { await sleep(500 * (attempt + 1) + Math.random() * 500); continue; }
+      return null; // other 4xx — don't hammer
+    } catch (e) {
+      clearTimeout(to);            // network error / timeout (abort) -> back off
+      await sleep(400 * (attempt + 1));
+    }
+  }
+  return undefined;
+}
+
+// Run async work over `items` with limited concurrency, so we don't open 60+
+// Police API requests simultaneously (10 locations × up to 6 month-walks each).
+async function runPool(items, worker, size = 3) {
+  let idx = 0;
+  const runners = Array.from({ length: Math.min(size, items.length) }, async () => {
+    while (idx < items.length) { const my = idx++; await worker(items[my], my); }
+  });
+  await Promise.all(runners);
+}
+
 // the police API lags well behind "today", and exactly how far varies. Ask the
 // API for its most recent available month and anchor our search there, instead
 // of guessing from the current date (which left every fetch empty).
 let LATEST_MONTH = null;       // 'YYYY-MM' of the newest data the API has
 async function getLatestMonth() {
   if (LATEST_MONTH) return LATEST_MONTH;
-  try {
-    const r = await fetch('https://data.police.uk/api/crime-last-updated');
-    if (r.ok) {
-      const j = await r.json();
-      if (j && j.date) LATEST_MONTH = String(j.date).slice(0, 7); // 'YYYY-MM-01' -> 'YYYY-MM'
-    }
-  } catch (e) { /* fall back to date-based guess below */ }
+  const j = await fetchJSON('https://data.police.uk/api/crime-last-updated');
+  if (j && j.date) LATEST_MONTH = String(j.date).slice(0, 7); // 'YYYY-MM-01' -> 'YYYY-MM'
   return LATEST_MONTH;
 }
 
@@ -308,13 +341,8 @@ async function fetchCrime(lat, lng) {
     const d = new Date(year, monthIndex - back, 1);
     const date = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
     const url = `https://data.police.uk/api/crimes-street/all-crime?lat=${lat}&lng=${lng}&date=${date}`;
-    try {
-      const r = await fetch(url);
-      if (r.status === 200) {
-        const j = await r.json();
-        if (Array.isArray(j) && j.length) return { rows: j, date };
-      }
-    } catch (e) { /* keep walking back */ }
+    const j = await fetchJSON(url);
+    if (Array.isArray(j) && j.length) return { rows: j, date };
   }
   return { rows: [], date: null };
 }
@@ -382,35 +410,63 @@ function primeToLoc(loc, tileEl = null) {
 }
 function primeTo(i) { primeToLoc(LOCS[i], document.querySelectorAll('.loc')[i]); }
 
+// store a location's fetched data onto its LOCS entry + tile
+function applyLocData(i, rows, date) {
+  const loc = LOCS[i];
+  loc.total = rows.length;
+  loc.profile = profileFromTotals(tally(rows), rows.length);
+  loc.bpm = bpmFromProfile(loc.profile, rows.length);
+  loc.date = date;
+  const tile = document.querySelectorAll('.loc')[i];
+  if (tile) {
+    tile.classList.remove('loading');
+    tile.querySelector('.meta').textContent = rows.length
+      ? `${rows.length} crimes · ${loc.bpm} BPM` : 'no data';
+  }
+}
+
 async function prefetchLocations() {
   setStatus('Reading all 10 locations from the Police API …');
   const month = await getLatestMonth();
   if (month) setStatus(`Police API latest data: <span class="acid">${month}</span>. Reading 10 locations …`);
   const tiles = document.querySelectorAll('.loc');
   let done = 0;
-  await Promise.all(LOCS.map(async (loc, i) => {
+  // limit concurrency to ~3 so we don't get throttled into empty responses
+  await runPool(LOCS.map((l, i) => i), async (i) => {
     try {
-      const { rows, date } = await fetchCrime(loc.lat, loc.lng);
-      loc.total = rows.length;
-      loc.profile = profileFromTotals(tally(rows), rows.length);
-      loc.bpm = bpmFromProfile(loc.profile, rows.length);
-      loc.date = date;
-      tiles[i].classList.remove('loading');
-      tiles[i].querySelector('.meta').textContent = `${rows.length} crimes · ${loc.bpm} BPM`;
+      const { rows, date } = await fetchCrime(LOCS[i].lat, LOCS[i].lng);
+      applyLocData(i, rows, date);
     } catch (e) {
       tiles[i].classList.remove('loading');
       tiles[i].querySelector('.meta').textContent = 'failed';
     }
     done++;
     setStatus(`Loaded <span class="acid">${done}/10</span> locations …`);
-  }));
+  }, 3);
+
+  // second pass: anything that came back empty/failed is usually a transient
+  // throttle — quietly retry those few before declaring them empty
+  let empties = LOCS.map((l, i) => i).filter(i => !LOCS[i].total);
+  if (empties.length) {
+    setStatus(`Re-reading <span class="acid">${empties.length}</span> location(s) that returned nothing …`);
+    await runPool(empties, async (i) => {
+      try {
+        const { rows, date } = await fetchCrime(LOCS[i].lat, LOCS[i].lng);
+        if (rows.length) applyLocData(i, rows, date);
+      } catch (e) { /* leave as no-data */ }
+    }, 2);
+  }
+
   $('play').disabled = false;
   $('shuffle').disabled = false;
   const anyData = LOCS.some(l => l.total > 0);
   if (!anyData) {
     setStatus(`<span class="red">No crime rows returned for any location.</span> The Police API may be unreachable or between data releases — try again shortly.`);
   } else {
-    setStatus(`All locations loaded. Tap one to begin — the track will drift as you walk between them.`);
+    const stillEmpty = LOCS.filter(l => !l.total).length;
+    setStatus(stillEmpty
+      ? `Loaded. <span class="red">${stillEmpty} location(s) returned no data</span> — tap any loaded one to begin.`
+      : `All locations loaded. Tap one to begin — the track will drift as you walk between them.`);
   }
 }
 
@@ -485,14 +541,15 @@ function updateReadoutLive() {
 // Built ONCE. A `live` weights object glides toward whichever location is the
 // current target, so the track morphs continuously instead of restarting.
 let nodes = null, loop = null, playing = false, started = false;
-let MODE = 'kraftwerk';   // 'techno' | 'kraftwerk' | 'lcd'
+let MODE = 'kraftwerk';   // 'techno' | 'kraftwerk' | 'lcd' | 'deephouse'
 
 let live = {};      // currently-sounding weights (interpolated)
 let target = {};    // weights we're drifting toward
 let liveDensity = 0, targetDensity = 0;   // 0..1, drives BPM
 let liveBPM = 124,  targetBPM = 124;
-let morphActive = false, morphStart = 0, morphDur = 10000; // ms
+let morphActive = false, morphStart = 0, morphDur = 14000; // ms — longer = subtler drift
 let liveFrom = {}, densityFrom = 0, bpmFrom = 124;
+let stagger = {};   // per-category start offset (0..~0.6) so voices enter one by one
 
 const CATS = Object.keys(MAP);
 
@@ -505,12 +562,17 @@ function bpmFromProfile(p, tot) {
   const density = Math.min(tot / 200, 1);
   const heat = (p['violent-crime']||0) + (p['possession-of-weapons']||0);
   if (MODE === 'kraftwerk') {
-    // compressed, slower range — sits around 118–128
-    return Math.round(118 + density*7 + heat*6);
+    // wide spread — sparse/quiet areas hover ~100, dense/violent push to ~140
+    return Math.round(Math.min(140, 100 + density*32 + heat*16));
   }
   if (MODE === 'lcd') {
-    // mid-tempo groove — sits around 120–130
-    return Math.round(120 + density*6 + heat*4);
+    // wide groove range — ~105 in calm areas up to ~135 where crime spikes
+    return Math.round(Math.min(135, 105 + density*26 + heat*14));
+  }
+  if (MODE === 'deephouse') {
+    // wide, expressive spread — quiet areas drift down to ~90, busy/violent
+    // places push up toward ~130
+    return Math.round(Math.min(130, 90 + density*34 + heat*16));
   }
   return Math.round(124 + density*18 + heat*40 + (p['bicycle-theft']||0)*6);
 }
@@ -640,9 +702,42 @@ function buildEngine() {
     volume: -20
   }).connect(lcdDelay);
 
+  // --- Deep House voices: warm, spacious, hypnotic — "great to work to" -------
+  // gentle master low-pass keeps everything soft; a dub delay throws the chords.
+  const dhFilter = new Tone.Filter(900, 'lowpass').connect(reverb);
+  const dhDelay = new Tone.FeedbackDelay({ delayTime: '8n.', feedback: 0.34, wet: 0.2 }).connect(dhFilter);
+  // deep rounded sub-bass — the rolling offbeat pulse, sine-led so it never bites
+  const dhBass = new Tone.MonoSynth({
+    oscillator: { type: 'sine' },
+    filter: { type: 'lowpass', Q: 1 },
+    envelope: { attack: 0.02, decay: 0.25, sustain: 0.35, release: 0.22 },
+    filterEnvelope: { attack: 0.02, decay: 0.2, baseFrequency: 180, octaves: 1.6 },
+    volume: -12
+  }).connect(dhFilter);
+  // Rhodes-ish electric-piano chord stabs — the signature deep-house chord, via delay
+  const dhChord = new Tone.PolySynth(Tone.FMSynth, {
+    harmonicity: 2, modulationIndex: 3,
+    oscillator: { type: 'sine' }, modulation: { type: 'sine' },
+    envelope: { attack: 0.012, decay: 0.5, sustain: 0.08, release: 0.6 },
+    modulationEnvelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.3 },
+    volume: -20
+  }).connect(dhDelay);
+  // warm sustained pad — a slow chord bed underneath everything
+  const dhPad = new Tone.PolySynth(Tone.Synth, {
+    oscillator: { type: 'fatsine', count: 3, spread: 18 },
+    envelope: { attack: 0.6, decay: 0.4, sustain: 0.8, release: 1.6 },
+    volume: -26
+  }).connect(dhFilter);
+  // soft filtered hat — the offbeat "tss", airy not metallic
+  const dhHat = new Tone.NoiseSynth({
+    noise: { type: 'white' },
+    envelope: { attack: 0.001, decay: 0.05, sustain: 0 }, volume: -24
+  }).connect(new Tone.Filter(8000, 'highpass').connect(reverb));
+
   return { reverb, dist, kick, sub, acid, hats, noise, stab, clank, acidFilter,
            arp, arpDelay, cleanBass, clap, blip,
-           lcdFilter, lcdDelay, discoBass, cowbell, woodblock, conga, shaker, lcdArp, housePiano };
+           lcdFilter, lcdDelay, discoBass, cowbell, woodblock, conga, shaker, lcdArp, housePiano,
+           dhFilter, dhDelay, dhBass, dhChord, dhPad, dhHat };
 }
 
 // note-sets for both "moods" — we blend between them by violence share
@@ -715,6 +810,14 @@ function houseChord(i) {
   );
 }
 
+// Deep-house pad/chord triad — same scale degrees as houseChord but kept in the
+// arp's own (warmer, lower) register rather than lifted an octave.
+function padChord(i) {
+  if (!arpSeq.length) return [];
+  const pick = k => arpSeq[((i + k) % arpSeq.length + arpSeq.length) % arpSeq.length];
+  return [pick(0), pick(2), pick(4)];
+}
+
 // continuously pull modulatable params toward the live weights (called per frame)
 function updateLiveParams() {
   if (!nodes || !started) return;
@@ -722,6 +825,7 @@ function updateLiveParams() {
     // clean and cold: no distortion, no swing, gentle filter movement
     nodes.dist.distortion = 0;
     Tone.Transport.swing = 0;
+    Tone.Transport.swingSubdivision = '8n';
     nodes.reverb.wet.rampTo(0.16 + w('other-crime')*0.25, 0.3);
     nodes.cleanBass.volume.rampTo(-14 + w('burglary')*10, 0.3);
     nodes.arp.volume.rampTo(-16 + Math.min(liveDensity,1)*8, 0.3);
@@ -742,12 +846,18 @@ function updateLiveParams() {
     nodes.woodblock.volume.rampTo(-60, 0.3);
     nodes.lcdArp.volume.rampTo(-60, 0.3);
     nodes.housePiano.volume.rampTo(-60, 0.3);
+    // mute deep house voices
+    nodes.dhBass.volume.rampTo(-60, 0.3);
+    nodes.dhChord.volume.rampTo(-60, 0.3);
+    nodes.dhPad.volume.rampTo(-60, 0.3);
+    nodes.dhHat.volume.rampTo(-60, 0.3);
     return;
   }
   if (MODE === 'lcd') {
     // light fixed swing + per-hit jitter give the "played" feel; no distortion
     nodes.dist.distortion = 0;
     Tone.Transport.swing = 0.1;
+    Tone.Transport.swingSubdivision = '8n';
     // master low-pass opens as density rises — the LCD dynamic arc, mapped to movement
     nodes.lcdFilter.frequency.rampTo(500 + liveDensity*6000, 0.4);
     nodes.lcdDelay.wet.rampTo(0.12 + w('other-crime')*0.4, 0.4);
@@ -774,6 +884,45 @@ function updateLiveParams() {
     nodes.cleanBass.volume.rampTo(-60, 0.3);
     nodes.clap.volume.rampTo(-60, 0.3);
     nodes.blip.volume.rampTo(-60, 0.3);
+    // mute deep house voices
+    nodes.dhBass.volume.rampTo(-60, 0.3);
+    nodes.dhChord.volume.rampTo(-60, 0.3);
+    nodes.dhPad.volume.rampTo(-60, 0.3);
+    nodes.dhHat.volume.rampTo(-60, 0.3);
+    return;
+  }
+  if (MODE === 'deephouse') {
+    // warm, spacious, hypnotic — soft filter, lush reverb, gentle shuffle
+    nodes.dist.distortion = 0;
+    Tone.Transport.swing = 0.2;
+    Tone.Transport.swingSubdivision = '16n';
+    nodes.dhFilter.frequency.rampTo(700 + liveDensity*3200, 0.6);   // opens only gently
+    nodes.dhDelay.wet.rampTo(0.16 + w('other-crime')*0.3, 0.5);
+    nodes.reverb.wet.rampTo(0.3 + w('other-crime')*0.25, 0.4);      // roomy bed
+    nodes.dhBass.volume.rampTo(-13 + w('burglary')*8, 0.4);
+    nodes.dhHat.volume.rampTo(-26 + w('anti-social-behaviour')*9, 0.4);
+    nodes.dhChord.volume.rampTo(-20 + w('drugs')*9, 0.4);
+    nodes.dhPad.volume.rampTo(-26 + Math.min(liveDensity,1)*9, 0.5);
+    // mute techno voices
+    nodes.acid.volume.rampTo(-60, 0.3);
+    nodes.hats.volume.rampTo(-60, 0.3);
+    nodes.noise.volume.rampTo(-60, 0.3);
+    nodes.stab.volume.rampTo(-60, 0.3);
+    nodes.clank.volume.rampTo(-60, 0.3);
+    nodes.sub.volume.rampTo(-60, 0.3);
+    // mute kraftwerk voices
+    nodes.arp.volume.rampTo(-60, 0.3);
+    nodes.cleanBass.volume.rampTo(-60, 0.3);
+    nodes.clap.volume.rampTo(-60, 0.3);
+    nodes.blip.volume.rampTo(-60, 0.3);
+    // mute LCD voices
+    nodes.discoBass.volume.rampTo(-60, 0.3);
+    nodes.cowbell.volume.rampTo(-60, 0.3);
+    nodes.shaker.volume.rampTo(-60, 0.3);
+    nodes.conga.volume.rampTo(-60, 0.3);
+    nodes.woodblock.volume.rampTo(-60, 0.3);
+    nodes.lcdArp.volume.rampTo(-60, 0.3);
+    nodes.housePiano.volume.rampTo(-60, 0.3);
     return;
   }
   // techno mode (original behaviour)
@@ -787,6 +936,7 @@ function updateLiveParams() {
   nodes.stab.volume.rampTo(-26 + w('robbery')*14, 0.3);
   nodes.clank.volume.rampTo(-38 + w('vehicle-crime')*16, 0.3);
   Tone.Transport.swing = Math.min(w('public-order')*1.4, 0.6);
+  Tone.Transport.swingSubdivision = '8n';
   // mute kraftwerk-only voices
   nodes.arp.volume.rampTo(-60, 0.3);
   nodes.cleanBass.volume.rampTo(-60, 0.3);
@@ -800,6 +950,11 @@ function updateLiveParams() {
   nodes.woodblock.volume.rampTo(-60, 0.3);
   nodes.lcdArp.volume.rampTo(-60, 0.3);
   nodes.housePiano.volume.rampTo(-60, 0.3);
+  // mute deep house voices
+  nodes.dhBass.volume.rampTo(-60, 0.3);
+  nodes.dhChord.volume.rampTo(-60, 0.3);
+  nodes.dhPad.volume.rampTo(-60, 0.3);
+  nodes.dhHat.volume.rampTo(-60, 0.3);
 }
 
 function startLoop() {
@@ -855,6 +1010,24 @@ function startLoop() {
       if (liveDensity > 0.06 && arpSeq.length && (s === 3 || s === 7 || s === 11 || s === 14)) {
         nodes.housePiano.triggerAttackRelease(houseChord(step), '8n', time + J(), V(0.6));
       }
+    } else if (MODE === 'deephouse') {
+      // ---- Deep House mode: warm, steady, hypnotic — built to work to ----
+      // KICK — four on the floor, soft and round
+      if (s % 4 === 0) nodes.kick.triggerAttackRelease('C1', '8n', time, 0.85);
+      // BASS — rolling offbeat eighths (the "and" of each beat), deep and rounded
+      if ((s === 2 || s === 6 || s === 10 || s === 14) && arpSeq.length) {
+        const bn = arpSeq[(step >> 2) % arpSeq.length];
+        nodes.dhBass.triggerAttackRelease(bn.replace(/\d$/, '2'), '8n', time, 0.9);
+      }
+      // HAT — the classic offbeat "tss"
+      if (s === 2 || s === 6 || s === 10 || s === 14) nodes.dhHat.triggerAttackRelease('16n', time, 0.6);
+      // gentle 16th ghost hats, only as anti-social-behaviour rises
+      if (s % 2 === 1 && Math.random() < w('anti-social-behaviour') * 0.5) nodes.dhHat.triggerAttackRelease('32n', time, 0.25);
+      // RHODES CHORD — spacious syncopated stabs thrown through the dub delay
+      if (arpSeq.length && (s === 6 || s === 14)) nodes.dhChord.triggerAttackRelease(houseChord(step), '8n', time, 0.5);
+      if (arpSeq.length && s === 11 && w('drugs') > 0.04) nodes.dhChord.triggerAttackRelease(houseChord(step), '16n', time, 0.4);
+      // PAD — one warm sustained chord per bar, a slow bed underneath
+      if (s === 0 && arpSeq.length) nodes.dhPad.triggerAttackRelease(padChord(step), '1m', time, 0.5);
     } else {
       // ---- techno mode (original) ----
       const N = pickNotes();
@@ -882,8 +1055,15 @@ function tick() {
   requestAnimationFrame(tick);
   if (morphActive) {
     const t = Math.min((performance.now() - morphStart) / morphDur, 1);
-    const e = t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2; // easeInOutQuad
-    CATS.forEach(c => { live[c] = (liveFrom[c]||0) + ((target[c]||0)-(liveFrom[c]||0))*e; });
+    const ease = x => x<0.5 ? 2*x*x : 1-Math.pow(-2*x+2,2)/2; // easeInOutQuad
+    const e = ease(t);
+    // each category eases in on its own slightly-delayed window, so a new area's
+    // voices arrive staggered/one-by-one instead of all snapping in together
+    CATS.forEach(c => {
+      const st = stagger[c] || 0;
+      const lt = st < 1 ? Math.max(0, Math.min((t - st) / (1 - st), 1)) : 0;
+      live[c] = (liveFrom[c]||0) + ((target[c]||0)-(liveFrom[c]||0)) * ease(lt);
+    });
     liveDensity = densityFrom + (targetDensity-densityFrom)*e;
     liveBPM = bpmFrom + (targetBPM-bpmFrom)*e;
     Tone.Transport.bpm.value = liveBPM;
@@ -918,6 +1098,12 @@ function driftToLoc(loc, tileEl = null) {
   targetBPM = bpmFromProfile(loc.profile, loc.total); // mode-aware
   pendingArp = buildArp(loc.profile, loc.total);      // locks in on arrival
   pendingLoc = loc;
+
+  // randomise each category's entrance offset so every drift feels organic —
+  // some voices lead, others fade in later across the morph window
+  const order = CATS.slice().sort(() => Math.random() - 0.5);
+  stagger = {};
+  order.forEach((c, i) => { stagger[c] = (i / Math.max(order.length - 1, 1)) * 0.6; });
 
   document.querySelectorAll('.loc').forEach(el => el.classList.remove('target'));
   pendingTileEl = tileEl;
