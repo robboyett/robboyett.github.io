@@ -231,6 +231,7 @@
       <button class="mode active" data-mode="kraftwerk">Kraftwerk</button>
       <button class="mode" data-mode="lcd">LCD</button>
       <button class="mode" data-mode="deephouse">Deep House</button>
+      <button class="mode" data-mode="dub">Dub</button>
     </div>
   </div>
   <button id="play" disabled>▶ Play set</button>
@@ -541,7 +542,7 @@ function updateReadoutLive() {
 // Built ONCE. A `live` weights object glides toward whichever location is the
 // current target, so the track morphs continuously instead of restarting.
 let nodes = null, loop = null, playing = false, started = false;
-let MODE = 'kraftwerk';   // 'techno' | 'kraftwerk' | 'lcd' | 'deephouse'
+let MODE = 'kraftwerk';   // 'techno' | 'kraftwerk' | 'lcd' | 'deephouse' | 'dub'
 
 let live = {};      // currently-sounding weights (interpolated)
 let target = {};    // weights we're drifting toward
@@ -573,6 +574,10 @@ function bpmFromProfile(p, tot) {
     // wide, expressive spread — quiet areas drift down to ~90, busy/violent
     // places push up toward ~130
     return Math.round(Math.min(130, 90 + density*34 + heat*16));
+  }
+  if (MODE === 'dub') {
+    // slow, heavy one-drop — laid-back ~62 in quiet areas, up to ~92 when busy
+    return Math.round(Math.min(92, 62 + density*26 + heat*6));
   }
   return Math.round(124 + density*18 + heat*40 + (p['bicycle-theft']||0)*6);
 }
@@ -734,10 +739,58 @@ function buildEngine() {
     envelope: { attack: 0.001, decay: 0.05, sustain: 0 }, volume: -24
   }).connect(new Tone.Filter(8000, 'highpass').connect(reverb));
 
+  // --- Dub Reggae voices (King Tubby style): rockers kit, tumbling tom rolls, --
+  // a huge spring/plate reverb with a long tail, and a tape echo throwing into it.
+  // Snare/toms/rim/keys splash into dubVerb; the kick + bass stay tight in the room.
+  const dubVerb = new Tone.Reverb({ decay: 8, wet: 0.6 }).toDestination();
+  // long tape-style echo — the signature Tubby throw — feeding the big reverb
+  const dubDelay = new Tone.FeedbackDelay({ delayTime: '4n.', feedback: 0.55, wet: 0.35 }).connect(dubVerb);
+  // deep round bass — the heart of dub, triangle-led with body, kept tight and low
+  const dubBass = new Tone.MonoSynth({
+    oscillator: { type: 'triangle' },
+    filter: { type: 'lowpass', Q: 1 },
+    envelope: { attack: 0.03, decay: 0.3, sustain: 0.5, release: 0.3 },
+    filterEnvelope: { attack: 0.02, decay: 0.25, baseFrequency: 140, octaves: 1.4 },
+    volume: -8
+  }).connect(reverb);
+  // skank — the offbeat organ upstroke, short and bright, echoed + drenched
+  const dubSkank = new Tone.PolySynth(Tone.Synth, {
+    oscillator: { type: 'square' },
+    envelope: { attack: 0.004, decay: 0.14, sustain: 0, release: 0.08 },
+    volume: -20
+  }).connect(dubDelay);
+  // rim / cross-stick — splashy, straight into the long reverb
+  const dubRim = new Tone.MembraneSynth({
+    pitchDecay: 0.008, octaves: 2,
+    envelope: { attack: 0.001, decay: 0.06, sustain: 0 }, volume: -16
+  }).connect(dubVerb);
+  // snare — the big backbeat crack, echoed and drowned in reverb
+  const dubSnare = new Tone.NoiseSynth({
+    noise: { type: 'white' },
+    envelope: { attack: 0.001, decay: 0.2, sustain: 0 }, volume: -12
+  }).connect(dubDelay);
+  // toms — the tumbling roll; pitched membrane, cascading through echo + long reverb
+  const dubTom = new Tone.MembraneSynth({
+    octaves: 4, pitchDecay: 0.03,
+    envelope: { attack: 0.001, decay: 0.32, sustain: 0 }, volume: -10
+  }).connect(dubDelay);
+  // hat — thin offbeat tick, lightly into the spring
+  const dubHat = new Tone.NoiseSynth({
+    noise: { type: 'white' },
+    envelope: { attack: 0.001, decay: 0.03, sustain: 0 }, volume: -28
+  }).connect(new Tone.Filter(9000, 'highpass').connect(dubVerb));
+  // melodica — reedy lead stabs, sparse, soaked in delay
+  const melodica = new Tone.Synth({
+    oscillator: { type: 'sawtooth' },
+    envelope: { attack: 0.02, decay: 0.2, sustain: 0.3, release: 0.3 },
+    volume: -22
+  }).connect(dubDelay);
+
   return { reverb, dist, kick, sub, acid, hats, noise, stab, clank, acidFilter,
            arp, arpDelay, cleanBass, clap, blip,
            lcdFilter, lcdDelay, discoBass, cowbell, woodblock, conga, shaker, lcdArp, housePiano,
-           dhFilter, dhDelay, dhBass, dhChord, dhPad, dhHat };
+           dhFilter, dhDelay, dhBass, dhChord, dhPad, dhHat,
+           dubVerb, dubDelay, dubBass, dubSkank, dubRim, dubSnare, dubTom, dubHat, melodica };
 }
 
 // note-sets for both "moods" — we blend between them by violence share
@@ -851,6 +904,13 @@ function updateLiveParams() {
     nodes.dhChord.volume.rampTo(-60, 0.3);
     nodes.dhPad.volume.rampTo(-60, 0.3);
     nodes.dhHat.volume.rampTo(-60, 0.3);
+    // mute dub voices
+    nodes.dubBass.volume.rampTo(-60, 0.3);
+    nodes.dubSkank.volume.rampTo(-60, 0.3);
+    nodes.dubSnare.volume.rampTo(-60, 0.3);
+    nodes.dubRim.volume.rampTo(-60, 0.3);
+    nodes.dubHat.volume.rampTo(-60, 0.3);
+    nodes.melodica.volume.rampTo(-60, 0.3);
     return;
   }
   if (MODE === 'lcd') {
@@ -889,6 +949,13 @@ function updateLiveParams() {
     nodes.dhChord.volume.rampTo(-60, 0.3);
     nodes.dhPad.volume.rampTo(-60, 0.3);
     nodes.dhHat.volume.rampTo(-60, 0.3);
+    // mute dub voices
+    nodes.dubBass.volume.rampTo(-60, 0.3);
+    nodes.dubSkank.volume.rampTo(-60, 0.3);
+    nodes.dubSnare.volume.rampTo(-60, 0.3);
+    nodes.dubRim.volume.rampTo(-60, 0.3);
+    nodes.dubHat.volume.rampTo(-60, 0.3);
+    nodes.melodica.volume.rampTo(-60, 0.3);
     return;
   }
   if (MODE === 'deephouse') {
@@ -923,6 +990,53 @@ function updateLiveParams() {
     nodes.woodblock.volume.rampTo(-60, 0.3);
     nodes.lcdArp.volume.rampTo(-60, 0.3);
     nodes.housePiano.volume.rampTo(-60, 0.3);
+    // mute dub voices
+    nodes.dubBass.volume.rampTo(-60, 0.3);
+    nodes.dubSkank.volume.rampTo(-60, 0.3);
+    nodes.dubSnare.volume.rampTo(-60, 0.3);
+    nodes.dubRim.volume.rampTo(-60, 0.3);
+    nodes.dubHat.volume.rampTo(-60, 0.3);
+    nodes.melodica.volume.rampTo(-60, 0.3);
+    return;
+  }
+  if (MODE === 'dub') {
+    // deep, spacious one-drop — heavy spring reverb + long tape echo
+    nodes.dist.distortion = 0;
+    Tone.Transport.swing = 0.34;            // heavy triplet shuffle — the reggae "bubble" feel
+    Tone.Transport.swingSubdivision = '16n';
+    nodes.reverb.wet.rampTo(0.2 + w('other-crime')*0.2, 0.4);       // tight room for kick + bass
+    nodes.dubDelay.wet.rampTo(0.3 + w('public-order')*0.3, 0.5);    // tape echo, more as public-order rises
+    nodes.dubBass.volume.rampTo(-8 + w('burglary')*6, 0.4);         // bass is king
+    nodes.dubSkank.volume.rampTo(-20 + w('anti-social-behaviour')*12, 0.4);
+    nodes.dubSnare.volume.rampTo(-12 + w('violent-crime')*8, 0.4);
+    nodes.dubRim.volume.rampTo(-20 + w('shoplifting')*12, 0.4);
+    nodes.dubHat.volume.rampTo(-28 + w('anti-social-behaviour')*8, 0.4);
+    nodes.melodica.volume.rampTo(-24 + w('drugs')*14, 0.4);
+    // mute techno voices
+    nodes.acid.volume.rampTo(-60, 0.3);
+    nodes.hats.volume.rampTo(-60, 0.3);
+    nodes.noise.volume.rampTo(-60, 0.3);
+    nodes.stab.volume.rampTo(-60, 0.3);
+    nodes.clank.volume.rampTo(-60, 0.3);
+    nodes.sub.volume.rampTo(-60, 0.3);
+    // mute kraftwerk voices
+    nodes.arp.volume.rampTo(-60, 0.3);
+    nodes.cleanBass.volume.rampTo(-60, 0.3);
+    nodes.clap.volume.rampTo(-60, 0.3);
+    nodes.blip.volume.rampTo(-60, 0.3);
+    // mute LCD voices
+    nodes.discoBass.volume.rampTo(-60, 0.3);
+    nodes.cowbell.volume.rampTo(-60, 0.3);
+    nodes.shaker.volume.rampTo(-60, 0.3);
+    nodes.conga.volume.rampTo(-60, 0.3);
+    nodes.woodblock.volume.rampTo(-60, 0.3);
+    nodes.lcdArp.volume.rampTo(-60, 0.3);
+    nodes.housePiano.volume.rampTo(-60, 0.3);
+    // mute deep house voices
+    nodes.dhBass.volume.rampTo(-60, 0.3);
+    nodes.dhChord.volume.rampTo(-60, 0.3);
+    nodes.dhPad.volume.rampTo(-60, 0.3);
+    nodes.dhHat.volume.rampTo(-60, 0.3);
     return;
   }
   // techno mode (original behaviour)
@@ -955,7 +1069,17 @@ function updateLiveParams() {
   nodes.dhChord.volume.rampTo(-60, 0.3);
   nodes.dhPad.volume.rampTo(-60, 0.3);
   nodes.dhHat.volume.rampTo(-60, 0.3);
+  // mute dub voices
+  nodes.dubBass.volume.rampTo(-60, 0.3);
+  nodes.dubSkank.volume.rampTo(-60, 0.3);
+  nodes.dubSnare.volume.rampTo(-60, 0.3);
+  nodes.dubRim.volume.rampTo(-60, 0.3);
+  nodes.dubHat.volume.rampTo(-60, 0.3);
+  nodes.melodica.volume.rampTo(-60, 0.3);
 }
+
+// dub bassline rhythm — a syncopated, walking 2-feel riff (16th-grid step indices)
+const DUB_BASS_HITS = [0, 3, 6, 10, 11, 14];
 
 function startLoop() {
   let step = 0;
@@ -1028,6 +1152,62 @@ function startLoop() {
       if (arpSeq.length && s === 11 && w('drugs') > 0.04) nodes.dhChord.triggerAttackRelease(houseChord(step), '16n', time, 0.4);
       // PAD — one warm sustained chord per bar, a slow bed underneath
       if (s === 0 && arpSeq.length) nodes.dhPad.triggerAttackRelease(padChord(step), '1m', time, 0.5);
+    } else if (MODE === 'dub') {
+      // ---- Dub à la King Tubby: rockers kick, tom rolls, echo throws, fader drops ----
+      const bar = Math.floor(step / 16);
+      const fill = (bar % 4 === 3);                      // tumbling tom-roll fill every 4th bar
+      const phrase = bar % 8;                            // 8-bar dub arrangement cycle
+      const dropSkank = (phrase === 6 || phrase === 7);  // pull the organ for a 2-bar breakdown
+      const dropBass  = (phrase === 7);                  // and the bass on the last bar (drums + reverb)
+
+      // --- live "mixing-desk" moves: echo throws + reverb swells, Tubby-style ---
+      // reset the tape echo's feedback at the top of each normal bar …
+      if (s === 0 && !fill && phrase !== 6) nodes.dubDelay.feedback.rampTo(0.55, 0.5);
+      // … spiral it up under every tom roll …
+      if (fill && s === 8) nodes.dubDelay.feedback.rampTo(0.86, 0.02);
+      // … and throw a lone snare into a runaway echo as the breakdown drops in
+      if (phrase === 6 && s === 0) {
+        nodes.dubSnare.triggerAttackRelease('8n', time, 0.9);
+        nodes.dubDelay.feedback.rampTo(0.82, 0.05);
+        nodes.dubVerb.wet.rampTo(0.85, 0.3);             // open the spring wide
+      }
+      if (phrase === 0 && s === 0) nodes.dubVerb.wet.rampTo(0.6, 1.2);   // pull it back on re-entry
+
+      // HATS — straight 8ths: a closed tick on the beat, an accented one on the "and"
+      if (s % 4 === 0) nodes.dubHat.triggerAttackRelease('32n', time, 0.3);
+      if (s === 2 || s === 6 || s === 10 || s === 14) nodes.dubHat.triggerAttackRelease('16n', time, 0.5);
+
+      // KICK — the "rockers" drive: a kick on every beat, heavier on 3 (the anchor)
+      if (s % 4 === 0 && !(fill && s >= 8)) nodes.kick.triggerAttackRelease('C1', '4n', time, s === 8 ? 0.98 : 0.82);
+
+      // RIM — cross-stick on 2 and 4, splashing into the spring reverb
+      if ((s === 4 || s === 12) && !(fill && s >= 8)) nodes.dubRim.triggerAttackRelease('C3', '16n', time, 0.7);
+
+      // SNARE — the big backbeat crack on 3, echoed and drowned in reverb
+      if (s === 8 && !fill) nodes.dubSnare.triggerAttackRelease('8n', time, 0.95);
+
+      // TOM ROLL — descending toms across the back half of the fill bar, thrown to echo
+      if (fill && s >= 8) {
+        const tom = ['A2','G2','F2','E2','D2','C2','A1','G1'][s - 8] || 'G1';
+        nodes.dubTom.triggerAttackRelease(tom, '16n', time, 0.7 + Math.random() * 0.2);
+      }
+
+      // ORGAN BUBBLE — percolating double-chop on the "and-a"; pulled out in breakdowns
+      if (arpSeq.length && !dropSkank && !(fill && s >= 8) && (s % 4 === 2 || s % 4 === 3)) {
+        const vel = (s % 4 === 2) ? 0.5 : 0.3;   // second chop softer = the gallop
+        nodes.dubSkank.triggerAttackRelease(houseChord(step), '16n', time, vel);
+      }
+
+      // BASS — deliberate syncopated riff; dropped on the breakdown's last bar
+      if (arpSeq.length && !dropBass && DUB_BASS_HITS.includes(s)) {
+        const bn = arpSeq[(step >> 1) % arpSeq.length];
+        nodes.dubBass.triggerAttackRelease(bn.replace(/\d$/, '1'), '8n', time, 0.95);
+      }
+
+      // MELODICA — sparse reedy lead, drenched in delay, when drugs share present
+      if (arpSeq.length && !dropSkank && (s === 0 || s === 10) && w('drugs') > 0.06) {
+        nodes.melodica.triggerAttackRelease(arpSeq[step % arpSeq.length], '4n', time, 0.55);
+      }
     } else {
       // ---- techno mode (original) ----
       const N = pickNotes();
