@@ -140,6 +140,7 @@
     grid-column: 1 / -1;
     display: flex; flex-wrap: wrap; gap: 3rem;
     padding: 2.4rem 1.4rem;
+    color: var(--ink);
   }
   .bigstat .item .num { font-size: 4.5rem; }
   .bigstat .item .cat { font-size: 0.7rem; }
@@ -205,7 +206,7 @@
 </header>
 
 <div class="ticker" id="ticker" hidden>
-  <div class="ticker-tag">⤬ UK Shuffle</div>
+  <div class="ticker-tag" id="tickerTag">⤬ UK Shuffle</div>
   <div class="ticker-track"><div class="ticker-move" id="tickerMove"></div></div>
 </div>
 
@@ -235,7 +236,10 @@
     </div>
   </div>
   <button id="play" disabled>▶ Play set</button>
-  <button id="shuffle" class="ghost" disabled>⤬ UK Shuffle</button>
+  <button id="shuffle" class="ghost" disabled title="Auto-drifts to a random UK location every 1–4 minutes, reading its live crime data and morphing the track to match.">⤬ UK Shuffle</button>
+  <button id="timemachine" class="ghost" disabled title="Stays on the current location and travels back through time month-by-month, so you hear the area's soundscape evolve across the API's ~3 years of history.">⏱ Time Machine</button>
+  <button id="ssToggle" class="ghost" disabled title="Adds a 'surveillance' layer driven by police stop & search records — the sound shifts with what's being searched for (drugs, weapons, theft).">+ Stop &amp; Search</button>
+  <button id="justiceToggle" class="ghost" disabled title="Sweeps 12 months of case outcomes for this spot, turning unresolved crime into harmonic tension and resolved crime into consonance.">+ Justice</button>
 </div>
 
 <div class="status" id="status">Enter a UK postcode or lat/long, or use your location, then read the area.</div>
@@ -244,6 +248,7 @@
 
 <footer>
   Source: data.police.uk open API — street-level crime, monthly, anonymised to ~1 mile. Data lags ~2 months, so this is the <em>mood of a place</em>, not a live feed.<br>
+  Layers: <em>Stop &amp; Search</em> adds a surveillance voice shaped by what's searched for; <em>Justice</em> sweeps 12 months of case outcomes, turning unresolved crime into harmonic tension; <em>Time Machine</em> anchors one place and travels back month-by-month through the API's ~36-month window. Outcomes &amp; stop/search are England &amp; Wales only.<br>
   Audio: Tone.js, generated entirely in-browser. Scotland reports only via British Transport Police, so crime there reads artificially low.
 </footer>
 
@@ -326,6 +331,28 @@ async function getLatestMonth() {
   return LATEST_MONTH;
 }
 
+// The API serves a rolling window (~36 months) of street-level data. This is
+// the authoritative list of every 'YYYY-MM' available — newest first. It powers
+// the Time Machine and doubles as a reliable anchor for "latest month".
+let AVAILABLE_MONTHS = null;
+async function getAvailableMonths() {
+  if (AVAILABLE_MONTHS) return AVAILABLE_MONTHS;
+  const j = await fetchJSON('https://data.police.uk/api/crimes-street-dates');
+  if (Array.isArray(j) && j.length) {
+    AVAILABLE_MONTHS = j.map(x => x.date).filter(Boolean).sort((a, b) => b.localeCompare(a));
+    if (!LATEST_MONTH && AVAILABLE_MONTHS.length) LATEST_MONTH = AVAILABLE_MONTHS[0];
+  }
+  return AVAILABLE_MONTHS || [];
+}
+
+// fetch all-crime for ONE explicit month at a point (no walk-back). Used by the
+// Time Machine, which already knows exactly which months exist.
+async function fetchCrimeAt(lat, lng, month) {
+  const url = `https://data.police.uk/api/crimes-street/all-crime?lat=${lat}&lng=${lng}&date=${month}`;
+  const j = await fetchJSON(url);
+  return { rows: Array.isArray(j) ? j : [], date: month };
+}
+
 // walk back from the latest available month until a request returns rows
 async function fetchCrime(lat, lng) {
   const base = await getLatestMonth();
@@ -341,9 +368,8 @@ async function fetchCrime(lat, lng) {
   for (let back = 0; back <= 6; back++) {
     const d = new Date(year, monthIndex - back, 1);
     const date = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-    const url = `https://data.police.uk/api/crimes-street/all-crime?lat=${lat}&lng=${lng}&date=${date}`;
-    const j = await fetchJSON(url);
-    if (Array.isArray(j) && j.length) return { rows: j, date };
+    const { rows } = await fetchCrimeAt(lat, lng, date);
+    if (rows.length) return { rows, date };
   }
   return { rows: [], date: null };
 }
@@ -352,6 +378,108 @@ function tally(rows) {
   const t = {};
   rows.forEach(c => { t[c.category] = (t[c.category] || 0) + 1; });
   return t;
+}
+
+// ---- Stop & Search (Feature 1) -------------------------------------------
+// The Police API gives long human-readable `object_of_search` strings; we fold
+// them into four sonic families that each steer a different timbre.
+function ssBucket(obj) {
+  const o = (obj || '').toLowerCase();
+  if (o.includes('drug')) return 'drugs';
+  if (o.includes('weapon') || o.includes('firearm') || o.includes('blade') ||
+      o.includes('threaten') || o.includes('harm')) return 'weapons';
+  if (o.includes('stolen') || o.includes('theft') || o.includes('goods') ||
+      o.includes('evidence')) return 'theft';
+  return 'other';
+}
+// did the search "lead somewhere"? Drives the S&S accent: confirming vs hollow.
+function ssPositive(outcome) {
+  const o = (outcome || '').toLowerCase();
+  if (!o || o === 'false' || o.includes('no further action')) return false;
+  return o.includes('arrest') || o.includes('charge') || o.includes('summons') ||
+         o.includes('caution') || o.includes('community resolution') ||
+         o.includes('penalty') || o.includes('warning');
+}
+function stopsProfile(rows) {
+  const tot = rows.length;
+  const b = { drugs: 0, weapons: 0, theft: 0, other: 0 };
+  let positive = 0;
+  rows.forEach(r => { b[ssBucket(r.object_of_search)]++; if (ssPositive(r.outcome)) positive++; });
+  const norm = k => tot ? b[k] / tot : 0;
+  return {
+    total: tot,
+    drugs: norm('drugs'), weapons: norm('weapons'), theft: norm('theft'), other: norm('other'),
+    arrestRate: tot ? positive / tot : 0,
+    // dominant object family, for the readout
+    dominant: tot ? ['drugs','weapons','theft','other'].sort((a,c)=>b[c]-b[a])[0] : null
+  };
+}
+// walk back from the latest month until a stop-and-search request returns rows
+async function fetchStops(lat, lng) {
+  const base = await getLatestMonth();
+  let year, monthIndex;
+  if (base) { year = +base.slice(0, 4); monthIndex = (+base.slice(5, 7)) - 1; }
+  else { const now = new Date(); year = now.getFullYear(); monthIndex = now.getMonth() - 2; }
+  for (let back = 0; back <= 6; back++) {
+    const d = new Date(year, monthIndex - back, 1);
+    const date = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    const url = `https://data.police.uk/api/stops-street?lat=${lat}&lng=${lng}&date=${date}`;
+    const j = await fetchJSON(url);
+    if (Array.isArray(j) && j.length) return { profile: stopsProfile(j), date };
+  }
+  return { profile: stopsProfile([]), date: null };
+}
+
+// ---- Outcomes / Justice (Feature 2) --------------------------------------
+// fold the ~26 outcome codes into three families: resolved (a person was dealt
+// with), pending (in the system), and — by subtraction — unresolved.
+const OUTCOME_RESOLVED = new Set([
+  'local-resolution','deprived-of-property','fined','absolute-discharge','cautioned',
+  'drugs-possession-warning','penalty-notice-issued','community-penalty','conditional-discharge',
+  'suspended-sentence','imprisoned','other-court-disposal','compensation',
+  'sentenced-in-another-case','charged'
+]);
+const OUTCOME_PENDING = new Set([
+  'awaiting-court-result','court-result-unavailable','unable-to-proceed',
+  'under-investigation','status-update-unavailable','sent-to-crown-court'
+]);
+function outcomeShare(rows) {
+  const total = rows.length;
+  let resolved = 0, pending = 0;
+  rows.forEach(r => {
+    const code = r.category && r.category.code;
+    if (OUTCOME_RESOLVED.has(code)) resolved++;
+    else if (OUTCOME_PENDING.has(code)) pending++;
+  });
+  const unresolved = total - resolved - pending;
+  return {
+    total,
+    resolutionRate: total ? resolved / total : 0,
+    unresolvedShare: total ? unresolved / total : 0
+  };
+}
+// fetch the last `months` of outcomes for a point, oldest -> newest. Heavy
+// (central London is ~7k rows/month), so only called on demand with progress.
+async function fetchOutcomesTrend(lat, lng, months = 12, onProgress = null) {
+  const base = await getLatestMonth();
+  let year, monthIndex;
+  if (base) { year = +base.slice(0, 4); monthIndex = (+base.slice(5, 7)) - 1; }
+  else { const now = new Date(); year = now.getFullYear(); monthIndex = now.getMonth() - 2; }
+  const wanted = [];
+  for (let back = months - 1; back >= 0; back--) {
+    const d = new Date(year, monthIndex - back, 1);
+    wanted.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'));
+  }
+  const trend = new Array(wanted.length).fill(null);
+  let done = 0;
+  await runPool(wanted.map((m, i) => i), async (i) => {
+    const url = `https://data.police.uk/api/outcomes-at-location?lat=${lat}&lng=${lng}&date=${wanted[i]}`;
+    const j = await fetchJSON(url);
+    trend[i] = { month: wanted[i], ...outcomeShare(Array.isArray(j) ? j : []) };
+    done++;
+    if (onProgress) onProgress(done, wanted.length);
+  }, 3);
+  return trend.filter(t => t && t.total > 0); // keep only months with data
 }
 
 // ---- the 10 walk locations ------------------------------------------------
@@ -393,6 +521,34 @@ function renderWalkGrid() {
   });
 }
 
+// ---- per-location layer helpers ------------------------------------------
+// read a location's Stop & Search shares (zeros if not loaded / not present)
+function ssFromLoc(loc) {
+  const s = loc && loc.stops;
+  return { drugs: s ? s.drugs : 0, weapons: s ? s.weapons : 0,
+           theft: s ? s.theft : 0, other: s ? s.other : 0, arrestRate: s ? s.arrestRate : 0 };
+}
+const ssDensityOf = loc => (loc && loc.stops) ? Math.min(loc.stops.total / 120, 1) : 0;
+// snap the S&S layer to a location with no glide (used on the first tap / prime)
+function applySSInstant(loc) {
+  const v = ssFromLoc(loc);
+  SS_KEYS.forEach(k => { liveSS[k] = targetSS[k] = ssFrom[k] = v[k]; });
+  liveSSDensity = targetSSDensity = ssDensityFrom = ssDensityOf(loc);
+}
+// lazily fetch a location's stop & search profile (only when the layer is on)
+async function ensureStops(loc) {
+  if (!loc || loc.stops || loc.lat == null) return;
+  try { const { profile, date } = await fetchStops(loc.lat, loc.lng); loc.stops = profile; loc.stops.date = date; }
+  catch (e) { loc.stops = stopsProfile([]); }
+}
+// lazily fetch a location's 12-month outcomes trend (heavy; cached on the loc)
+async function ensureJustice(loc, onProgress) {
+  if (!loc || loc.lat == null) return [];
+  if (loc.justice) return loc.justice;
+  loc.justice = await fetchOutcomesTrend(loc.lat, loc.lng, 12, onProgress);
+  return loc.justice;
+}
+
 // instantly set the engine state to a location (used for the very first tap).
 // tileEl is optional — off-grid (UK Shuffle) locations have no tile.
 function primeToLoc(loc, tileEl = null) {
@@ -402,6 +558,7 @@ function primeToLoc(loc, tileEl = null) {
   liveBPM = bpm; targetBPM = bpm;
   Tone.Transport.bpm.value = bpm;
   arpSeq = buildArp(loc.profile, loc.total);   // build this place's motif
+  applySSInstant(loc);                         // snap the S&S layer to this place
   document.querySelectorAll('.loc').forEach(el => el.classList.remove('active','target'));
   if (tileEl) tileEl.classList.add('active');
   pendingLoc = loc; pendingTileEl = tileEl;
@@ -460,6 +617,9 @@ async function prefetchLocations() {
 
   $('play').disabled = false;
   $('shuffle').disabled = false;
+  $('timemachine').disabled = false;
+  $('ssToggle').disabled = false;
+  $('justiceToggle').disabled = false;
   const anyData = LOCS.some(l => l.total > 0);
   if (!anyData) {
     setStatus(`<span class="red">No crime rows returned for any location.</span> The Police API may be unreachable or between data releases — try again shortly.`);
@@ -478,9 +638,10 @@ async function load(lat, lng, label) {
   try {
     const { rows, date } = await fetchCrime(lat, lng);
     if (!rows.length) { setStatus(`No crime records there. Try a denser urban point.`); $('load').disabled=false; return; }
-    const custom = { name: label, total: rows.length, date,
+    const custom = { name: label, lat, lng, total: rows.length, date,
       profile: profileFromTotals(tally(rows), rows.length) };
     custom.bpm = bpmFromProfile(custom.profile, rows.length);
+    if (ssLayerOn) await ensureStops(custom);   // so the S&S layer has data here
     // inject as an 11th transient target
     LOCS.push(custom);
     renderWalkGrid();
@@ -502,20 +663,37 @@ async function reflectLoadedState() {
   });
 }
 
+// 'YYYY-MM' -> 'Mon YYYY' for human-readable labels in the readout
+function formatMonth(m) {
+  if (!m) return '';
+  const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const [y, mo] = String(m).split('-');
+  return (names[(+mo) - 1] || '') + ' ' + y;
+}
+
 // destination breakdown — numbers are the TARGET, bars ride the live interpolation
 function renderReadout(loc) {
   const ro = $('readout');
   const counts = {};
   CATS.forEach(c => counts[c] = Math.round((loc.profile[c]||0) * loc.total));
   const entries = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  let extra = '';
+  if (ssLayerOn && loc.stops) {
+    const when = loc.stops.date ? formatMonth(loc.stops.date) : '';
+    extra += `<div class="item"><div class="cat">Stop &amp; search · 1 mo</div><div class="num">${loc.stops.total}</div><div class="role">▸ mostly ${loc.stops.dominant || '—'}${when ? ' · ' + when : ''}</div></div>`;
+  }
+  if (justiceLayerOn && justiceTrend.length) {
+    extra += `<div class="item"><div class="cat">Justice sweep</div><div class="num" style="font-size:1.9rem" id="justiceReadout">—</div><div class="role">▸ unresolved → tension</div></div>`;
+  }
   let html = `<div class="bigstat">
     <div class="item"><div class="cat">Destination</div><div class="num" style="font-size:2.6rem">${loc.name}</div></div>
     <div class="item"><div class="cat">Crimes</div><div class="num">${loc.total}</div></div>
     <div class="item"><div class="cat">Live BPM</div><div class="num" style="color:var(--blood)" id="liveBpm">${Math.round(liveBPM)}</div></div>
+    ${extra}
   </div>`;
   entries.forEach(([cat, n]) => {
     const m = MAP[cat] || { role: '—' };
-    html += `<div class="cell" data-cat="${cat}">
+    html += `<div class="cell" data-cat="${cat}" data-n="${n}">
       <div class="cat">${cat.replace(/-/g,' ')}</div>
       <div class="num">${n}</div>
       <div class="role">▸ ${m.role}</div>
@@ -552,6 +730,24 @@ let morphActive = false, morphStart = 0, morphDur = 14000; // ms — longer = su
 let liveFrom = {}, densityFrom = 0, bpmFrom = 124;
 let stagger = {};   // per-category start offset (0..~0.6) so voices enter one by one
 
+// ---- Stop & Search layer state (Feature 1) -------------------------------
+// interpolated exactly like the crime weights, so it glides during a drift
+const SS_KEYS = ['drugs','weapons','theft','other','arrestRate'];
+let ssLayerOn = false;
+let liveSS  = { drugs:0, weapons:0, theft:0, other:0, arrestRate:0 };
+let targetSS= { drugs:0, weapons:0, theft:0, other:0, arrestRate:0 };
+let ssFrom  = { drugs:0, weapons:0, theft:0, other:0, arrestRate:0 };
+let liveSSDensity = 0, targetSSDensity = 0, ssDensityFrom = 0;
+
+// ---- Justice / outcomes trend state (Feature 2) --------------------------
+let justiceLayerOn = false;
+let justiceTrend = [];      // [{ month, resolutionRate, unresolvedShare }] oldest->newest
+let justiceStep = 0;        // index of the month currently sounding
+let justicePhase = 0;       // 0..1 progress toward the next month
+let liveUnresolved = 0;     // smoothed tension value driving the harmony
+let justiceCacheKey = null; // name of the location justiceTrend belongs to
+const JUSTICE_BARS_PER_MONTH = 4;  // how many bars each month holds before advancing (slow sweep)
+
 const CATS = Object.keys(MAP);
 
 function profileFromTotals(t, tot) {
@@ -579,7 +775,9 @@ function bpmFromProfile(p, tot) {
     // slow, heavy one-drop — laid-back ~62 in quiet areas, up to ~92 when busy
     return Math.round(Math.min(92, 62 + density*26 + heat*6));
   }
-  return Math.round(124 + density*18 + heat*40 + (p['bicycle-theft']||0)*6);
+  // techno — early Detroit sits ~122–134 BPM, not the frantic 150s. Keep the
+  // spread tight so crime nudges the tempo rather than launching it.
+  return Math.round(Math.min(134, 122 + density*8 + heat*8 + (p['bicycle-theft']||0)*4));
 }
 
 // engine reads weights through this — always the interpolated `live` value
@@ -624,9 +822,10 @@ function buildEngine() {
     envelope: { attack: 0.005, decay: 0.1, sustain: 0 }, volume: -30
   }).connect(dist);
 
+  // warm detuned string-stab — the Detroit "Strings of Life" chord colour
   const stab = new Tone.PolySynth(Tone.Synth, {
-    oscillator: { type: 'square' },
-    envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.1 }, volume: -22
+    oscillator: { type: 'fatsawtooth', count: 3, spread: 18 },
+    envelope: { attack: 0.012, decay: 0.28, sustain: 0.05, release: 0.18 }, volume: -22
   }).connect(reverb);
 
   const clank = new Tone.MetalSynth({
@@ -786,11 +985,42 @@ function buildEngine() {
     volume: -22
   }).connect(dubDelay);
 
+  // --- Stop & Search layer (Feature 1): a shared kit of four "surveillance"
+  // voices. Every mode triggers them differently (see startLoop), but the
+  // timbres are constant: scanner pip, metallic stab, woodblock tick, siren.
+  // its own delay throw gives the siren/ping that dub & deep-house lean on.
+  const ssDelay = new Tone.FeedbackDelay({ delayTime: '8n.', feedback: 0.3, wet: 0.25 }).connect(reverb);
+  const ssScanner = new Tone.Synth({              // cold mechanical pip (general / "other")
+    oscillator: { type: 'square' },
+    envelope: { attack: 0.001, decay: 0.04, sustain: 0, release: 0.02 }, volume: -60
+  }).connect(reverb);
+  const ssStab = new Tone.MetalSynth({            // sharp metallic stab (weapons)
+    frequency: 220, envelope: { attack: 0.001, decay: 0.18, release: 0.04 },
+    harmonicity: 5.2, modulationIndex: 40, resonance: 5000, octaves: 1.4, volume: -60
+  }).connect(reverb);
+  const ssWood = new Tone.Synth({                 // woodblock / clave tick (theft)
+    oscillator: { type: 'triangle' },
+    envelope: { attack: 0.001, decay: 0.06, sustain: 0, release: 0.02 }, volume: -60
+  }).connect(reverb);
+  const ssSiren = new Tone.Synth({                // gliding siren / sonar ping (drugs)
+    oscillator: { type: 'sawtooth' }, portamento: 0.08,
+    envelope: { attack: 0.02, decay: 0.2, sustain: 0.2, release: 0.2 }, volume: -60
+  }).connect(ssDelay);
+
+  // --- Justice layer (Feature 2): a single sustained drone bed whose interval
+  // and detune track the unresolved share — consonant when crime gets resolved,
+  // dissonant (tritone + detune) when it doesn't. Sits under every mode.
+  const justiceDrone = new Tone.PolySynth(Tone.Synth, {
+    oscillator: { type: 'fatsine', count: 3, spread: 14 },
+    envelope: { attack: 1.2, decay: 0.6, sustain: 0.85, release: 2.4 }, volume: -60
+  }).connect(reverb);
+
   return { reverb, dist, kick, sub, acid, hats, noise, stab, clank, acidFilter,
            arp, arpDelay, cleanBass, clap, blip,
            lcdFilter, lcdDelay, discoBass, cowbell, woodblock, conga, shaker, lcdArp, housePiano,
            dhFilter, dhDelay, dhBass, dhChord, dhPad, dhHat,
-           dubVerb, dubDelay, dubBass, dubSkank, dubRim, dubSnare, dubTom, dubHat, melodica };
+           dubVerb, dubDelay, dubBass, dubSkank, dubRim, dubSnare, dubTom, dubHat, melodica,
+           ssDelay, ssScanner, ssStab, ssWood, ssSiren, justiceDrone };
 }
 
 // note-sets for both "moods" — we blend between them by violence share
@@ -813,12 +1043,23 @@ const SCALES = {
   major:    [0,2,4,5,7,9,11]      // brighter, only when crime is very low
 };
 const MIDI = { C:0,'C#':1,D:2,'D#':3,E:4,'F':5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11 };
+const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 function midiToFreqName(rootMidi, semis, octave) {
   const n = rootMidi + semis;
   const oct = octave + Math.floor(n/12);
-  const names = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-  return names[((n%12)+12)%12] + oct;
+  return NOTE_NAMES[((n%12)+12)%12] + oct;
 }
+// note-name <-> midi, for transposing the justice drone by an interval
+function noteToMidi(name) {
+  const m = String(name).match(/^([A-G]#?)(-?\d+)$/);
+  if (!m) return 57; // A3 fallback
+  return MIDI[m[1]] + (parseInt(m[2], 10) + 1) * 12;
+}
+function midiToName(midi) {
+  const n = ((midi % 12) + 12) % 12;
+  return NOTE_NAMES[n] + (Math.floor(midi / 12) - 1);
+}
+function transposeNote(name, semis) { return midiToName(noteToMidi(name) + semis); }
 
 let arpSeq = [];     // current arpeggio note names
 let pendingArp = null;
@@ -871,9 +1112,76 @@ function padChord(i) {
   return [pick(0), pick(2), pick(4)];
 }
 
+// ---- Stop & Search triggering & mixing (Feature 1) -----------------------
+// fire one "search event": pick a family weighted by the live S&S mix, then
+// sound the matching voice. arrestRate decides confirming vs hollow.
+function ssFire(time, vel, jit = 0) {
+  if (!nodes) return;
+  const w = liveSS, arrest = w.arrestRate || 0;
+  const fams = [['drugs', w.drugs], ['weapons', w.weapons], ['theft', w.theft], ['other', (w.other || 0) + 0.0001]];
+  const totalW = fams.reduce((s, f) => s + f[1], 0) || 1;
+  let r = Math.random(), acc = 0, pick = 'other';
+  for (const [k, val] of fams) { acc += val / totalW; if (r <= acc) { pick = k; break; } }
+  const t = time + jit;
+  if (pick === 'drugs') {
+    nodes.ssSiren.triggerAttackRelease(arrest > 0.3 ? 'C4' : 'G3', '16n', t, vel);
+  } else if (pick === 'weapons') {
+    nodes.ssStab.triggerAttackRelease('16n', t, vel * (0.7 + arrest * 0.5));
+  } else if (pick === 'theft') {
+    nodes.ssWood.triggerAttackRelease('C5', '16n', t, vel);
+  } else {
+    nodes.ssScanner.triggerAttackRelease(arrest > 0.3 ? 'C6' : 'G5', '32n', t, vel);
+  }
+}
+function updateSSParams() {
+  const n = nodes; if (!n) return;
+  const voices = [n.ssScanner, n.ssStab, n.ssWood, n.ssSiren];
+  if (!ssLayerOn) { voices.forEach(v => v.volume.rampTo(-60, 0.3)); return; }
+  const d = Math.min(liveSSDensity, 1);
+  n.ssScanner.volume.rampTo(-36 + d * 14 + (liveSS.other || 0) * 10, 0.3);
+  n.ssStab.volume.rampTo(-44 + (liveSS.weapons || 0) * 30, 0.3);
+  n.ssWood.volume.rampTo(-36 + (liveSS.theft || 0) * 22, 0.3);
+  n.ssSiren.volume.rampTo(-40 + (liveSS.drugs || 0) * 26, 0.3);
+  n.ssDelay.wet.rampTo(0.15 + d * 0.25, 0.3); // busier areas throw more echo
+}
+
+// ---- Justice drone (Feature 2) -------------------------------------------
+// the drone's two notes go consonant->dissonant as the unresolved share rises,
+// and the whole thing detunes under tension.
+function justiceChord() {
+  const root = arpSeq.length ? arpSeq[0] : 'A3';
+  const low = transposeNote(root, -12);
+  const t = liveUnresolved;
+  const interval = t > 0.7 ? 6 : (t > 0.45 ? 5 : 7); // tritone / fourth / fifth
+  return [low, transposeNote(low, interval)];
+}
+function updateJusticeParams() {
+  const n = nodes; if (!n) return;
+  if (!justiceLayerOn || !justiceTrend.length) { n.justiceDrone.volume.rampTo(-60, 0.4); return; }
+  n.justiceDrone.volume.rampTo(-32 + Math.min(liveDensity, 1) * 6, 0.4);
+  n.justiceDrone.set({ detune: liveUnresolved * 40 });
+}
+let justiceTicks = 0;
+function advanceJustice() {
+  if (!justiceTrend.length) return;
+  justiceTicks++;
+  const ticksPerMonth = JUSTICE_BARS_PER_MONTH * 16;
+  const pos = justiceTicks / ticksPerMonth;
+  justiceStep = Math.floor(pos) % justiceTrend.length;
+  justicePhase = pos - Math.floor(pos);
+  updateJusticeReadout();
+}
+function updateJusticeReadout() {
+  const el = $('justiceReadout'); if (!el || !justiceTrend.length) return;
+  const m = justiceTrend[justiceStep % justiceTrend.length];
+  el.textContent = `${m.month} · ${Math.round(m.resolutionRate * 100)}% resolved`;
+}
+
 // continuously pull modulatable params toward the live weights (called per frame)
 function updateLiveParams() {
   if (!nodes || !started) return;
+  updateSSParams();       // Stop & Search layer rides on top of every mode
+  updateJusticeParams();  // Justice drone bed sits under every mode
   if (MODE === 'kraftwerk') {
     // clean and cold: no distortion, no swing, gentle filter movement
     nodes.dist.distortion = 0;
@@ -1039,22 +1347,23 @@ function updateLiveParams() {
     nodes.dhHat.volume.rampTo(-60, 0.3);
     return;
   }
-  // techno mode (original behaviour)
-  nodes.dist.distortion = Math.min(w('violent-crime')*3.5, 0.9);
+  // techno mode — early Detroit feel: clean, warm and driving, not industrial
+  nodes.dist.distortion = Math.min(w('violent-crime')*0.8, 0.18);  // a touch of grit, not a wall of it
   nodes.acidFilter.frequency.rampTo(200 + w('drugs')*2200, 0.3);
-  nodes.reverb.wet.rampTo(0.18 + w('other-crime')*0.4, 0.3);
-  nodes.sub.volume.rampTo(-14 + w('burglary')*12, 0.3);
-  nodes.acid.volume.rampTo(-22 + w('drugs')*14, 0.3);
-  nodes.hats.volume.rampTo(-28 + w('anti-social-behaviour')*16, 0.3);
-  nodes.noise.volume.rampTo(-36 + w('criminal-damage-arson')*18, 0.3);
-  nodes.stab.volume.rampTo(-26 + w('robbery')*14, 0.3);
-  nodes.clank.volume.rampTo(-38 + w('vehicle-crime')*16, 0.3);
-  Tone.Transport.swing = Math.min(w('public-order')*1.4, 0.6);
-  Tone.Transport.swingSubdivision = '8n';
-  // mute kraftwerk-only voices
+  nodes.reverb.wet.rampTo(0.2 + w('other-crime')*0.35, 0.3);
+  nodes.sub.volume.rampTo(-13 + w('burglary')*12, 0.3);
+  nodes.acid.volume.rampTo(-24 + w('drugs')*14, 0.3);
+  nodes.hats.volume.rampTo(-26 + w('anti-social-behaviour')*14, 0.3);
+  nodes.noise.volume.rampTo(-40 + w('criminal-damage-arson')*16, 0.3);
+  nodes.stab.volume.rampTo(-20 + w('robbery')*14, 0.3);        // warm string-stab, more forward
+  nodes.clank.volume.rampTo(-42 + w('vehicle-crime')*14, 0.3); // industrial clank pulled back
+  nodes.clap.volume.rampTo(-16, 0.3);                          // 909-style backbeat clap
+  // gentle 16th shuffle — Detroit swings, it doesn't lurch
+  Tone.Transport.swing = Math.min(w('public-order')*0.8, 0.35);
+  Tone.Transport.swingSubdivision = '16n';
+  // mute kraftwerk-only voices (clap is reused here for the backbeat)
   nodes.arp.volume.rampTo(-60, 0.3);
   nodes.cleanBass.volume.rampTo(-60, 0.3);
-  nodes.clap.volume.rampTo(-60, 0.3);
   nodes.blip.volume.rampTo(-60, 0.3);
   // mute LCD voices
   nodes.discoBass.volume.rampTo(-60, 0.3);
@@ -1081,10 +1390,25 @@ function updateLiveParams() {
 // dub bassline rhythm — a syncopated, walking 2-feel riff (16th-grid step indices)
 const DUB_BASS_HITS = [0, 3, 6, 10, 11, 14];
 
+// flash the readout cell for a crime category in time with its voice. Called
+// from the sequencer whenever a category's mapped sound actually triggers, so
+// every cell reacts to the pattern — not just the dominant one on the downbeat.
+function pulseCat(cat) {
+  const el = document.querySelector('.cell[data-cat="' + cat + '"]');
+  // don't flash a crime that isn't actually present here (count of 0) — its
+  // voice may still tick along quietly, but a flashing "0" cell is confusing
+  if (!el || el.dataset.n === '0') return;
+  el.classList.remove('pulse'); void el.offsetWidth; el.classList.add('pulse');
+}
+
 function startLoop() {
   let step = 0;
   loop = new Tone.Loop((time) => {
     const s = step % 16;
+    // HEARTBEAT — violent-crime (distortion + minor key) and possession-of-weapons
+    // (kick punch) colour the whole track rather than a single hit, so they flash
+    // with the kick in every mode.
+    if (s % 4 === 0) { pulseCat('violent-crime'); pulseCat('possession-of-weapons'); }
     if (MODE === 'kraftwerk') {
       // KICK — steady four on the floor, no thickening
       if (s % 4 === 0) nodes.kick.triggerAttackRelease('C1', '8n', time);
@@ -1093,15 +1417,22 @@ function startLoop() {
         const bn = arpSeq[(step>>1) % arpSeq.length];
         const bassNote = bn.replace(/\d$/, '1'); // drop to octave 1
         nodes.cleanBass.triggerAttackRelease(bassNote, '8n', time);
+        pulseCat('burglary');
       }
       // ARPEGGIO — the data-built motif, one note per 16th, metronomic
       if (arpSeq.length) {
         nodes.arp.triggerAttackRelease(arpSeq[step % arpSeq.length], '16n', time);
       }
       // CLAP — tight backbeat on 2 and 4
-      if (s === 4 || s === 12) nodes.clap.triggerAttackRelease('16n', time);
+      if (s === 4 || s === 12) { nodes.clap.triggerAttackRelease('16n', time); pulseCat('anti-social-behaviour'); }
       // BLIP — sparse, deliberate, only when drugs share present
-      if (w('drugs') > 0.05 && (s === 2 || s === 10)) nodes.blip.triggerAttackRelease('C5', '32n', time);
+      if (w('drugs') > 0.05 && (s === 2 || s === 10)) { nodes.blip.triggerAttackRelease('C5', '32n', time); pulseCat('drugs'); }
+      // STOP & SEARCH — cold metronomic scanner pips on the offbeat; weapons-heavy
+      // areas double the pip. Surveillance, Kraftwerk-style.
+      if (ssLayerOn && liveSSDensity > 0.01 && (s === 2 || s === 6 || s === 10 || s === 14)) {
+        ssFire(time, 0.5 + Math.min(liveSSDensity, 1) * 0.3);
+        if (liveSS.weapons > 0.25) ssFire(time + 0.05, 0.4);
+      }
     } else if (MODE === 'lcd') {
       // ---- LCD Soundsystem mode: humanised, live-band, reactive to this place ----
       // every hit gets J() timing jitter + V() velocity variation = "played" feel
@@ -1112,27 +1443,36 @@ function startLoop() {
         const bn = arpSeq[(step>>1) % arpSeq.length];
         const bassNote = bn.replace(/\d$/, '2'); // mid octave, not sub
         nodes.discoBass.triggerAttackRelease(bassNote, '8n', time + J(), V(0.9));
+        pulseCat('burglary');
       }
       // COWBELL — the signature offbeat hook, scaled by public-order
       if ((s === 2 || s === 6 || s === 10 || s === 14) && w('public-order') > 0.005) {
         nodes.cowbell.triggerAttackRelease('16n', time + J(), V(0.5 + w('public-order')*0.45));
+        pulseCat('public-order');
       }
       // SHAKER — 16th gate, loose (heavier jitter so shakers feel hand-held)
       if (Math.random() < 0.3 + w('anti-social-behaviour')*0.6) {
         nodes.shaker.triggerAttackRelease('32n', time + J()*1.8, V(0.55));
+        pulseCat('anti-social-behaviour');
       }
       // CONGA / WOODBLOCK — syncopated off-grid fills, strong velocity spread
-      if (s === 7 && w('robbery') > 0.02) nodes.conga.triggerAttackRelease('G3', '16n', time + J(), V(0.85));
-      if (s === 11 && w('vehicle-crime') > 0.02) nodes.woodblock.triggerAttackRelease('C5', '32n', time + J(), V(0.8));
+      if (s === 7 && w('robbery') > 0.02) { nodes.conga.triggerAttackRelease('G3', '16n', time + J(), V(0.85)); pulseCat('robbery'); }
+      if (s === 11 && w('vehicle-crime') > 0.02) { nodes.woodblock.triggerAttackRelease('C5', '32n', time + J(), V(0.8)); pulseCat('vehicle-crime'); }
       if (s === 15 && (w('robbery') > 0.02 || w('vehicle-crime') > 0.02))
-        nodes.conga.triggerAttackRelease('A2', '16n', time + J(), V(0.9));
+        { nodes.conga.triggerAttackRelease('A2', '16n', time + J(), V(0.9)); pulseCat('robbery'); }
       // ARP — warm detuned line, same data-built scale as Kraftwerk, thrown through delay
       if (w('drugs') > 0.04 && arpSeq.length) {
         nodes.lcdArp.triggerAttackRelease(arpSeq[step % arpSeq.length], '16n', time + J(), V(0.7));
+        pulseCat('drugs');
       }
       // HOUSE PIANO — uplifting syncopated chord stabs, swelling with density
       if (liveDensity > 0.06 && arpSeq.length && (s === 3 || s === 7 || s === 11 || s === 14)) {
         nodes.housePiano.triggerAttackRelease(houseChord(step), '8n', time + J(), V(0.6));
+      }
+      // STOP & SEARCH — hand-played percussion accents, humanised on the syncopations
+      if (ssLayerOn && liveSSDensity > 0.01) {
+        if (s === 5 || s === 13) ssFire(time + J(), V(0.55));
+        if (s % 2 === 1 && Math.random() < liveSSDensity * 0.4) ssFire(time + J() * 1.5, V(0.4));
       }
     } else if (MODE === 'deephouse') {
       // ---- Deep House mode: warm, steady, hypnotic — built to work to ----
@@ -1142,16 +1482,19 @@ function startLoop() {
       if ((s === 2 || s === 6 || s === 10 || s === 14) && arpSeq.length) {
         const bn = arpSeq[(step >> 2) % arpSeq.length];
         nodes.dhBass.triggerAttackRelease(bn.replace(/\d$/, '2'), '8n', time, 0.9);
+        pulseCat('burglary');
       }
       // HAT — the classic offbeat "tss"
-      if (s === 2 || s === 6 || s === 10 || s === 14) nodes.dhHat.triggerAttackRelease('16n', time, 0.6);
+      if (s === 2 || s === 6 || s === 10 || s === 14) { nodes.dhHat.triggerAttackRelease('16n', time, 0.6); pulseCat('anti-social-behaviour'); }
       // gentle 16th ghost hats, only as anti-social-behaviour rises
-      if (s % 2 === 1 && Math.random() < w('anti-social-behaviour') * 0.5) nodes.dhHat.triggerAttackRelease('32n', time, 0.25);
+      if (s % 2 === 1 && Math.random() < w('anti-social-behaviour') * 0.5) { nodes.dhHat.triggerAttackRelease('32n', time, 0.25); pulseCat('anti-social-behaviour'); }
       // RHODES CHORD — spacious syncopated stabs thrown through the dub delay
-      if (arpSeq.length && (s === 6 || s === 14)) nodes.dhChord.triggerAttackRelease(houseChord(step), '8n', time, 0.5);
-      if (arpSeq.length && s === 11 && w('drugs') > 0.04) nodes.dhChord.triggerAttackRelease(houseChord(step), '16n', time, 0.4);
+      if (arpSeq.length && (s === 6 || s === 14)) { nodes.dhChord.triggerAttackRelease(houseChord(step), '8n', time, 0.5); pulseCat('drugs'); }
+      if (arpSeq.length && s === 11 && w('drugs') > 0.04) { nodes.dhChord.triggerAttackRelease(houseChord(step), '16n', time, 0.4); pulseCat('drugs'); }
       // PAD — one warm sustained chord per bar, a slow bed underneath
       if (s === 0 && arpSeq.length) nodes.dhPad.triggerAttackRelease(padChord(step), '1m', time, 0.5);
+      // STOP & SEARCH — a spacious sonar ping thrown through the dub delay
+      if (ssLayerOn && liveSSDensity > 0.01 && (s === 2 || s === 10)) ssFire(time, 0.5);
     } else if (MODE === 'dub') {
       // ---- Dub à la King Tubby: rockers kick, tom rolls, echo throws, fader drops ----
       const bar = Math.floor(step / 16);
@@ -1175,55 +1518,74 @@ function startLoop() {
 
       // HATS — straight 8ths: a closed tick on the beat, an accented one on the "and"
       if (s % 4 === 0) nodes.dubHat.triggerAttackRelease('32n', time, 0.3);
-      if (s === 2 || s === 6 || s === 10 || s === 14) nodes.dubHat.triggerAttackRelease('16n', time, 0.5);
+      if (s === 2 || s === 6 || s === 10 || s === 14) { nodes.dubHat.triggerAttackRelease('16n', time, 0.5); pulseCat('anti-social-behaviour'); }
 
       // KICK — the "rockers" drive: a kick on every beat, heavier on 3 (the anchor)
       if (s % 4 === 0 && !(fill && s >= 8)) nodes.kick.triggerAttackRelease('C1', '4n', time, s === 8 ? 0.98 : 0.82);
 
       // RIM — cross-stick on 2 and 4, splashing into the spring reverb
-      if ((s === 4 || s === 12) && !(fill && s >= 8)) nodes.dubRim.triggerAttackRelease('C3', '16n', time, 0.7);
+      if ((s === 4 || s === 12) && !(fill && s >= 8)) { nodes.dubRim.triggerAttackRelease('C3', '16n', time, 0.7); pulseCat('shoplifting'); }
 
       // SNARE — the big backbeat crack on 3, echoed and drowned in reverb
-      if (s === 8 && !fill) nodes.dubSnare.triggerAttackRelease('8n', time, 0.95);
+      if (s === 8 && !fill) { nodes.dubSnare.triggerAttackRelease('8n', time, 0.95); pulseCat('violent-crime'); }
 
       // TOM ROLL — descending toms across the back half of the fill bar, thrown to echo
       if (fill && s >= 8) {
         const tom = ['A2','G2','F2','E2','D2','C2','A1','G1'][s - 8] || 'G1';
         nodes.dubTom.triggerAttackRelease(tom, '16n', time, 0.7 + Math.random() * 0.2);
+        pulseCat('other-theft');   // tumbling fills
       }
 
       // ORGAN BUBBLE — percolating double-chop on the "and-a"; pulled out in breakdowns
       if (arpSeq.length && !dropSkank && !(fill && s >= 8) && (s % 4 === 2 || s % 4 === 3)) {
         const vel = (s % 4 === 2) ? 0.5 : 0.3;   // second chop softer = the gallop
         nodes.dubSkank.triggerAttackRelease(houseChord(step), '16n', time, vel);
+        pulseCat('public-order');
       }
 
       // BASS — deliberate syncopated riff; dropped on the breakdown's last bar
       if (arpSeq.length && !dropBass && DUB_BASS_HITS.includes(s)) {
         const bn = arpSeq[(step >> 1) % arpSeq.length];
         nodes.dubBass.triggerAttackRelease(bn.replace(/\d$/, '1'), '8n', time, 0.95);
+        pulseCat('burglary');
       }
 
       // MELODICA — sparse reedy lead, drenched in delay, when drugs share present
       if (arpSeq.length && !dropSkank && (s === 0 || s === 10) && w('drugs') > 0.06) {
         nodes.melodica.triggerAttackRelease(arpSeq[step % arpSeq.length], '4n', time, 0.55);
+        pulseCat('drugs');
+      }
+      // STOP & SEARCH — a rising siren thrown into the tape echo on phrase tops
+      if (ssLayerOn && liveSSDensity > 0.01 && (s === 0 || s === 12)) {
+        ssFire(time, 0.55 + Math.min(liveSSDensity, 1) * 0.3);
       }
     } else {
       // ---- techno mode (original) ----
       const N = pickNotes();
       if (s % 4 === 0) nodes.kick.triggerAttackRelease('C1', '8n', time);
-      if (s % 4 === 2 && w('burglary') > 0.04) nodes.sub.triggerAttackRelease(N.root[step%N.root.length], '8n', time);
+      // CLAP — 909 backbeat on 2 & 4: the structural Detroit groove
+      if (s === 4 || s === 12) nodes.clap.triggerAttackRelease('16n', time);
+      if (s % 4 === 2 && w('burglary') > 0.04) { nodes.sub.triggerAttackRelease(N.root[step%N.root.length], '8n', time); pulseCat('burglary'); }
       const hatGate = 0.2 + w('anti-social-behaviour')*0.7;
-      if (Math.random() < hatGate && s % 2 === 1) nodes.hats.triggerAttackRelease('16n', time);
+      if (Math.random() < hatGate && s % 2 === 1) { nodes.hats.triggerAttackRelease('16n', time); pulseCat('anti-social-behaviour'); }
+      // OPEN HAT — accented "tss" on every offbeat, the Detroit shuffle
+      if (s % 4 === 2) { nodes.hats.triggerAttackRelease('16n', time); pulseCat('anti-social-behaviour'); }
       if (w('drugs') > 0.03 && (s % 2 === 0 || Math.random() < w('drugs')))
-        nodes.acid.triggerAttackRelease(N.acid[Math.floor(Math.random()*N.acid.length)], '16n', time);
-      if (s === 0 && w('criminal-damage-arson') > 0.02) nodes.noise.triggerAttackRelease('8n', time);
-      if (w('robbery') > 0.02 && (s === 6 || s === 14)) nodes.stab.triggerAttackRelease(N.stab, '16n', time);
-      if (w('vehicle-crime') > 0.04 && s === 10) nodes.clank.triggerAttackRelease('16n', time);
+        { nodes.acid.triggerAttackRelease(N.acid[Math.floor(Math.random()*N.acid.length)], '16n', time); pulseCat('drugs'); }
+      if (s === 0 && w('criminal-damage-arson') > 0.02) { nodes.noise.triggerAttackRelease('8n', time); pulseCat('criminal-damage-arson'); }
+      if (w('robbery') > 0.02 && (s === 6 || s === 14)) { nodes.stab.triggerAttackRelease(N.stab, '8n', time); pulseCat('robbery'); }
+      if (w('vehicle-crime') > 0.04 && s === 10) { nodes.clank.triggerAttackRelease('16n', time); pulseCat('vehicle-crime'); }
+      // STOP & SEARCH — metallic stabs/zaps on the back half + density-driven ghosts
+      if (ssLayerOn && liveSSDensity > 0.01) {
+        if (s === 6 || s === 14) ssFire(time, 0.6);
+        if (s % 2 === 1 && Math.random() < liveSSDensity * 0.5) ssFire(time, 0.4);
+      }
     }
-    if (s % 4 === 0) {
-      const cells = document.querySelectorAll('.cell');
-      if (cells[0]) { cells[0].classList.remove('pulse'); void cells[0].offsetWidth; cells[0].classList.add('pulse'); }
+    // Justice drone — a slow tension bed under every mode (Feature 2). Advances
+    // the 12-month sweep one tick per 16th so it crawls across the year.
+    if (justiceLayerOn && justiceTrend.length) {
+      if (s === 0 && arpSeq.length) nodes.justiceDrone.triggerAttackRelease(justiceChord(), '1m', time, 0.5);
+      advanceJustice();
     }
     step++;
   }, '16n');
@@ -1244,6 +1606,9 @@ function tick() {
       const lt = st < 1 ? Math.max(0, Math.min((t - st) / (1 - st), 1)) : 0;
       live[c] = (liveFrom[c]||0) + ((target[c]||0)-(liveFrom[c]||0)) * ease(lt);
     });
+    // Stop & Search layer glides on the same eased timeline as the crime weights
+    SS_KEYS.forEach(k => { liveSS[k] = (ssFrom[k]||0) + ((targetSS[k]||0)-(ssFrom[k]||0)) * e; });
+    liveSSDensity = ssDensityFrom + (targetSSDensity - ssDensityFrom) * e;
     liveDensity = densityFrom + (targetDensity-densityFrom)*e;
     liveBPM = bpmFrom + (targetBPM-bpmFrom)*e;
     Tone.Transport.bpm.value = liveBPM;
@@ -1253,9 +1618,25 @@ function tick() {
     if (tgt) tgt.style.width = (e*100)+'%';
     if (t >= 1) { morphActive = false; finishMorph(); }
   }
+  // the justice tension value eases continuously toward whatever month the slow
+  // sweep is currently on, so the harmony "blends and changes over time"
+  if (justiceLayerOn && justiceTrend.length) {
+    liveUnresolved += (justiceCurrentUnresolved() - liveUnresolved) * 0.04;
+  } else {
+    liveUnresolved += (0 - liveUnresolved) * 0.04;
+  }
   // keep voice levels / mode routing current EVERY frame, not just while morphing,
   // so the very first location and any mid-set style switch take effect instantly
   if (started && playing) updateLiveParams();
+}
+
+// the unresolved share the justice sweep is currently sitting on, interpolated
+// between this month and the next for a smooth glide
+function justiceCurrentUnresolved() {
+  if (!justiceTrend.length) return 0;
+  const a = justiceTrend[justiceStep % justiceTrend.length];
+  const b = justiceTrend[(justiceStep + 1) % justiceTrend.length];
+  return (a.unresolvedShare || 0) + ((b.unresolvedShare || 0) - (a.unresolvedShare || 0)) * justicePhase;
 }
 
 function finishMorph() {
@@ -1278,6 +1659,13 @@ function driftToLoc(loc, tileEl = null) {
   targetBPM = bpmFromProfile(loc.profile, loc.total); // mode-aware
   pendingArp = buildArp(loc.profile, loc.total);      // locks in on arrival
   pendingLoc = loc;
+
+  // snapshot & target the Stop & Search layer so it glides with the drift
+  ssFrom = {}; SS_KEYS.forEach(k => ssFrom[k] = liveSS[k] || 0);
+  ssDensityFrom = liveSSDensity;
+  const ssv = ssFromLoc(loc);
+  SS_KEYS.forEach(k => targetSS[k] = ssv[k]);
+  targetSSDensity = ssDensityOf(loc);
 
   // randomise each category's entrance offset so every drift feels organic —
   // some voices lead, others fade in later across the morph window
@@ -1382,6 +1770,131 @@ $('modeswitch').addEventListener('click', (e) => {
   }
 });
 
+// ---- Stop & Search layer toggle (Feature 1) -------------------------------
+$('ssToggle').addEventListener('click', async () => {
+  ssLayerOn = !ssLayerOn;
+  $('ssToggle').classList.toggle('playing', ssLayerOn);
+  $('ssToggle').textContent = ssLayerOn ? '× Stop & Search' : '+ Stop & Search';
+  if (ssLayerOn) {
+    setStatus('Reading <span class="acid">stop &amp; search</span> for the area …');
+    await ensureStops(pendingLoc);
+    applySSInstant(pendingLoc);
+    if (pendingLoc) renderReadout(pendingLoc);  // surface the S&S cell
+    // background-load S&S for the rest of the grid so drifts have data ready
+    runPool(LOCS.filter(l => l.lat != null && !l.stops), ensureStops, 2);
+    setStatus(pendingLoc
+      ? `Stop &amp; search layer <span class="acid">on</span> — ${pendingLoc.stops ? pendingLoc.stops.total : 0} searches here.`
+      : `Stop &amp; search layer <span class="acid">on</span>.`);
+  } else {
+    if (pendingLoc) renderReadout(pendingLoc);
+  }
+});
+
+// ---- Justice / outcomes trend layer toggle (Feature 2) --------------------
+$('justiceToggle').addEventListener('click', async () => {
+  if (justiceLayerOn) {
+    justiceLayerOn = false;
+    $('justiceToggle').classList.remove('playing');
+    $('justiceToggle').textContent = '+ Justice';
+    if (pendingLoc) renderReadout(pendingLoc);
+    return;
+  }
+  if (!pendingLoc || pendingLoc.lat == null) {
+    setStatus('<span class="red">Pick a location first</span> — Justice reads 12 months of outcomes for a point.');
+    return;
+  }
+  $('justiceToggle').disabled = true;
+  const target = pendingLoc;
+  setStatus('Reading <span class="acid">12 months of outcomes</span> (heavy — hang on) …');
+  let trend = [];
+  try {
+    trend = await ensureJustice(target, (d, t) => setStatus(`Reading outcomes <span class="acid">${d}/${t}</span> months …`));
+  } catch (e) { /* handled below */ }
+  $('justiceToggle').disabled = false;
+  if (!trend || !trend.length) { setStatus('<span class="red">No outcome data for this area.</span>'); return; }
+  justiceTrend = trend; justiceCacheKey = target.name;
+  justiceTicks = 0; justiceStep = 0; justicePhase = 0;
+  justiceLayerOn = true;
+  $('justiceToggle').classList.add('playing');
+  $('justiceToggle').textContent = '× Justice';
+  if (pendingLoc) renderReadout(pendingLoc);
+  updateJusticeReadout();
+  setStatus(`Justice layer <span class="acid">on</span> — sweeping ${trend.length} months of resolution data for ${target.name}.`);
+});
+
+// ---- Time Machine mode (Feature 3) ----------------------------------------
+// Like UK Shuffle, but travels in time: anchors one location and steps monthly
+// back through the API's rolling window, drifting the soundscape each step.
+let tmOn = false, tmTimer = null, tmTickerTimer = null;
+let tmMonths = [], tmIndex = 0, tmBase = null, tmBusy = false, tmNextAt = 0;
+const TM_STEP_MS = 16000;  // ~ morphDur (14s) + a short hold per month
+
+async function startTimeMachine() {
+  const base = (pendingLoc && pendingLoc.lat != null) ? pendingLoc : LOCS.find(l => l.lat != null && l.profile);
+  if (!base) { setStatus('<span class="red">Load or tap a location first</span> — Time Machine needs a place to travel through.'); return; }
+  if (shuffleOn) stopShuffle();   // mutually exclusive auto-drift modes
+  tmBase = { name: base.name, lat: base.lat, lng: base.lng };
+  setStatus(`<span class="acid">Time Machine</span> — reading the historic month list …`);
+  tmMonths = await getAvailableMonths();   // newest first
+  if (!tmMonths.length) { setStatus('<span class="red">Could not read the historic month list.</span> Try again shortly.'); return; }
+  tmIndex = 0; tmOn = true;
+  $('timemachine').classList.add('playing');
+  $('timemachine').textContent = '⏱ Travelling…';
+  $('tickerTag').textContent = '⏱ Time Machine';
+  $('ticker').hidden = false; $('ticker').classList.add('live');
+  tmStep();
+  renderTimeTicker();
+  tmTickerTimer = setInterval(renderTimeTicker, 1000);
+}
+
+async function tmStep() {
+  if (!tmOn || tmBusy) return;
+  tmBusy = true;
+  const month = tmMonths[tmIndex % tmMonths.length];
+  setStatus(`<span class="acid">Time Machine</span> — reading <span class="acid">${tmBase.name}</span> in ${month} …`);
+  let rows = [];
+  try { ({ rows } = await fetchCrimeAt(tmBase.lat, tmBase.lng, month)); } catch (e) { /* skip this month */ }
+  tmBusy = false;
+  if (!tmOn) return;
+  if (rows.length) {
+    const loc = { name: tmBase.name, lat: tmBase.lat, lng: tmBase.lng, date: month,
+      total: rows.length, profile: profileFromTotals(tally(rows), rows.length) };
+    loc.bpm = bpmFromProfile(loc.profile, loc.total);
+    if (!started || !playing) { primeToLoc(loc); if (!playing) togglePlay(); }
+    else driftToLoc(loc);
+  }
+  tmIndex = (tmIndex + 1) % tmMonths.length;   // step further back; wrap at oldest
+  tmNextAt = performance.now() + TM_STEP_MS;
+  clearTimeout(tmTimer);
+  tmTimer = setTimeout(tmStep, TM_STEP_MS);
+  renderTimeTicker();
+}
+
+function renderTimeTicker() {
+  const move = $('tickerMove'); if (!move || !tmMonths.length) return;
+  const cur = (tmIndex === 0) ? tmMonths[tmMonths.length - 1] : tmMonths[tmIndex - 1];
+  const nextMonth = tmMonths[tmIndex % tmMonths.length];
+  const remain = Math.max(0, tmNextAt - performance.now());
+  const ss = String(Math.ceil(remain / 1000)).padStart(2, '0');
+  const crimes = pendingLoc ? pendingLoc.total : 0;
+  const name = (tmBase ? tmBase.name : '—').toUpperCase();
+  const seg = `<span class="lime">◆ TIME MACHINE</span> &nbsp;&nbsp; <span class="hot">${name}</span>`
+    + ` &nbsp;&nbsp; <span class="lime">${cur || ''}</span> &nbsp;&nbsp; ${crimes} CRIMES &nbsp;&nbsp; ${Math.round(liveBPM)} BPM`
+    + ` &nbsp;&nbsp; NEXT ${nextMonth} IN ${ss}s &nbsp;&nbsp;•&nbsp;&nbsp; `;
+  const unit = seg.repeat(3);
+  move.innerHTML = unit + unit;
+}
+
+function stopTimeMachine() {
+  tmOn = false;
+  clearTimeout(tmTimer); clearInterval(tmTickerTimer);
+  $('timemachine').classList.remove('playing');
+  $('timemachine').textContent = '⏱ Time Machine';
+  if (!shuffleOn) { $('ticker').classList.remove('live'); $('ticker').hidden = true; }
+}
+
+$('timemachine').addEventListener('click', () => tmOn ? stopTimeMachine() : startTimeMachine());
+
 // ---- UK Shuffle mode ------------------------------------------------------
 // Auto-drifts to a TRULY RANDOM UK location after a random interval (1–4 min),
 // fetching its crime data live and surfacing it in a scrolling tickertape.
@@ -1443,6 +1956,7 @@ async function shuffleJump() {
   shuffleBusy = false; shuffleSearching = false;
   if (!shuffleOn) return;            // toggled off while fetching
   if (!loc) { scheduleNextShuffle(); renderTicker(); return; }  // unlucky round, try again later
+  if (ssLayerOn) await ensureStops(loc);  // give the S&S layer data at the new point
   if (!started || !playing) { primeToLoc(loc); if (!playing) togglePlay(); }
   else driftToLoc(loc);
   scheduleNextShuffle();
@@ -1470,9 +1984,11 @@ function renderTicker() {
 }
 
 function startShuffle() {
+  if (tmOn) stopTimeMachine();   // mutually exclusive auto-drift modes
   shuffleOn = true;
   $('shuffle').classList.add('playing');
   $('shuffle').textContent = '⤬ Shuffling…';
+  $('tickerTag').textContent = '⤬ UK Shuffle';
   $('ticker').hidden = false;
   $('ticker').classList.add('live');
   // kick off immediately with a random jump (also starts playback if needed)
