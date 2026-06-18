@@ -13,11 +13,12 @@ When creating a new journal page, follow these steps in order:
 Always start by reading `journal/template.html` to understand the current page structure, styling, and component usage. Use this as the foundation for any new journal page.
 
 Key elements from the template:
-- Inter font preloading and loading script
+- Inter font preloading (`<link rel="preload">` + stylesheet in each page)
+- Shared baseline styles: `/journal/journal.css`
+- Shared init script: `/journal/journal.js` (menu dimming + fonts-loaded)
 - `<site-nav>` component for navigation
-- Menu open/close event handlers for dimming content
-- Consistent typography and spacing classes
 - Article structure: `.article-header`, `.article-content`, `.article-footer`
+- Article-specific `<style>` blocks only when the page needs custom layout or components
 
 ## 2. Create the Journal Page
 
@@ -31,6 +32,9 @@ Include:
 - Appropriate `<title>` tag: "Article Title | Rob Boyett"
 - Correct `datetime` attribute on the `<time>` element
 - RSS feed link in the head
+- `<link rel="stylesheet" href="/journal/journal.css">` for shared baseline styles
+- `<script src="/journal/journal.js"></script>` before the analytics script
+- Article-specific `<style>` only when needed (flow diagrams, galleries, custom components, etc.)
 - All necessary images/assets in the same folder
 - Cabin analytics script before the closing `</body>` tag:
   ```html
@@ -84,9 +88,14 @@ Before considering a journal page complete:
 - [ ] Page created at `/journal/[page-name]/index.html`
 - [ ] Title and date are correct
 - [ ] `<site-nav>` component included
-- [ ] Menu event handlers set up
+- [ ] `/journal/journal.css` and `/journal/journal.js` linked
+- [ ] Article-specific styles kept inline only when needed
 - [ ] Cabin analytics script added before `</body>`
 - [ ] Entry added to `journal.xml`
 - [ ] Item added to `feed.xml`
 - [ ] `<lastBuildDate>` updated in `feed.xml`
 - [ ] All images/assets are in the page folder
+
+### Exceptions
+
+`determinism-ai-ux` and `bringing-back-the-fun` use their own inline CSS (custom layout / Three.js canvas). Link `/journal/journal.js` only — do not link `/journal/journal.css` on those pages.

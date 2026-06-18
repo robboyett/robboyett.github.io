@@ -8,130 +8,11 @@
     <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
     
     <!-- RSS Feed -->
+    <link rel="stylesheet" href="/journal/journal.css">
     <link rel="alternate" type="application/rss+xml" title="Rob Boyett's Journal" href="/feed.xml">
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        /* Hide content until fonts load to prevent FOUT */
-        html {
-            visibility: hidden;
-        }
-        
-        html.fonts-loaded {
-            visibility: visible;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-feature-settings:
-                'liga' 1,   /* Standard ligatures */
-                'dlig' 1,   /* Discretionary ligatures */
-                'calt' 1,   /* Contextual alternates */
-                'zero' 1,   /* Slashed zero */
-                'kern' 1,   /* Kerning */
-                'ss01' 1,   /* Alternate digits */
-                'ss02' 0,   /* Disambiguate between similar-looking characters */
-                'ss03' 1,   /* Round quotes & commas */
-                'cv01' 1,   /* Alternate 1 */
-                'cv03' 1,   /* Open six */
-                'cv04' 1,   /* Open nine */
-                'cv06' 1,   /* Simplified u */
-                'cv07' 1,   /* Alternate 6 */
-                'cv09' 1,   /* Alternate 8 */
-                'cv10' 0,   /* Capital G with spur */
-                'cv11' 1,   /* Single-story a */
-                'tnum' 1;   /* Tabular figures */
-            background-color: #F1F1F1;
-            color: #1A1A1A;
-            min-height: 100vh;
-        }
-
-        @supports (font-variation-settings: normal) {
-            body {
-                font-family: 'Inter var', 'InterVariable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            }
-        }
-
-        .page {
-            padding: 66px 62px;
-            min-height: 100vh;
-        }
-
-        /* Dim content when dropdown is open */
-        .page.menu-open .article {
-            opacity: 0.5;
-            transition: opacity 0.3s ease;
-        }
-
-        .article {
-            transition: opacity 0.3s ease;
-        }
-
-        /* Article Styles */
-        .article {
-            max-width: 680px;
-            margin: 0;
-        }
-
-        .article-header {
-            margin-bottom: 48px;
-        }
-
-        .article-date {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 16px;
-            font-weight: 500;
-        }
-
-        .article-title {
-            font-size: 42px;
-            font-weight: 700;
-            letter-spacing: -1.5px;
-            line-height: 1.1;
-            margin-bottom: 24px;
-        }
-
-        .article-subtitle {
-            font-size: 20px;
-            color: #555;
-            line-height: 1.5;
-            font-weight: 400;
-        }
-
-        /* Article Content */
-        .article-hero {
-            width: 100%;
-            max-width: 680px;
-            border-radius: 8px;
-            margin-bottom: 48px;
-        }
-
-        .article-content {
-            font-size: 18px;
-            line-height: 1.7;
-            color: #333;
-        }
-
-        .article-content p {
-            margin-bottom: 24px;
-        }
-
-        .article-content a {
-            color: #0066cc;
-            text-decoration: underline;
-        }
-
-        .article-content a:hover {
-            color: #004499;
-        }
-
-        .article-content .cta-link {
+.article-content .cta-link {
             display: inline-block;
             background: #1A1A1A;
             color: white;
@@ -248,40 +129,9 @@
                 padding-bottom: 0;
             }
         }
-
-        /* Article Footer */
-        .article-footer {
-            margin-top: 64px;
-            padding-top: 32px;
-            border-top: 1px solid #ddd;
-        }
-
-        .article-footer p {
-            font-size: 14px;
-            color: #666;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .page {
-                padding: 24px;
-            }
-
-            .article-title {
-                font-size: 32px;
-            }
-
-            .article-subtitle {
-                font-size: 18px;
-            }
-
-            .article-content {
-                font-size: 17px;
-            }
-        }
     </style>
-    
-    <!-- Navigation Component -->
+
+<!-- Navigation Component -->
     <script src="/components/site-nav.js"></script>
 </head>
 <body>
@@ -330,63 +180,8 @@
         </article>
     </div>
 
-    <script>
-        // Handle menu open/close events from site-nav component
-        const page = document.querySelector('.page');
-        const siteNav = document.querySelector('site-nav');
-
-        siteNav.addEventListener('menu-open', () => {
-            page.classList.add('menu-open');
-        });
-
-        siteNav.addEventListener('menu-close', () => {
-            page.classList.remove('menu-open');
-        });
-
-        // Fetch live document stats from Google Apps Script
-        async function fetchDocStats() {
-            const statsUrl = 'https://script.google.com/macros/s/AKfycbzrYa9MPC04TXMM0vCIiG22E_uOzHGVpeJKpcU0NMOxiVTi5kGT1Dg9QrUnNbRhYl-wPA/exec';
-            
-            try {
-                const response = await fetch(statsUrl);
-                const data = await response.json();
-                
-                // Format word count with commas
-                const wordCount = data.words.toLocaleString();
-                document.getElementById('stat-words').textContent = wordCount;
-                
-                // Revisions
-                document.getElementById('stat-revisions').textContent = data.revisions;
-                
-                // Format last modified date
-                const lastModified = new Date(data.lastModified);
-                const options = { month: 'short', day: 'numeric', year: 'numeric' };
-                document.getElementById('stat-modified').textContent = lastModified.toLocaleDateString('en-US', options);
-                
-            } catch (error) {
-                console.error('Error fetching doc stats:', error);
-                // Show fallback values on error
-                document.getElementById('stat-words').textContent = '—';
-                document.getElementById('stat-revisions').textContent = '—';
-                document.getElementById('stat-modified').textContent = '—';
-            }
-        }
-
-        // Fetch stats on page load
-        fetchDocStats();
-
-        // Wait for Inter font to load before showing page
-        if (document.fonts && document.fonts.ready) {
-            document.fonts.ready.then(() => {
-                document.documentElement.classList.add('fonts-loaded');
-            });
-        } else {
-            // Fallback for browsers without Font Loading API
-            document.documentElement.classList.add('fonts-loaded');
-        }
-    </script>
-
-    <!-- Analytics -->
+    <script src="/journal/journal.js"></script>
+<!-- Analytics -->
     <script async defer src="https://scripts.withcabin.com/hello.js"></script>
 </body>
 </html>

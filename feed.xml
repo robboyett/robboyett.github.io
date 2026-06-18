@@ -6,7 +6,15 @@
         <link>https://robboyett.com</link>
         <atom:link href="https://robboyett.com/feed.xml" rel="self" type="application/rss+xml"/>
         <language>en-gb</language>
-        <lastBuildDate>Sat, 30 May 2026 00:00:00 +0000</lastBuildDate>
+        <lastBuildDate>Thu, 18 Jun 2026 00:00:00 +0000</lastBuildDate>
+        
+        <item>
+            <title>The unbundling of smartphone features into focused products</title>
+            <link>https://robboyett.com/journal/unbundling-smartphone-features/</link>
+            <guid>https://robboyett.com/journal/unbundling-smartphone-features/</guid>
+            <pubDate>Thu, 18 Jun 2026 00:00:00 +0000</pubDate>
+            <description>From a forty-pound pocket-money device to Tin Can, Yoto, and the Light Phone: why single-purpose hardware is prying features back off the smartphone.</description>
+        </item>
         
         <item>
             <title>Reflections for designers of AI advisors in banking</title>
