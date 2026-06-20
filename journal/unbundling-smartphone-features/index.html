@@ -12,6 +12,14 @@
     <link rel="alternate" type="application/rss+xml" title="Rob Boyett's Journal" href="/feed.xml">
     
     <style>
+        .article-hero {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 40px;
+        }
+
         .article-content figure {
             margin: 32px 0;
         }
@@ -37,9 +45,66 @@
             gap: 20px;
         }
 
+        .article-content .figure-trio {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .article-content .figure-wide {
+            margin: 40px -40px;
+        }
+
+        .article-content .figure-wide img {
+            border-radius: 0;
+        }
+
+        .product-showcase {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .product-showcase figure {
+            margin: 0;
+        }
+
+        .product-showcase figcaption {
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        .product-showcase figcaption strong {
+            display: block;
+            font-size: 15px;
+            color: #1a1a1a;
+            margin-bottom: 2px;
+        }
+
+        .product-showcase figure:last-child:nth-child(odd) {
+            grid-column: 1 / -1;
+            max-width: 50%;
+            justify-self: center;
+        }
+
         @media (max-width: 768px) {
-            .article-content .figure-grid {
+            .article-content .figure-grid,
+            .article-content .figure-trio,
+            .product-showcase {
                 grid-template-columns: 1fr;
+            }
+
+            .article-content .figure-wide {
+                margin: 32px 0;
+            }
+
+            .article-content .figure-wide img {
+                border-radius: 8px;
+            }
+
+            .product-showcase figure:last-child:nth-child(odd) {
+                max-width: none;
             }
         }
     </style>
@@ -58,58 +123,200 @@
                 <p class="article-subtitle">We spent fifteen years pouring every object in the house onto one sheet of glass. Now a small wave of single-purpose devices is prying them back out, and a forty-pound hack on my kitchen table turned out to be a version of the same idea.</p>
             </header>
 
+            <img
+                src="images/tincan-unboxing.jpg"
+                alt="A hand lifting a cream-coloured Tin Can kids phone out of its colourful packaging"
+                class="article-hero"
+                width="1179"
+                height="1659"
+            >
+
             <div class="article-content">
                 <p>My youngest daughter asked me to check her money four times before breakfast.</p>
 
                 <p>Each time it was the same routine. Unlock my phone, pass Face ID, open Monzo, switch to her account, read the number aloud, show her the screen. I'm considered unreliable. She is seven. She does not have a phone, and won't for years. But her money lives inside mine, behind two authentication steps and an app she is not allowed to touch, and the only way she can see what she has is to borrow her dad's attention and face.</p>
 
+                <figure>
+                    <img
+                        src="/journal/pocket-money-device/1045064B-EE49-47E1-B847-FEF551E41E82_1_105_c.webp"
+                        alt="A small M5Stick device on a kitchen surface showing a child's Monzo balance on its postage-stamp-sized screen"
+                        width="680"
+                        height="906"
+                    >
+                    <figcaption>The forty-pound answer: a dedicated balance display my kids can pick up and check themselves. (<a href="/journal/pocket-money-device/">Full build write-up</a>)</figcaption>
+                </figure>
+
                 <p>So I built her a thing. A little bank balance display using an M5StickC Plus, which is a tiny ESP32 device with a screen about the size of a postage stamp, talking to a Raspberry Pi on the home network. It hits the Monzo API, shows each kid's balance, and lets them send each other money. Kid one sends kid two £2 for swapping a pudding, it lands instantly, she accepts it, the balance ticks up on screen and she watches it climb. The whole thing cost about forty pounds and a weekend. (<a href="/journal/pocket-money-device/">I wrote up the build in more detail here.</a>)</p>
 
-                <p>The interesting part wasn't the build. It was what the kids did with it. They check their balance constantly now, far more than when it lived in my phone, because checking it is a physical act they control: pick up the device, press the button, read the screen. Money you have to <em>do something</em> to see is more real than a number in an app you never open. One of them worked out they could send themselves money from a sibling's account before I added any security, which is exactly the kind of thing you want a child to learn from a sibling who takes their pocket money rather than a scammer who takes their savings.</p>
+                <div class="figure-grid">
+                    <figure>
+                        <img
+                            src="/journal/pocket-money-device/animation.gif"
+                            alt="Animation cycling through each child's balance on the pocket money device"
+                            width="640"
+                            height="360"
+                        >
+                        <figcaption>Press the button, cycle through balances. A physical act they control.</figcaption>
+                    </figure>
+                    <figure>
+                        <img
+                            src="/journal/pocket-money-device/4F70FA88-2611-403F-BBFB-7430CF3F8FAB_1_105_c.webp"
+                            alt="The device showing Juno's balance ticking up after receiving a transfer"
+                            width="680"
+                            height="906"
+                        >
+                        <figcaption>Money you have to <em>do something</em> to see is more real than a number in an app you never open.</figcaption>
+                    </figure>
+                </div>
+
+                <p>They check their balance constantly now, far more than when it lived in my phone, because checking it is a physical act they control: pick up the device, press the button, read the screen. One of them worked out they could send themselves money from a sibling's account before I added any security, which is exactly the kind of thing you want a child to learn from a sibling who takes their pocket money rather than a scammer who takes their savings.</p>
 
                 <p>I went into this hands-on, in other words, before I had any opinion about it. The opinion came later, and it came from the building.</p>
 
                 <h2>The phone ate everything, and now we are prying it back open</h2>
 
-                <p>Here is the wider thing my little tech hack turned out to be a small instance of.</p>
-
                 <p>For about fifteen years we ran one of the great consolidations in the history of objects. The smartphone swallowed the camera, the Walkman, the landline, the games console, the photo album, the alarm clock, the calculator, the map. Every standalone thing in the house got pulled onto a single sheet of glass. We called it convenience, and it mostly was.</p>
 
-                <p>Now the motion appears to be running backwards. There is a small, growing category of devices whose entire pitch is that they do one of those things and nothing else. Tin Can makes a Wi-Fi landline for kids: voice calls to parent-approved contacts, no texts, no feed, no apps, styled like a handset your nan would recognise. Yoto and Tonies sell screen-free audio players where a child slots in a physical card or stands a figurine on top to play a story, with no screen, no microphone, no ads. Chechirp is doing the same for streaming, with magnetic "Vinyls" you attach to summon a playlist or an audiobook. There is a revival of cheap digital cameras for kids, and a parallel market of "dumbphones" like the Light Phone for adults who want the same subtraction for themselves.</p>
+                <p>Now the motion appears to be running backwards. There is a small, growing category of devices whose entire pitch is that they do one of those things and nothing else.</p>
 
-                <figure>
-                    <img src="images/lightphone.jpg" alt="A Light Phone II, a small minimalist phone with an e-ink display, held in one hand" width="960" height="640">
-                    <figcaption><strong>Light Phone II.</strong> The adult version of the same instinct. Photo: Jordan Mansfield, <a href="https://commons.wikimedia.org/wiki/File:LPII-2306.jpg">CC BY 2.0</a>.</figcaption>
-                </figure>
-
-                <p>This is real, not a curiosity. Yoto's revenue grew about 86% in 2024 to roughly £95m, on top of a similar jump the year before, and took investment from Mark Zuckerberg and Priscilla Chan along the way. The wider kids' audio-player market was valued at around $3.2bn in 2025 and is forecast to roughly double by 2034. People are paying real money to take things off the one device that already does them.</p>
-
-                <p>Each of these products doesn't just remove a screen. They remove the feed, the notifications, the open network, the bottomless pull of other people's content. Tin Can isn't a worse phone, it's a phone with the attention economy surgically removed. That's the product.</p>
-
-                <h2>The actual craft is deciding what to leave out</h2>
-
-                <p>Most product work is additive for the builders. You ship a thing, you watch how people use it, you add the features they ask for. Adding is the natural gravity of building.</p>
-
-                <p>These objects fight that gravity. Their value proposition is a list of things they refuse to do, and holding that line is harder than it looks, because every removed feature is a customer you might have kept. You can only do it if you are certain about the single job the object exists for. A device that does less than a £15 supermarket phone, sold at a premium, is making an argument about attention rather than telephony, and the argument only holds if you never blink.</p>
-
-                <div class="figure-grid">
+                <div class="product-showcase">
                     <figure>
-                        <img src="images/yoto.jpg" alt="A Yoto Mini audio player, a small soft-cornered cube with a pixel display, plays from inserted cards" width="960" height="1103">
-                        <figcaption><strong>Yoto Mini.</strong> The card slots into the top. Photo: Sandstein, <a href="https://commons.wikimedia.org/wiki/File:Yoto_Mini_player.jpg">CC0</a>.</figcaption>
+                        <img
+                            src="images/tincan-quote.jpg"
+                            alt="A yellow Tin Can kids phone with a simple keypad and coloured contact buttons"
+                            width="1179"
+                            height="1904"
+                        >
+                        <figcaption><strong>Tin Can</strong> Wi-Fi landline for kids. Voice calls to parent-approved contacts, no texts, no feed, no apps.</figcaption>
                     </figure>
                     <figure>
-                        <img src="images/toniebox.jpg" alt="A Toniebox audio player with a character figurine standing on top of it" width="960" height="1280">
-                        <figcaption><strong>Toniebox.</strong> The token is a figurine you stand on top. Photo: Johann56, <a href="https://commons.wikimedia.org/wiki/File:Toniebox.jpg">CC BY-SA 4.0</a>.</figcaption>
+                        <img
+                            src="images/yoto-mini-gruffalo.avif"
+                            alt="A Yoto Mini audio player with a Gruffalo story card inserted"
+                            width="1100"
+                            height="1216"
+                        >
+                        <figcaption><strong>Yoto</strong> Screen-free audio player. Slot a card, hear a story. No screen, no microphone, no ads.</figcaption>
+                    </figure>
+                    <figure>
+                        <img
+                            src="images/toniebox.jpg"
+                            alt="A Toniebox audio player with a character figurine standing on top"
+                            width="960"
+                            height="1280"
+                        >
+                        <figcaption><strong>Toniebox</strong> Stand a figurine on top to play a story. Photo: Johann56, <a href="https://commons.wikimedia.org/wiki/File:Toniebox.jpg">CC BY-SA 4.0</a>.</figcaption>
+                    </figure>
+                    <figure>
+                        <img
+                            src="images/chechirp.webp"
+                            alt="A Chechirp speaker with colourful magnetic Vinyl tokens attached to summon playlists"
+                            width="3840"
+                            height="2027"
+                        >
+                        <figcaption><strong>Chechirp</strong> Streaming without a screen. Attach a magnetic Vinyl to summon a playlist or audiobook.</figcaption>
+                    </figure>
+                    <figure>
+                        <img
+                            src="images/lightphone.jpg"
+                            alt="A Light Phone II, a small minimalist phone with an e-ink display, held in one hand"
+                            width="960"
+                            height="640"
+                        >
+                        <figcaption><strong>Light Phone II</strong> The adult version of the same instinct. Photo: Jordan Mansfield, <a href="https://commons.wikimedia.org/wiki/File:LPII-2306.jpg">CC BY 2.0</a>.</figcaption>
                     </figure>
                 </div>
 
-                <p>There's a second move underneath the subtraction. Watch what replaces the menu. Yoto has cards. Tonies has figurines. Chechirp has its Vinyls. In every case an abstract on-screen choice has been turned back into a physical token you can hold, hand over, lose down the sofa. A three-year-old who can't read a UI can slot a card. A half-asleep adult can drop a Vinyl without opening an app. The token is the interface, and it does work the screen couldn't.</p>
+                <p>Tin Can makes a Wi-Fi landline for kids, styled like a handset your nan would recognise. Yoto and Tonies sell screen-free audio players where a child slots in a physical card or stands a figurine on top to play a story. Chechirp is doing the same for streaming, with magnetic "Vinyls" you attach to summon a playlist or an audiobook. There is a revival of cheap digital cameras for kids, and a parallel market of "dumbphones" like the Light Phone for adults who want the same subtraction for themselves.</p>
+
+                <figure class="figure-wide">
+                    <img
+                        src="images/yoto-lineup.avif"
+                        alt="A row of Yoto audio players in different colours alongside story cards"
+                        width="1860"
+                        height="870"
+                    >
+                    <figcaption>Yoto's product line: one job, many colours, no app required to start listening.</figcaption>
+                </figure>
+
+                <div class="figure-grid">
+                    <figure>
+                        <img
+                            src="images/tincan-unboxing.jpg"
+                            alt="Unboxing a Tin Can kids phone from its brightly coloured packaging"
+                            width="1179"
+                            height="1659"
+                        >
+                        <figcaption><strong>Tin Can</strong> isn't a worse phone. It's a phone with the attention economy surgically removed.</figcaption>
+                    </figure>
+                    <figure>
+                        <img
+                            src="images/yoto-player-harry-potter.avif"
+                            alt="A Yoto Player with a Harry Potter story card, shown alongside the card artwork"
+                            width="1100"
+                            height="1216"
+                        >
+                        <figcaption><strong>Yoto Player</strong> The card <em>is</em> the interface. A three-year-old who can't read a UI can slot one in.</figcaption>
+                    </figure>
+                </div>
+
+                <p>This is real, not a curiosity. Yoto's revenue grew about 86% in 2024 to roughly £95m, on top of a similar jump the year before, and took investment from Mark Zuckerberg and Priscilla Chan along the way. The wider kids' audio-player market was valued at around $3.2bn in 2025 and is forecast to roughly double by 2034. People are paying real money to take things off the one device that already does them.</p>
+
+                <p>Each of these products doesn't just remove a screen. They remove the feed, the notifications, the open network, the bottomless pull of other people's content. That's the product.</p>
+
+                <h2>The actual craft is deciding what to leave out</h2>
+
+                <p>There are design cues shared across this category: retro elements and functions brought up to date with bright colours and well-designed forms that fit the function and the eye of kids, along with the taste of parents.</p>
+
+                <p>They tend to replace digital menus and interactions with physical object-based interaction. Yoto has cards. Tonies has figurines. Chechirp has its Vinyls. In every case, an abstract on-screen choice has been turned back into a physical token you can hold, hand over, lose down the sofa. A three-year-old who can't read an interface can slot a card. Here the token is the interface.</p>
+
+                <div class="figure-trio">
+                    <figure>
+                        <img
+                            src="images/yoto-mini-gruffalo.avif"
+                            alt="Yoto Mini with a Gruffalo card"
+                            width="1100"
+                            height="1216"
+                        >
+                        <figcaption><strong>Yoto</strong> Cards</figcaption>
+                    </figure>
+                    <figure>
+                        <img
+                            src="images/toniebox.jpg"
+                            alt="Toniebox with figurine"
+                            width="960"
+                            height="1280"
+                        >
+                        <figcaption><strong>Tonies</strong> Figurines</figcaption>
+                    </figure>
+                    <figure>
+                        <img
+                            src="images/chechirp.webp"
+                            alt="Chechirp with magnetic Vinyls"
+                            width="3840"
+                            height="2027"
+                        >
+                        <figcaption><strong>Chechirp</strong> Vinyls</figcaption>
+                    </figure>
+                </div>
+
+                <p>These objects fight the normal product gravity to add features. Their value proposition is a list of things they refuse to do, and holding that line takes some nerve. You can only do it if you are certain about the single job the object exists for. A device that does less than a £15 supermarket phone, sold at a premium, is making an argument about attention rather than telephony, and the argument only holds if you never blink.</p>
+
+                <figure>
+                    <img
+                        src="images/yoto.jpg"
+                        alt="A Yoto Mini audio player with a pixel display and a story card slotted into the top"
+                        width="960"
+                        height="1103"
+                    >
+                    <figcaption>The token is the interface. Photo: Sandstein, <a href="https://commons.wikimedia.org/wiki/File:Yoto_Mini_player.jpg">CC0</a>.</figcaption>
+                </figure>
 
                 <p>If the category contributes one thing to product design, it's this: a choice you can hold in your hand, that the phone had flattened into one more identical tap.</p>
             </div>
 
             <footer class="article-footer">
-                <p>Yoto Mini by Sandstein (CC0). Toniebox by Johann56 (CC BY-SA 4.0). Light Phone II by Jordan Mansfield (CC BY 2.0), via Wikimedia Commons. Product names belong to their respective owners.</p>
+                <p>Tin Can, Yoto and Chechirp product imagery from respective brand marketing. Yoto Mini by Sandstein (CC0). Toniebox by Johann56 (CC BY-SA 4.0). Light Phone II by Jordan Mansfield (CC BY 2.0), via Wikimedia Commons. Pocket money device photos from <a href="/journal/pocket-money-device/">the build write-up</a>. Product names belong to their respective owners.</p>
                 <p>Published by Rob Boyett. For more articles, visit the <a href="/">home page</a> or subscribe to the <a href="/feed.xml">RSS feed</a>.</p>
             </footer>
         </article>
