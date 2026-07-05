@@ -626,7 +626,8 @@
     </style>
 
     <!-- Navigation Component -->
-    <script src="/components/site-nav.js"></script>
+    <script src="/components/site-nav.js?v=2"></script>
+    <link rel="stylesheet" href="/components/robot-buddy.css?v=3">
 
 </head>
 <body>
@@ -635,7 +636,7 @@
         <site-nav></site-nav>
 
         <!-- Intro -->
-        <div class="intro">
+        <div class="intro" id="intro">
             <p>Hello, i'm Rob Boyett, a designer. I take products and experiences from simple ideas to market-proved concepts.</p>
             <p>By prototyping based off insights and user needs, verifying them through research, and crafting visual stories to explain them both internally and externally.</p>
         </div>
@@ -1312,6 +1313,10 @@
             }
         }
     </script>
+
+    <!-- Robot buddy (homepage only) -->
+    <script src="/components/robot-buddy-persona.js?v=4" defer></script>
+    <script src="/components/robot-buddy.js?v=5" defer></script>
 
     <!-- Analytics -->
     <script async defer src="https://scripts.withcabin.com/hello.js"></script>

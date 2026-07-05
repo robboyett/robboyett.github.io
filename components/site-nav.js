@@ -23,7 +23,15 @@ class SiteNav extends HTMLElement {
     connectedCallback() {
         this.render();
         this.setupEventListeners();
+        this.setExperimentsActiveState();
         this.loadJournalEntries();
+    }
+
+    setExperimentsActiveState() {
+        const link = this.shadowRoot.getElementById('experimentsLink');
+        if (link && window.location.pathname.startsWith('/experiments')) {
+            link.classList.add('active');
+        }
     }
 
     // Public method to get menu items for external event binding
@@ -160,6 +168,32 @@ class SiteNav extends HTMLElement {
                     background: #fafafa;
                 }
 
+                /* Experiments pill link */
+                .experiments-link {
+                    background: white;
+                    padding: 27px 44px;
+                    font-weight: 700;
+                    font-size: 30px;
+                    letter-spacing: -1.2px;
+                    color: #202020;
+                    text-decoration: none;
+                    display: flex;
+                    align-items: center;
+                    height: 104px;
+                    border-radius: 9999px;
+                    flex-shrink: 0;
+                    font-feature-settings: inherit;
+                    transition: background 0.2s ease;
+                }
+
+                .experiments-link:hover {
+                    background: #EDE8FF;
+                }
+
+                .experiments-link.active {
+                    background: #E0D9FF;
+                }
+
                 /* Responsive */
                 @media (max-width: 768px) {
                     .nav {
@@ -202,6 +236,12 @@ class SiteNav extends HTMLElement {
                         white-space: normal;
                         word-wrap: break-word;
                     }
+
+                    .experiments-link {
+                        padding: 16px 24px;
+                        font-size: 20px;
+                        height: 64px;
+                    }
                 }
             </style>
 
@@ -224,6 +264,9 @@ class SiteNav extends HTMLElement {
                         <!-- Menu items loaded from journal.xml -->
                     </div>
                 </div>
+
+                <!-- Experiments hidden pre-launch — content not ready yet. Re-enable when it is. -->
+                <!-- <a href="/experiments/" class="experiments-link" id="experimentsLink">Experiments</a> -->
             </nav>
         `;
     }

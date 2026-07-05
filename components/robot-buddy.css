@@ -1,0 +1,374 @@
+/* Robot buddy — homepage mascot (loaded only on index.html) */
+
+#rb-root {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 500;
+  overflow: visible;
+}
+
+#rb-shadow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 36px;
+  height: 8px;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.16) 0%, rgba(0,0,0,0) 70%);
+  pointer-events: none;
+  z-index: 1;
+  will-change: transform;
+}
+
+#rb-buddy {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 48px;
+  height: 67px;
+  cursor: pointer;
+  pointer-events: auto;
+  will-change: transform;
+  z-index: 2;
+  overflow: visible;
+}
+
+#rb-broken {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 90px;
+  height: auto;
+  pointer-events: none;
+  z-index: 2;
+  overflow: visible;
+  display: none;
+  will-change: transform;
+}
+
+#rb-bubble {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  pointer-events: none;
+  width: max-content;
+  max-width: 240px;
+  box-sizing: border-box;
+  background: #FDB916;
+  color: #000000;
+  border-radius: 20px;
+  padding: 14px 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.14);
+  font-size: 13.5px;
+  line-height: 1.34;
+  font-weight: 700;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  opacity: 0;
+  transform: translateY(6px) scale(0.96);
+  transform-origin: bottom left;
+  transition: opacity 0.18s ease, transform 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+  will-change: transform, opacity;
+}
+
+#rb-bubble.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+#rb-bubble.loading .msg {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+/* The "…" thinking bubble is otherwise so narrow the tail overhangs the rounded
+   corner and looks jagged — give it a floor so the tail sits on a flat edge. */
+#rb-bubble.loading {
+  min-width: 64px;
+}
+
+#rb-bubble .msg {
+  margin: 0;
+  user-select: none;
+}
+
+#rb-bubble.has-footer .msg {
+  margin-bottom: 8px;
+}
+
+#rb-bubble .links {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+#rb-bubble .link-go {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 12.5px;
+  color: #262626;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  text-align: left;
+}
+
+#rb-bubble .link-go:hover {
+  color: #000;
+}
+
+#rb-bubble .discuss {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 11.5px;
+  color: rgba(0, 0, 0, 0.55);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  display: block;
+}
+
+#rb-bubble .discuss:hover {
+  color: #000;
+}
+
+#rb-bubble .discuss[hidden],
+#rb-bubble .links:empty {
+  display: none;
+}
+
+#rb-bubble::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  bottom: -9px;
+  width: 22px;
+  height: 12px;
+  background: #FDB916;
+  clip-path: polygon(0 0, 100% 0, 18% 100%);
+}
+
+/* Compose panel — floating bottom-center pod */
+#rb-compose {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  z-index: 502;
+  pointer-events: auto;
+  width: min(300px, calc(100vw - 32px));
+  padding: 10px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #1e1e20;
+  border: 1.5px solid #3a3a3e;
+  border-radius: 20px;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  transform: translateX(-50%) translateY(calc(100% + 48px));
+  opacity: 0;
+  transition:
+    transform 0.24s cubic-bezier(0.2, 0.9, 0.3, 1.1),
+    opacity 0.18s ease;
+}
+
+#rb-compose.open {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+#rb-compose .done {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  z-index: 1;
+  appearance: none;
+  border: 1.5px solid #1e1e20;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: #e0564f;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+#rb-compose .done:hover:not(:disabled) {
+  background: #ee6a63;
+  transform: scale(1.08);
+}
+
+#rb-compose .done:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+#rb-compose .done:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+#rb-compose .rb-compose-display {
+  min-height: 28px;
+  max-height: 56px;
+  overflow-y: auto;
+  margin-bottom: 8px;
+  padding: 7px 9px;
+  background: #141416;
+  border: 1px solid #333338;
+  border-radius: 10px;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: #f0f0f2;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+#rb-compose .rb-compose-display:empty::before {
+  content: "Type a message…";
+  color: #6b6b70;
+}
+
+#rb-keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 8px;
+  user-select: none;
+}
+
+#rb-keyboard .kb-row {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+}
+
+#rb-keyboard .kb-key {
+  appearance: none;
+  border: none;
+  background: #2c2c30;
+  color: #f0f0f2;
+  border-radius: 7px;
+  min-width: 20px;
+  height: 26px;
+  padding: 0 5px;
+  font-size: 10.5px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  line-height: 1;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+}
+
+#rb-keyboard .kb-key:hover {
+  background: #38383c;
+}
+
+#rb-keyboard .kb-key:active {
+  background: #48484e;
+}
+
+#rb-keyboard .kb-key.wide {
+  min-width: 36px;
+  font-size: 12px;
+}
+
+#rb-keyboard .kb-key.space {
+  flex: 1;
+  max-width: 90px;
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+  color: #a8a8ad;
+}
+
+#rb-keyboard .kb-key.submit {
+  background: #4a7c59;
+  color: #f3f8f4;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 0 12px;
+  min-width: 44px;
+}
+
+#rb-keyboard .kb-key.submit:hover:not(:disabled) {
+  background: #568a66;
+}
+
+#rb-keyboard .kb-key.submit:active:not(:disabled) {
+  background: #3f6b4d;
+}
+
+#rb-keyboard .kb-key.submit:disabled {
+  background: #34403a;
+  color: #6f7a73;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Expression states — face swaps, colour, and pose overrides.
+   Motion for each state lives in the JS frame() loop; CSS handles the
+   swappable SVG parts, colour/filter, and steam animation. */
+#rb-eyes-happy,
+#rb-eyes-angry,
+#rb-eyes-cross,
+#rb-eyes-flat,
+#rb-steam {
+  display: none;
+}
+
+#rb-buddy.exp-thinking #rb-eyes { display: none; }
+#rb-buddy.exp-thinking #rb-eyes-happy { display: block; }
+
+#rb-buddy.exp-angry #rb-eyes { display: none; }
+#rb-buddy.exp-angry #rb-eyes-angry { display: block; }
+#rb-buddy.exp-angry #rb-steam { display: block; }
+
+#rb-buddy.exp-broken #rb-eyes { display: none; }
+#rb-buddy.exp-broken #rb-eyes-cross { display: block; }
+
+#rb-buddy.exp-offline #rb-eyes { display: none; }
+#rb-buddy.exp-offline #rb-eyes-flat { display: block; }
+#rb-buddy.exp-offline #rb-dangle { display: none; }
+#rb-buddy.exp-offline { filter: grayscale(1) opacity(0.6); }
+
+@media (prefers-reduced-motion: no-preference) {
+  #rb-buddy.exp-angry #rb-steam {
+    animation: rb-steam 0.85s ease-in-out infinite;
+  }
+}
+
+@keyframes rb-steam {
+  0%, 100% { opacity: 0.55; transform: translateY(0); }
+  50%      { opacity: 1;    transform: translateY(-1.5px); }
+}
+
+@media (max-width: 480px) {
+  #rb-compose {
+    bottom: 14px;
+    width: min(280px, calc(100vw - 24px));
+    padding: 8px;
+  }
+
+  #rb-keyboard .kb-key {
+    min-width: 18px;
+    height: 24px;
+    font-size: 10px;
+  }
+}
