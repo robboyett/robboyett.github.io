@@ -270,7 +270,9 @@
   const pageWidth = () => Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
   const pageHeight = () => Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
 
-  let pos = { x: scrollX() + window.innerWidth / 2, y: scrollY() + window.innerHeight / 2 };
+  // Start just off-canvas on the left and potter in on load.
+  let entering = true;
+  let pos = { x: scrollX() - 90, y: scrollY() + window.innerHeight * 0.55 };
   let vel = { x: 0, y: 0 };
   let target = { x: pos.x, y: pos.y };
   let facing = 1;
@@ -348,6 +350,9 @@
     pickWanderAt = performance.now() + 4200 + Math.random() * 4000;
   }
   newWanderTarget();
+  // Override the first stop: amble in to a spot in the left of the view, then wander.
+  target.x = scrollX() + Math.min(260, window.innerWidth * 0.22);
+  target.y = pos.y;
 
   let blinkUntil = 0;
   function maybeBlink(now) {
@@ -374,7 +379,7 @@
     if (brokenEl.style.display === 'block') { brokenEl.style.display = 'none'; buddy.style.display = ''; }
 
     const stillFor = now - mouseStillSince;
-    if (!bubbleOpen && mode !== 'flee') {
+    if (!bubbleOpen && mode !== 'flee' && !entering) {
       if (stillFor > approachStillThreshold()) mode = 'approach';
       else if (mode !== 'approach') mode = 'potter';
     }
@@ -417,7 +422,8 @@
     const pad = 45;
     const maxX = pageWidth() - pad;
     const maxY = pageHeight() - pad;
-    if (pos.x < pad) { pos.x = pad; vel.x = Math.abs(vel.x) * 0.5; }
+    if (entering) { if (pos.x >= pad) entering = false; }   // let him drift on from off-canvas
+    else if (pos.x < pad) { pos.x = pad; vel.x = Math.abs(vel.x) * 0.5; }
     if (pos.x > maxX) { pos.x = maxX; vel.x = -Math.abs(vel.x) * 0.5; }
     if (pos.y < pad) { pos.y = pad; vel.y = Math.abs(vel.y) * 0.5; }
     if (pos.y > maxY) { pos.y = maxY; vel.y = -Math.abs(vel.y) * 0.5; }
@@ -524,6 +530,9 @@
     if (bubbleOpen) positionBubble();
     requestAnimationFrame(frame);
   }
+  // Place him off-canvas before the first paint so he doesn't flash at (0,0).
+  buddy.style.transform = `translate(${pos.x - half.x}px, ${pos.y - half.y}px) scaleX(1)`;
+  shadow.style.opacity = '0';
   requestAnimationFrame(frame);
 
   window.addEventListener('resize', () => {
@@ -903,11 +912,15 @@
     closeChatAndBubble();
   });
 
-  setTimeout(() => say('welcome'), 2200);
+  // Greet only once he's pottered onto the canvas.
+  setTimeout(function welcomeWhenReady() {
+    if (entering) { setTimeout(welcomeWhenReady, 400); return; }
+    say('welcome');
+  }, 2200);
 
   function idleChatTick() {
     const now = performance.now();
-    if (!bubbleOpen && !sayInFlight && !chatMode && now > idleChatAt) {
+    if (!bubbleOpen && !sayInFlight && !chatMode && !entering && now > idleChatAt) {
       say(Math.random() < 0.4 ? 'showcase' : 'question');
     }
     setTimeout(idleChatTick, 1000);
