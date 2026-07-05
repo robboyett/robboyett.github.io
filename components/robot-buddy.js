@@ -3,7 +3,7 @@
  */
 (() => {
   const LOCAL_API = 'http://localhost:3000/api/buddy';
-  const PROD_API = 'https://buddy.robboyett.com/api/buddy';
+  const PROD_API = 'https://robo-buddy-api.vercel.app/api/buddy';
   const isLocalHost = /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
   const API_URL = window.RB_API_URL || (isLocalHost ? LOCAL_API : PROD_API);
   const LLM_MAX_PASSIVE = 8;
