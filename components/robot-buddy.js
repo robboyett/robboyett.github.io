@@ -203,6 +203,68 @@
     };
   })();
 
+  /* =====================================================================
+     ROBOT VOICE (Web Speech API)
+     Reads each message aloud in a robot voice on devices that support it.
+     Entirely parallel to the visuals — no effect on pose/typing/expression.
+     Silent no-op where unsupported, and stays quiet until the visitor's
+     first interaction (also what browser autoplay policy requires).
+     ===================================================================== */
+  // Truthy check, not `'speechSynthesis' in window` — the property can exist but be
+  // undefined/null on locked-down browsers, and calling into it would then throw.
+  const CAN_SPEAK = !!window.speechSynthesis && typeof window.SpeechSynthesisUtterance === 'function';
+  let speechUnlocked = false;   // flipped on the first user gesture
+  let robotVoice = null;        // chosen async once voices load
+
+  function pickRobotVoice() {
+    const voices = speechSynthesis.getVoices();
+    if (!voices.length) return;
+    // Prefer a genuinely robotic voice if the OS has one — but NOT the "musical"
+    // novelty voices (Cellos, Bells, Pipe Organ, Good News…) which sing the words.
+    // Otherwise use the system default (a plain voice) and let low pitch do the work.
+    robotVoice = voices.find((v) => /zarvox|trinoids|robot|android/i.test(v.name))
+              || voices.find((v) => v.default)
+              || voices.find((v) => v.lang && v.lang.startsWith(context.language))
+              || voices[0] || null;
+  }
+
+  function speak(text) {
+    if (!CAN_SPEAK || !speechUnlocked || !text) return;
+    try {
+      // Only cancel when something's actually in flight — an unconditional cancel()
+      // immediately before speak() can swallow the first utterance in Chrome.
+      if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      if (robotVoice) u.voice = robotVoice;
+      u.rate = 1.0;
+      u.pitch = 0.9;                           // slightly-below-neutral pitch: still a touch synthetic, but warm/friendly
+      u.volume = 1;
+      speechSynthesis.speak(u);
+    } catch (e) { /* never let speech break the buddy */ }
+  }
+
+  if (CAN_SPEAK) {
+    pickRobotVoice();
+    speechSynthesis.addEventListener('voiceschanged', pickRobotVoice);
+    // Unlock on the first user gesture, and prime the engine from inside that gesture
+    // with a silent utterance: Safari only permits speech that traces back to a user
+    // action, and this warms Chrome so the first real line isn't dropped.
+    const unlock = () => {
+      if (speechUnlocked) return;
+      speechUnlocked = true;
+      try {
+        const warm = new SpeechSynthesisUtterance(' ');
+        warm.volume = 0;
+        speechSynthesis.resume();
+        speechSynthesis.speak(warm);
+      } catch (e) { /* */ }
+    };
+    window.addEventListener('pointerdown', unlock);
+    window.addEventListener('keydown', unlock);
+    window.addEventListener('mousemove', unlock);
+    window.addEventListener('touchstart', unlock, { passive: true });
+  }
+
   let catalog = { experiments: [], journal: [] };
   let chatDraft = '';
   let chatMode = false;
@@ -682,6 +744,7 @@
     clearTimeout(typeTimer);
     bubble.classList.remove('loading');
     const full = message.text || '';
+    speak(full);            // read it aloud (parallel to typing; no effect on visuals)
 
     setExpression(expressionFor(message));
 
