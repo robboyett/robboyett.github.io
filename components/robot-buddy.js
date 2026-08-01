@@ -129,6 +129,9 @@
       </div>`;
   }
 
+  const MUTE_ICON = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 12c0-1.77-1-3.29-2.5-4.03v8.05c1.5-.74 2.5-2.26 2.5-4.02z" fill="currentColor"/><path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" fill="currentColor"/></svg>`;
+  const MUTED_ICON = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M15.5 8.5l7 7M22.5 8.5l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+
   function injectDOM() {
     const wrap = document.createElement('div');
     wrap.id = 'rb-root';
@@ -215,6 +218,8 @@
   const CAN_SPEAK = !!window.speechSynthesis && typeof window.SpeechSynthesisUtterance === 'function';
   let speechUnlocked = false;   // flipped on the first user gesture
   let robotVoice = null;        // chosen async once voices load
+  let speechMuted = false;      // visitor preference; persisted in localStorage
+  try { speechMuted = localStorage.getItem('rb_muted') === '1'; } catch (e) { /* */ }
 
   function pickRobotVoice() {
     const voices = speechSynthesis.getVoices();
@@ -228,8 +233,15 @@
               || voices[0] || null;
   }
 
+  function stopSpeaking() {
+    if (!CAN_SPEAK) return;
+    try {
+      if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+    } catch (e) { /* */ }
+  }
+
   function speak(text) {
-    if (!CAN_SPEAK || !speechUnlocked || !text) return;
+    if (!CAN_SPEAK || !speechUnlocked || speechMuted || !text) return;
     try {
       // Only cancel when something's actually in flight — an unconditional cancel()
       // immediately before speak() can swallow the first utterance in Chrome.
@@ -241,6 +253,31 @@
       u.volume = 1;
       speechSynthesis.speak(u);
     } catch (e) { /* never let speech break the buddy */ }
+  }
+
+  function syncMuteButton() {
+    const btn = document.getElementById('rb-mute');
+    if (!btn) return;
+    btn.classList.toggle('muted', speechMuted);
+    btn.setAttribute('aria-pressed', speechMuted ? 'true' : 'false');
+    btn.setAttribute('aria-label', speechMuted ? 'Unmute robot voice' : 'Mute robot voice');
+    btn.title = speechMuted ? 'Unmute robot' : 'Mute robot';
+    btn.innerHTML = speechMuted ? MUTED_ICON : MUTE_ICON;
+  }
+
+  function injectMuteButton() {
+    if (!CAN_SPEAK) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'rb-mute';
+    btn.addEventListener('click', () => {
+      speechMuted = !speechMuted;
+      try { localStorage.setItem('rb_muted', speechMuted ? '1' : '0'); } catch (e) { /* */ }
+      if (speechMuted) stopSpeaking();
+      syncMuteButton();
+    });
+    document.body.appendChild(btn);
+    syncMuteButton();
   }
 
   if (CAN_SPEAK) {
@@ -264,6 +301,8 @@
     window.addEventListener('mousemove', unlock);
     window.addEventListener('touchstart', unlock, { passive: true });
   }
+
+  injectMuteButton();
 
   let catalog = { experiments: [], journal: [] };
   let chatDraft = '';

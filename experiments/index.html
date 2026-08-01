@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Experiments | Rob Boyett</title>
+    <link rel="preload" href="https://rsms.me/inter/inter.css" as="style">
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+    <link rel="stylesheet" href="/experiments/experiments.css">
+    <script src="/components/site-nav.js?v=2"></script>
+</head>
+<body>
+    <div class="page">
+        <site-nav></site-nav>
+
+        <section class="experiments-index">
+            <header class="experiments-index-header">
+                <h1 class="experiments-index-title">Experiments</h1>
+                <p class="experiments-index-subtitle">Small prototypes, hacks, and side projects.</p>
+            </header>
+
+            <div class="experiments-grid" id="experimentsGrid">
+                <!-- Cards loaded from experiments.xml -->
+            </div>
+        </section>
+    </div>
+
+    <script src="/experiments/experiments.js"></script>
+    <script>
+        async function loadExperiments() {
+            const grid = document.getElementById('experimentsGrid');
+
+            try {
+                const response = await fetch('/experiments.xml', { cache: 'no-cache' });
+                const xmlText = await response.text();
+                const parser = new DOMParser();
+                const xml = parser.parseFromString(xmlText, 'text/xml');
+                const entries = xml.querySelectorAll('entry');
+
+                entries.forEach(entry => {
+                    const title = entry.querySelector('title').textContent;
+                    const url = entry.querySelector('url').textContent;
+                    const description = entry.querySelector('description')?.textContent || '';
+                    const thumbnail = entry.querySelector('thumbnail')?.textContent;
+
+                    const card = document.createElement('a');
+                    card.href = url;
+                    card.className = 'experiment-card';
+
+                    const thumb = document.createElement('div');
+                    thumb.className = 'experiment-card-thumb';
+
+                    if (thumbnail) {
+                        const img = document.createElement('img');
+                        img.src = thumbnail;
+                        img.alt = '';
+                        thumb.appendChild(img);
+                    } else {
+                        const placeholder = document.createElement('span');
+                        placeholder.className = 'experiment-card-thumb-placeholder';
+                        placeholder.textContent = 'Experiment';
+                        thumb.appendChild(placeholder);
+                    }
+
+                    const body = document.createElement('div');
+                    body.className = 'experiment-card-body';
+
+                    const cardTitle = document.createElement('h2');
+                    cardTitle.className = 'experiment-card-title';
+                    cardTitle.textContent = title;
+
+                    const cardDesc = document.createElement('p');
+                    cardDesc.className = 'experiment-card-description';
+                    cardDesc.textContent = description;
+
+                    body.appendChild(cardTitle);
+                    body.appendChild(cardDesc);
+                    card.appendChild(thumb);
+                    card.appendChild(body);
+                    grid.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Error loading experiments:', error);
+                grid.innerHTML = '<p>Could not load experiments.</p>';
+            }
+        }
+
+        loadExperiments();
+    </script>
+    <script async defer src="https://scripts.withcabin.com/hello.js"></script>
+</body>
+</html>

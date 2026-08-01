@@ -6,7 +6,15 @@
         <link>https://robboyett.com</link>
         <atom:link href="https://robboyett.com/feed.xml" rel="self" type="application/rss+xml"/>
         <language>en-gb</language>
-        <lastBuildDate>Thu, 18 Jun 2026 00:00:00 +0000</lastBuildDate>
+        <lastBuildDate>Sat, 01 Aug 2026 00:00:00 +0000</lastBuildDate>
+        
+        <item>
+            <title>Are AI-generated images going to give birth to a new, distinct visual aesthetic, eventually?</title>
+            <link>https://robboyett.com/journal/ai-native-aesthetic/</link>
+            <guid>https://robboyett.com/journal/ai-native-aesthetic/</guid>
+            <pubDate>Sat, 01 Aug 2026 00:00:00 +0000</pubDate>
+            <description>Maybe the finished picture is the wrong place to look. On Midjourney magazines, 3D print supports, and whether AI’s native aesthetic lives in the process artefacts we usually discard.</description>
+        </item>
         
         <item>
             <title>The unbundling of smartphone features into focused products</title>

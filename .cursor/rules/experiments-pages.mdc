@@ -1,0 +1,78 @@
+---
+description: Rules for creating and publishing experiment pages on robboyett.github.io
+globs:
+  - experiments/**/index.html
+  - experiments.xml
+---
+
+# Creating Experiment Pages
+
+When creating a new experiment page, follow these steps in order:
+
+## 1. Reference the Template
+
+Always start by reading `experiments/template.html` to understand the current page structure, styling, and component usage.
+
+Key elements from the template:
+- Inter font preloading (`<link rel="preload">` + stylesheet in each page)
+- Shared baseline styles: `/experiments/experiments.css`
+- Shared init script: `/experiments/experiments.js` (menu dimming + fonts-loaded)
+- `<site-nav>` component for navigation
+- Experiment structure: `.experiment-header`, `.experiment-content`, `.experiment-footer`
+- Optional `.experiment-demo` iframe for interactive prototypes
+
+## 2. Create the Experiment Page
+
+Create a new folder under `/experiments/` with a URL-friendly name (lowercase, hyphens instead of spaces):
+
+```
+/experiments/[slug]/index.html
+```
+
+Include:
+- Appropriate `<title>` tag: "Experiment Title | Rob Boyett"
+- `<link rel="stylesheet" href="/experiments/experiments.css">` for shared baseline styles
+- `<script src="/experiments/experiments.js"></script>` before the analytics script
+- All necessary images/assets in the same folder
+- Cabin analytics script before the closing `</body>` tag:
+  ```html
+  <!-- Analytics -->
+  <script async defer src="https://scripts.withcabin.com/hello.js"></script>
+  ```
+
+For interactive demos, either embed via iframe in `.experiment-demo` or link to an existing prototype path. Legacy prototypes in `/experiments/` can stay where they are — showcase pages link to them.
+
+## 3. Update experiments.xml (Grid Catalog)
+
+After the page is complete, add an entry to `/experiments.xml` for the experiments grid index.
+
+Add a new `<entry>` element near the **top** of the file (newest entries first):
+
+```xml
+<entry>
+    <title>Experiment Title</title>
+    <url>/experiments/slug/</url>
+    <description>A brief description shown on the grid card.</description>
+    <thumbnail>/experiments/slug/thumb.png</thumbnail>
+</entry>
+```
+
+The `<thumbnail>` element is optional. Without it, the grid shows a typographic placeholder.
+
+## Checklist
+
+Before considering an experiment page complete:
+
+- [ ] Page created at `/experiments/[slug]/index.html`
+- [ ] Title and description are correct
+- [ ] `<site-nav>` component included
+- [ ] `/experiments/experiments.css` and `/experiments/experiments.js` linked
+- [ ] Cabin analytics script added before `</body>`
+- [ ] Entry added to `experiments.xml`
+- [ ] All images/assets are in the page folder (or linked demo path works)
+- [ ] Optional thumbnail added for grid card
+
+## Not Required
+
+- No `feed.xml` update (experiments are not in the RSS feed)
+- No `journal.xml` update

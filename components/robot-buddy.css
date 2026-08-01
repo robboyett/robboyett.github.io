@@ -1,5 +1,44 @@
 /* Robot buddy — homepage mascot (loaded only on index.html) */
 
+/* Mute toggle — sits in the top-right corner beside "Thinking About" */
+#rb-mute {
+  position: fixed;
+  top: 6px;
+  right: 14px;
+  z-index: 1002;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+#rb-mute:hover {
+  color: #1A1A1A;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+#rb-mute.muted {
+  color: #1A1A1A;
+  background: #fff;
+}
+
+#rb-mute svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
 #rb-root {
   position: absolute;
   top: 0;
@@ -360,6 +399,18 @@
 }
 
 @media (max-width: 480px) {
+  #rb-mute {
+    top: 4px;
+    right: 12px;
+    width: 28px;
+    height: 28px;
+  }
+
+  #rb-mute svg {
+    width: 14px;
+    height: 14px;
+  }
+
   #rb-compose {
     bottom: 14px;
     width: min(280px, calc(100vw - 24px));

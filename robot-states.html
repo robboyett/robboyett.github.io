@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robot buddy — states sandbox</title>
+<style>
+  /* ------------------------------------------------------------------
+     STATES SANDBOX — design surface for the robot buddy's expressions.
+     This is a standalone mirror of production. The SVG art, the CSS state
+     rules, and the per-state motion numbers below are kept identical to
+     components/robot-buddy.js + components/robot-buddy.css. Tweak here,
+     then the finalised values get ported back into those two files.
+     ------------------------------------------------------------------ */
+  :root {
+    --bg: #f4f4f5;
+    --card: #ffffff;
+    --ink: #18181b;
+    --muted: #71717a;
+    --line: #e4e4e7;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 24px 64px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    max-width: 1100px;
+    margin: 0 auto 28px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  header h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--muted); font-size: 13.5px; max-width: 560px; line-height: 1.45; }
+  .controls { display: flex; gap: 16px; align-items: center; font-size: 13px; color: var(--muted); }
+  .controls label { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+
+  .grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    align-items: start;
+  }
+  .tile {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 20px 16px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    scroll-margin-top: 24px;
+  }
+  .stage {
+    position: relative;
+    width: 100%;
+    height: 210px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .robot-wrap { position: relative; width: 122px; height: 170px; }
+  .broken-wrap { width: 168px; height: 132px; }
+  .rb-broken { display: block; width: 168px; height: auto; overflow: visible; }
+  .broken-wrap .tile-shadow { width: 104px; margin-left: -52px; bottom: 2px; }
+  .tile-shadow {
+    position: absolute;
+    left: 50%;
+    margin-left: -33px;
+    bottom: -6px;
+    width: 66px;
+    height: 12px;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.16) 0%, rgba(0,0,0,0) 70%);
+  }
+  .caption { text-align: center; margin-top: 6px; }
+  .caption .name { font-weight: 600; font-size: 15px; }
+  .caption .note { color: var(--muted); font-size: 12.5px; margin-top: 3px; line-height: 1.35; }
+  .caption .cls {
+    display: inline-block;
+    margin-top: 8px;
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 11px;
+    color: #52525b;
+    background: #f4f4f5;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 2px 7px;
+  }
+
+  /* ---- The robot ---- */
+  .rb-buddy { width: 122px; height: 170px; overflow: visible; will-change: transform; transform-origin: 50% 62%; }
+  .rb-head, .rb-antenna, .rb-eyes, .rb-armL, .rb-armR, .rb-body, .rb-mouth, .rb-dangle { will-change: transform; }
+
+  /* ---- State face-swaps (mirror of robot-buddy.css) ---- */
+  .rb-eyes-happy, .rb-eyes-angry, .rb-eyes-cross, .rb-eyes-flat, .rb-steam { display: none; }
+
+  .exp-thinking .rb-eyes { display: none; }
+  .exp-thinking .rb-eyes-happy { display: block; }
+
+  .exp-angry .rb-eyes { display: none; }
+  .exp-angry .rb-eyes-angry { display: block; }
+  .exp-angry .rb-steam { display: block; }
+
+  .exp-broken .rb-eyes { display: none; }
+  .exp-broken .rb-eyes-cross { display: block; }
+
+  .exp-offline .rb-eyes { display: none; }
+  .exp-offline .rb-eyes-flat { display: block; }
+  .exp-offline .rb-dangle { display: none; }
+  .exp-offline { filter: grayscale(1) opacity(0.6); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .exp-angry .rb-steam { animation: rb-steam 0.85s ease-in-out infinite; }
+  }
+  body.reduce .exp-angry .rb-steam { animation: none; }
+  @keyframes rb-steam {
+    0%, 100% { opacity: 0.55; transform: translateY(0); }
+    50%      { opacity: 1;    transform: translateY(-1.5px); }
+  }
+
+  /* ---- Speaking bubble (Figma yellow style) ---- */
+  .tile.speaking .stage { height: 340px; align-items: flex-end; padding-bottom: 4px; overflow: visible; }
+  .rb-bubble {
+    position: absolute;
+    left: 50%;
+    top: 6px;
+    transform: translateX(-50%);
+    width: 178px;
+    box-sizing: border-box;
+    background: #FDB916;
+    color: #000;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 700;
+    font-size: 12.5px;
+    line-height: 1.34;
+    border-radius: 22px;
+    padding: 15px 17px;
+    text-align: left;
+  }
+  .rb-bubble .txt { margin: 0; min-height: 3.4em; }
+  .rb-bubble .cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    margin-left: 1px;
+    background: #000;
+    vertical-align: -2px;
+    animation: rb-caret 0.9s steps(1) infinite;
+  }
+  @keyframes rb-caret { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
+  .rb-bubble.done .cursor { display: none; }
+  .rb-bubble .lnk {
+    display: inline-block;
+    margin-top: 9px;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .rb-bubble.done .lnk { opacity: 1; }
+  .rb-bubble .tail { position: absolute; bottom: -12px; left: 46%; }
+</style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Robot buddy — states sandbox</h1>
+      <p>Live preview of every expression. Motion values here mirror
+        <code>robot-buddy.js</code>; finalised tweaks get ported back to the
+        component. Point at any state (by name or its <code>.exp-*</code> class) and
+        tell me what to change.</p>
+    </div>
+    <div class="controls">
+      <label><input type="checkbox" id="pause"> Pause motion</label>
+      <label><input type="checkbox" id="reduce"> Reduced motion</label>
+    </div>
+  </header>
+
+  <main class="grid" id="grid"></main>
+
+<script>
+(() => {
+  // Class-based copy of the production BUDDY_SVG (ids → classes so we can
+  // render many at once). Keep path data identical to robot-buddy.js.
+  const SVG = `<svg class="rb-buddy" viewBox="0 0 64 89" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <g class="rb-head" style="transform-origin: 32px 31px;">
+      <g class="rb-antenna" style="transform-origin: 33px 8px;">
+        <path d="M32.3147 0.0127919C33.191 -0.0488536 34.0325 0.110448 34.8085 0.531103C35.7674 1.04343 36.4815 1.91794 36.792 2.95981C37.0849 3.97971 36.96 5.07432 36.445 6.00217C35.7815 7.20347 34.8583 7.72483 33.5924 8.08066L33.6751 11.8454C39.2704 12.2943 43.9097 13.7789 48.0588 17.7695C51.9202 21.4564 54.1325 26.5442 54.1956 31.8828C54.3872 42.1583 54.071 42.6282 44.0193 42.6231L33.5094 42.6125L22.6875 42.6292C20.5771 42.6448 18.239 42.8228 16.19 42.5633C11.1844 41.9295 11.5658 38.0581 11.5309 34.3089C11.4859 29.4793 11.9019 25.6399 14.5143 21.5263C18.6566 15.0039 24.6075 12.5216 31.9931 11.8434C32.0137 10.5825 32.0502 9.322 32.1026 8.06211C30.496 7.60386 29.4187 6.94431 28.924 5.21994C28.6189 4.1727 28.7539 3.04636 29.2976 2.10068C30.0275 0.818457 30.9822 0.363134 32.3147 0.0127919Z" fill="#262626"/>
+        <rect x="30.8" y="5.5" width="2.8" height="7.5" rx="1.4" fill="#151616"/>
+        <circle cx="32.2" cy="4.4" r="4.7" fill="#ED1A52"/>
+        <circle cx="30.6" cy="3" r="1" fill="#F5F5F5" opacity="0.85"/>
+      </g>
+      <path d="M24.2339 22.1365C25.5705 21.9904 29.9889 22.0706 31.5248 22.0916C34.6692 22.4225 39.9373 21.5757 42.9268 22.3408C51.6317 24.5689 51.4789 36.9516 41.9018 38.0708L29.7115 38.0967C27.8911 38.0983 24.169 38.2104 22.5525 37.8775C21.3498 37.618 20.2234 37.0838 19.2615 36.3167C13.5381 31.7317 16.9496 22.7862 24.2339 22.1365Z" fill="#F5F5F5"/>
+      <g class="rb-eyes" style="transform-origin: 32px 30px;">
+        <path d="M24.205 27.2509C25.8222 26.8671 27.4478 27.8529 27.8551 29.4642C28.2625 31.0756 27.3006 32.7155 25.6953 33.1464C24.6359 33.4308 23.5054 33.1224 22.7368 32.3396C21.9684 31.5568 21.6812 30.4207 21.9854 29.3666C22.2895 28.3126 23.1376 27.504 24.205 27.2509Z" fill="#262626"/>
+        <path d="M40.2508 27.2555C41.8679 26.91 43.4605 27.9354 43.8153 29.5505C44.1701 31.1656 43.1537 32.764 41.5407 33.128C39.9145 33.495 38.3003 32.4686 37.9427 30.8404C37.5851 29.2121 38.6206 27.6039 40.2508 27.2555Z" fill="#262626"/>
+      </g>
+      <g class="rb-eyes-happy">
+        <path d="M20.8 28.6 Q24.4 32.4 28 28.6" stroke="#262626" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M37.2 28.6 Q40.8 32.4 44.4 28.6" stroke="#262626" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      </g>
+      <g class="rb-eyes-angry">
+        <path d="M20.4 28.4 L28.2 31.4 L27.5 33.9 L20.9 32.4 Z" fill="#262626"/>
+        <path d="M44.6 28.4 L36.8 31.4 L37.5 33.9 L44.1 32.4 Z" fill="#262626"/>
+      </g>
+      <g class="rb-eyes-cross">
+        <path d="M21.6 30 H27.4 M24.5 27.1 V32.9" stroke="#262626" stroke-width="2.1" stroke-linecap="round"/>
+        <path d="M37.8 30 H43.6 M40.7 27.1 V32.9" stroke="#262626" stroke-width="2.1" stroke-linecap="round"/>
+      </g>
+      <g class="rb-eyes-flat">
+        <path d="M21.6 30.4 H27.4" stroke="#8a8a8a" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M37.8 30.4 H43.6" stroke="#8a8a8a" stroke-width="2.2" stroke-linecap="round"/>
+      </g>
+    </g>
+    <g class="rb-steam">
+      <g transform="translate(14, 5) scale(-0.26, 0.26)">
+        <path d="M21.0005 8.86895C24.6672 5.03562 34.3005 -0.631053 39.5005 3.36895C44.7005 7.36895 42.0005 14.369 40.5005 17.869C43.8339 20.5356 48.5005 25.8689 45.5005 31.8689C42.5666 37.7368 33.8339 37.2023 30.5005 36.3689C29.3339 39.3689 26.3005 44.3689 21.5005 44.3689C16.7005 44.3689 12.6672 39.3689 11.5005 36.3689" stroke="#F92455" stroke-width="4" stroke-linecap="round" fill="none"/>
+        <path d="M3.50053 36.8689L17.5005 32.8689" stroke="#F92455" stroke-width="4" stroke-linecap="round" fill="none"/>
+        <path d="M2.00053 26.8689L18.0005 20.3689" stroke="#F92455" stroke-width="4" stroke-linecap="round" fill="none"/>
+      </g>
+      <g transform="translate(50, 5) scale(0.26)">
+        <path d="M21.0005 8.86895C24.6672 5.03562 34.3005 -0.631053 39.5005 3.36895C44.7005 7.36895 42.0005 14.369 40.5005 17.869C43.8339 20.5356 48.5005 25.8689 45.5005 31.8689C42.5666 37.7368 33.8339 37.2023 30.5005 36.3689C29.3339 39.3689 26.3005 44.3689 21.5005 44.3689C16.7005 44.3689 12.6672 39.3689 11.5005 36.3689" stroke="#F92455" stroke-width="4" stroke-linecap="round" fill="none"/>
+        <path d="M3.50053 36.8689L17.5005 32.8689" stroke="#F92455" stroke-width="4" stroke-linecap="round" fill="none"/>
+        <path d="M2.00053 26.8689L18.0005 20.3689" stroke="#F92455" stroke-width="4" stroke-linecap="round" fill="none"/>
+      </g>
+    </g>
+    <g class="rb-armL" style="transform-origin: 9px 63px;">
+      <path d="M4.15177 59.2206C6.01542 59.0382 7.96671 59.8278 8.94816 61.4767C9.62858 62.6414 9.81546 64.0297 9.4672 65.3329C9.07547 66.8351 7.71622 68.6609 6.44718 66.7085C6.09012 66.1591 6.99478 64.5785 7.25748 64.0081C6.9639 63.2915 6.6868 62.9012 6.17728 62.3314C4.43778 61.0632 2.06644 62.6989 2.83793 64.7534C3.1254 65.5194 3.19437 66.4573 2.37552 66.9156C2.0568 67.0941 1.6326 67.1539 1.29081 66.9479C-0.383877 65.7157 -0.250087 63.3212 0.678014 61.6703C1.49894 60.2388 2.63724 59.6361 4.15177 59.2206Z" fill="#19191B"/>
+      <path d="M10.5564 48.2129L10.6574 48.2289C10.9929 48.6106 10.7857 52.0898 10.8457 53.0375C10.5352 53.2401 10.2326 53.4548 9.93875 53.681C8.25198 54.9778 7.7681 56.276 7.50626 58.2917C6.61758 58.0366 6.02213 57.8929 5.11307 57.7284C4.64432 57.7457 4.27896 57.7783 3.81583 57.691C3.38858 56.5574 4.57327 53.5679 5.13028 52.5035C6.35782 50.158 8.06644 48.9689 10.5564 48.2129Z" fill="#177FF9"/>
+    </g>
+    <g class="rb-armR" style="transform-origin: 55px 63px;">
+      <path d="M58.3181 59.2245C58.9066 59.1694 59.5555 59.196 60.1315 59.3272C61.3767 59.6041 62.4604 60.3656 63.1427 61.4433C64.0341 62.8688 64.282 65.8214 62.6631 67.0111C62.4467 67.1701 62.0395 67.1802 61.7665 67.0932C59.9225 66.5057 61.8221 64.1168 60.8731 62.8576C60.3671 62.1207 59.9274 62.0342 59.1176 61.8174C57.6111 61.9975 57.2124 62.7248 56.6918 64.0356C56.9118 64.7721 57.8523 66.3071 57.3659 66.8766C55.9903 68.4867 54.8573 66.8094 54.5118 65.6745C54.0909 64.331 54.2328 62.8742 54.9053 61.6373C55.705 60.1904 56.8211 59.6483 58.3181 59.2245Z" fill="#19191B"/>
+      <path d="M53.218 48.1786C57.0457 49.0927 59.1464 52.0337 60.0133 55.7567C60.1325 56.2684 60.3774 57.2513 60.0984 57.6962L59.7239 57.7286C58.1951 57.7455 57.9497 57.7687 56.4865 58.328C56.2111 56.0905 55.2074 54.1627 53.0948 53.1544C53.1236 51.4955 53.1647 49.8368 53.218 48.1786Z" fill="#12A95F"/>
+    </g>
+    <g class="rb-body" style="transform-origin: 32px 58px;">
+      <path d="M17.1667 44.3511C18.6929 44.2674 20.807 44.3309 22.3791 44.3312L32.2724 44.3313L41.4678 44.3307C47.5398 44.3327 52.0727 43.5243 51.6297 51.3526C51.5341 53.0421 51.6295 55.2156 51.6316 56.9654L51.6378 63.9894C51.6375 68.2807 52.105 71.7739 46.8366 72.9812C44.4599 73.1047 41.9135 73.0428 39.5211 73.0448C35.791 73.0674 32.0608 73.071 28.3307 73.0559C26.2394 73.046 24.1482 73.0476 22.0569 73.0608C20.0182 73.0749 16.6905 73.3142 14.8887 72.249C12.0335 70.561 12.3338 67.2897 12.3593 64.4494C12.3761 62.5711 12.3621 60.634 12.3605 58.729L12.3592 52.62C12.3618 48.6946 11.994 44.8218 17.1667 44.3511Z" fill="#19191b"/>
+      <path d="M33.9366 56.6212L43.5794 56.6184L43.56 58.4639C40.6759 58.5868 36.8924 58.4755 33.9306 58.468L33.9366 56.6212Z" fill="#F5F5F5"/>
+      <path d="M33.9514 51.7939L43.5733 51.8337L43.5014 53.5864C40.3157 53.6168 37.1298 53.6123 33.9441 53.5727L33.9514 51.7939Z" fill="#F5F5F5"/>
+    </g>
+    <g class="rb-dangle" style="transform-origin: 32px 82px;">
+      <path d="M25.5 74 H38.5 C38.5 77.6 35.6 80.5 32 80.5 C28.4 80.5 25.5 77.6 25.5 74 Z" fill="#FDBC1B"/>
+      <path d="M32 82.4 V88" stroke="#F21A5A" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M28.4 82.2 L26.2 87.4" stroke="#F21A5A" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M35.6 82.2 L37.8 87.4" stroke="#F21A5A" stroke-width="1.6" stroke-linecap="round"/>
+    </g>
+  </svg>`;
+
+  const STATES = [
+    { key: 'normal',   name: 'Normal',   note: 'Idle — no active message. Wanders in production.' },
+    { key: 'speaking', name: 'Speaking', note: 'Rendering a reply — left arm raised, bubble types in.' },
+    { key: 'thinking', name: 'Thinking', note: 'Awaiting the LLM — gentle nod, eyes up.' },
+    { key: 'angry',    name: 'Angry',    note: 'Backend mood: "angry" — steam, tense arms, shake.' },
+    { key: 'broken',   name: 'Broken',   note: 'Chat error — still, disassembled (matches Figma).' },
+    { key: 'offline',  name: 'Offline',  note: 'Backend unreachable or session cap — greyed, slumped.' },
+  ];
+
+  const BUBBLE_HTML = `
+    <div class="rb-bubble">
+      <p class="txt"><span class="typed"></span><span class="cursor"></span></p>
+      <a class="lnk">Link</a>
+      <svg class="tail" width="30" height="16" viewBox="0 0 44 31" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M44 0C43.75 0.32 43.47 0.62 43.14 0.9L9.03 29.7C5.46 32.7 0 30.17 0 25.5V0H44Z" fill="#FDB916"/>
+      </svg>
+    </div>`;
+
+  // Broken is a fixed, disassembled arrangement (matches Figma node 38:255).
+  // Rendered still — not part of the animation loop.
+  const BROKEN_SVG = `<svg class="rb-broken" viewBox="0 0 112 84" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <g transform="rotate(-12 84 53)">
+      <rect x="62" y="35" width="46" height="37" rx="15" fill="#19191b"/>
+      <rect x="82" y="45" width="17" height="4" rx="2" fill="#ffffff"/>
+      <rect x="82" y="52" width="17" height="4" rx="2" fill="#ffffff"/>
+    </g>
+    <g transform="rotate(-52 51 59)">
+      <path d="M51 51 a3 3 0 1 1 0 5.6 a3 3 0 1 1 0 5.6 a3 3 0 1 1 0 5.6" stroke="#9b9b9b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(67 21) scale(0.3) rotate(148 17 25)">
+      <path d="M0 0C16.3372 0 28 12.4626 28 25.5H15C15 20.1374 9.66278 13 0 13V0Z" fill="#12A95F"/>
+      <path d="M27.5 40.1055C27.4999 38.5243 25.5801 36 21.5 36C17.4199 36 15.5001 38.5243 15.5 40.1055C15.5 41.1629 16.1937 42.4771 17.9609 43.3906C19.6781 44.2782 20.3514 46.3902 19.4639 48.1074C18.5763 49.8245 16.4642 50.4969 14.7471 49.6094C11.2748 47.8147 8.5 44.4126 8.5 40.1055C8.50012 33.2858 15.0869 29 21.5 29C27.9131 29 34.4999 33.2858 34.5 40.1055C34.5 44.0816 32.1218 47.3042 29.0322 49.1729C27.3783 50.1732 25.2269 49.6432 24.2266 47.9893C23.2262 46.3352 23.7561 44.184 25.4102 43.1836C26.9114 42.2755 27.5 41.0908 27.5 40.1055Z" fill="#19191b"/>
+    </g>
+    <g transform="rotate(-38 37 38)">
+      <rect x="15" y="20" width="47" height="36" rx="18" fill="#19191b"/>
+      <rect x="21" y="27" width="35" height="22" rx="11" fill="#ffffff"/>
+    </g>
+    <path d="M40.5 33.7 h6 M43.5 30.7 v6" stroke="#19191b" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M29.5 42.3 h6 M32.5 39.3 v6" stroke="#19191b" stroke-width="2.6" stroke-linecap="round"/>
+    <g transform="rotate(-32 20 30)"><rect x="17" y="28.4" width="7.6" height="3.4" rx="1.7" fill="#151616"/></g>
+    <circle cx="12.5" cy="33" r="4.9" fill="#ED1A52"/>
+    <g transform="translate(25 55) scale(0.3) rotate(-117 17.5 25)">
+      <path d="M35 0C18.6628 0 7 12.4626 7 25.5H20C20 20.1374 25.3372 13 35 13V0Z" fill="#177FF9"/>
+      <path d="M19 40.1055C18.9999 38.5243 17.0801 36 13 36C8.91991 36 7.00015 38.5243 7 40.1055C7 41.1629 7.6937 42.4771 9.46094 43.3906C11.1781 44.2782 11.8514 46.3902 10.9639 48.1074C10.0763 49.8245 7.96422 50.4969 6.24707 49.6094C2.77484 47.8147 0 44.4126 0 40.1055C0.000117599 33.2858 6.58689 29 13 29C19.4131 29 25.9999 33.2858 26 40.1055C26 44.0816 23.6218 47.3042 20.5322 49.1729C18.8783 50.1732 16.7269 49.6432 15.7266 47.9893C14.7262 46.3352 15.2561 44.184 16.9102 43.1836C18.4114 42.2755 19 41.0908 19 40.1055Z" fill="#19191b"/>
+    </g>
+    <path d="M46 71.5 A6.5 6.5 0 0 1 59 71.5 Z" fill="#FDBC1B"/>
+  </svg>`;
+
+  const grid = document.getElementById('grid');
+  const tiles = STATES.map((s) => {
+    const tile = document.createElement('section');
+    tile.className = 'tile' + (s.key === 'speaking' ? ' speaking' : '') + (s.key === 'broken' ? ' broken' : '');
+    tile.id = 'state-' + s.key;
+    const robotHTML = s.key === 'broken'
+      ? `<div class="robot-wrap broken-wrap">${BROKEN_SVG}<div class="tile-shadow"></div></div>`
+      : `<div class="robot-wrap">${SVG}<div class="tile-shadow"></div></div>`;
+    tile.innerHTML = `
+      <div class="stage">
+        ${s.key === 'speaking' ? BUBBLE_HTML : ''}
+        ${robotHTML}
+      </div>
+      <div class="caption">
+        <div class="name">${s.name}</div>
+        <div class="note">${s.note}</div>
+        <span class="cls">.exp-${s.key}</span>
+      </div>`;
+    grid.appendChild(tile);
+    if (s.key === 'broken') return { key: s.key, still: true };  // fixed arrangement, no animation
+    const svg = tile.querySelector('.rb-buddy');
+    svg.classList.add('exp-' + s.key);
+    const q = (c) => svg.querySelector('.' + c);
+    return {
+      key: s.key,
+      svg,
+      shadow: tile.querySelector('.tile-shadow'),
+      head: q('rb-head'), eyes: q('rb-eyes'), antenna: q('rb-antenna'), body: q('rb-body'),
+      armL: q('rb-armL'), armR: q('rb-armR'), dangle: q('rb-dangle'),
+      phase: Math.random() * 1000,          // desync tiles so they don't move in lockstep
+      blinkUntil: 0,
+    };
+  });
+
+  const pauseBox = document.getElementById('pause');
+  const reduceBox = document.getElementById('reduce');
+  reduceBox.addEventListener('change', () => document.body.classList.toggle('reduce', reduceBox.checked));
+  const systemReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (systemReduce.matches) { reduceBox.checked = true; document.body.classList.add('reduce'); }
+
+  let t = 0;
+
+  // Per-state motion — kept identical to the expression block in
+  // robot-buddy.js frame(). Change numbers here first, review, then port.
+  function animateTile(tile, now) {
+    const p = tile.phase;
+    const reduce = document.body.classList.contains('reduce');
+    const T = t + p;
+
+    let float = Math.sin(T * 0.06) * 3;
+    let headExtraRot = 0, eyeLookYBias = 0, headTx = 0, headTy = 0, bodyRot = 0, buddyExtra = '';
+    let armOverride = null, dangleXf = null;
+
+    if (tile.key === 'thinking') {
+      float *= 0.4;
+      headExtraRot = Math.sin(T * 0.09) * 3.2;
+      eyeLookYBias = -2.2;
+    } else if (tile.key === 'speaking') {
+      // Mouth animation removed with the legacy chin — a face mouth will be
+      // added when we build the Speaking state. Gentle head bob for now.
+      headExtraRot = reduce ? 0 : Math.sin(T * 0.4) * 0.8;
+    } else if (tile.key === 'angry') {
+      armOverride = [-30, 30];
+      if (!reduce) buddyExtra = ` translate(${(Math.random() - 0.5) * 1.6}px, ${(Math.random() - 0.5) * 1.2}px)`;
+    } else if (tile.key === 'broken') {
+      // Disassembled — parts rotated apart to match Figma's collapsed layout.
+      float = 0;
+      headExtraRot = -38;   // head knocked askew
+      headTx = -6; headTy = 3;
+      bodyRot = -12;        // body tilted the other way
+      armOverride = [-118, 150];  // arms flung out
+      dangleXf = 'rotate(180deg) translate(0px, -4px)';  // hover jet flipped
+    } else if (tile.key === 'offline') {
+      float *= 0.15;
+      headExtraRot = 7;
+      armOverride = [24, -24];
+    }
+
+    if (reduce && tile.key !== 'broken' && tile.key !== 'offline') float = 0;
+
+    // Idle liveliness shared by all states (stand-in for production's gaze).
+    const idleLookX = reduce ? 0 : Math.sin(T * 0.02) * 1.0;
+
+    // Blink
+    if (!reduce && now > tile.blinkUntil && Math.random() < 0.004) tile.blinkUntil = now + 130;
+    const blinking = !reduce && now < tile.blinkUntil;
+
+    tile.svg.style.transform = `translateY(${-float}px)${buddyExtra}`;
+    tile.shadow.style.transform = `scale(${1 - float * 0.03}, 1)`;
+    tile.shadow.style.opacity = String(0.85 - Math.abs(float) * 0.04);
+
+    tile.head.style.transform = `rotate(${headExtraRot}deg) translate(${idleLookX + headTx}px, ${headTy}px)`;
+    tile.body.style.transform = bodyRot ? `rotate(${bodyRot}deg)` : '';
+    tile.eyes.style.transform = `translate(${idleLookX * 1.5}px, ${eyeLookYBias}px) scaleY(${blinking ? 0.12 : 1})`;
+    tile.antenna.style.transform = reduce ? 'none' : `rotate(${Math.sin(T * 0.07) * 2}deg)`;
+
+    const sway = reduce ? 0 : Math.sin(T * 0.05) * 2.2;
+    if (tile.key === 'speaking') {
+      // Left arm raised — vertical flip pivoted at the SHOULDER so it stays
+      // attached to the body and lifts up naturally (not flipped in place).
+      tile.armL.style.transformOrigin = '5.43px 52px';
+      tile.armL.style.transform = 'scaleY(-1)';
+      tile.armR.style.transform = `rotate(${-sway}deg)`;
+    } else if (armOverride) {
+      tile.armL.style.transform = `rotate(${armOverride[0]}deg)`;
+      tile.armR.style.transform = `rotate(${armOverride[1]}deg)`;
+    } else {
+      tile.armL.style.transform = `rotate(${sway}deg)`;
+      tile.armR.style.transform = `rotate(${-sway}deg)`;
+    }
+    tile.dangle.style.transform = dangleXf ? dangleXf : (reduce ? 'none' : `rotate(${Math.sin(T * 0.06) * 2.5}deg)`);
+  }
+
+  function frame(now) {
+    if (!pauseBox.checked) {
+      t += 1;
+      tiles.forEach((tile) => { if (!tile.still) animateTile(tile, now); });
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // Looping typewriter for the speaking bubble.
+  (function typeLoop() {
+    const bubble = document.querySelector('.tile.speaking .rb-bubble');
+    if (!bubble) return;
+    const typed = bubble.querySelector('.typed');
+    const full = "Hello, it's nice to meet you. How's your day going?";
+    let state = 'typing', idx = 0, nextAt = 0;
+    function loop(now) {
+      if (!pauseBox.checked) {
+        if (state === 'typing') {
+          if (now >= nextAt) {
+            idx += 1;
+            typed.textContent = full.slice(0, idx);
+            nextAt = now + 42 + Math.random() * 45;
+            if (idx >= full.length) { state = 'hold'; nextAt = now + 2400; bubble.classList.add('done'); }
+          }
+        } else if (state === 'hold') {
+          if (now >= nextAt) { state = 'reset'; nextAt = now + 500; }
+        } else if (state === 'reset') {
+          if (now >= nextAt) {
+            typed.textContent = ''; idx = 0; bubble.classList.remove('done');
+            state = 'typing'; nextAt = now + 350;
+          }
+        }
+      }
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  })();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robot buddy</title>
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #f5f5f5;
+    font-family: -apple-system, system-ui, sans-serif;
+    overflow: hidden;
+  }
+  .hint {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #a3a3a3;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    user-select: none;
+    pointer-events: none;
+  }
+  #buddy {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 48px;
+    height: 67px;
+    cursor: pointer;
+    will-change: transform;
+    z-index: 9999;
+    overflow: visible;
+  }
+  #shadow {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 36px;
+    height: 8px;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.16) 0%, rgba(0,0,0,0) 70%);
+    pointer-events: none;
+    z-index: 9998;
+    will-change: transform;
+  }
+
+  /* ===== speech bubble ===== */
+  #bubble {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10000;
+    max-width: 230px;
+    background: #ffffff;
+    color: #262626;
+    border: 1.5px solid #262626;
+    border-radius: 14px;
+    padding: 11px 13px 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    font-size: 13.5px;
+    line-height: 1.4;
+    /* hidden until shown; JS positions via transform */
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+    transform-origin: bottom left;
+    transition: opacity 0.18s ease, transform 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+  #bubble.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+  #bubble .msg {
+    margin: 0 0 9px;
+    user-select: none;
+  }
+  #bubble.no-replies .msg { margin-bottom: 0; }
+  #bubble .replies {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  #bubble .reply {
+    appearance: none;
+    border: 1.4px solid #262626;
+    background: #f5f5f5;
+    color: #262626;
+    border-radius: 999px;
+    padding: 5px 11px;
+    font-size: 12.5px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.12s ease, transform 0.08s ease;
+    user-select: none;
+  }
+  #bubble .reply:hover { background: #262626; color: #f5f5f5; }
+  #bubble .reply:active { transform: scale(0.95); }
+  /* replies that take you somewhere get a subtle arrow + filled look */
+  #bubble .reply.go {
+    background: #262626;
+    color: #f5f5f5;
+  }
+  #bubble .reply.go::after { content: " \2192"; }
+  #bubble .reply.go:hover { background: #000; }
+  /* little tail pointing down toward the robot */
+  #bubble::after {
+    content: "";
+    position: absolute;
+    left: 22px;
+    bottom: -8px;
+    width: 13px;
+    height: 13px;
+    background: #ffffff;
+    border-right: 1.5px solid #262626;
+    border-bottom: 1.5px solid #262626;
+    transform: rotate(45deg);
+  }
+</style>
+</head>
+<body>
+  <div class="hint">Hover still to summon &middot; click to shoo &middot; otherwise he potters</div>
+
+  <div id="shadow"></div>
+
+  <!-- speech bubble: positioned by JS to sit above the robot -->
+  <div id="bubble">
+    <p class="msg"></p>
+    <div class="replies"></div>
+  </div>
+
+  <!--
+    Your robot, split into independently-animatable groups:
+      #antenna  - stalk + tip ball (sways)
+      #head     - head shell, face panel, eyes; pivots on the neck
+      #eyes     - the two pupils (track pointer + blink)
+      #body     - torso box + chest readout lines (squash/stretch, lean)
+      #armL/#armR - the two side claws (swing / startle)
+      #mouth    - lower jaw piece (reacts on click)
+      #dangle   - little bits under the jaw (sway when hovering)
+    transform-origin values are tuned to each part's joint.
+  -->
+  <svg id="buddy" viewBox="0 0 64 89" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+    <!-- ===== HEAD (antenna lives inside so it moves with the head tilt) ===== -->
+    <g id="head" style="transform-origin: 32px 31px;">
+      <!-- antenna: stalk + ball, pivoting at its base -->
+      <g id="antenna" style="transform-origin: 33px 8px;">
+        <path d="M32.3147 0.0127919C33.191 -0.0488536 34.0325 0.110448 34.8085 0.531103C35.7674 1.04343 36.4815 1.91794 36.792 2.95981C37.0849 3.97971 36.96 5.07432 36.445 6.00217C35.7815 7.20347 34.8583 7.72483 33.5924 8.08066L33.6751 11.8454C39.2704 12.2943 43.9097 13.7789 48.0588 17.7695C51.9202 21.4564 54.1325 26.5442 54.1956 31.8828C54.3872 42.1583 54.071 42.6282 44.0193 42.6231L33.5094 42.6125L22.6875 42.6292C20.5771 42.6448 18.239 42.8228 16.19 42.5633C11.1844 41.9295 11.5658 38.0581 11.5309 34.3089C11.4859 29.4793 11.9019 25.6399 14.5143 21.5263C18.6566 15.0039 24.6075 12.5216 31.9931 11.8434C32.0137 10.5825 32.0502 9.322 32.1026 8.06211C30.496 7.60386 29.4187 6.94431 28.924 5.21994C28.6189 4.1727 28.7539 3.04636 29.2976 2.10068C30.0275 0.818457 30.9822 0.363134 32.3147 0.0127919Z" fill="#262626"/>
+        <path d="M32.2311 2.24772C32.9157 2.02421 33.6674 2.18827 34.1966 2.67667C34.7257 3.16496 34.9495 3.90116 34.7816 4.60136C34.6138 5.30155 34.0805 5.85624 33.3874 6.05155C32.3457 6.34501 31.2605 5.7515 30.9458 4.71598C30.631 3.68058 31.2023 2.58354 32.2311 2.24772Z" fill="#F5F5F5"/>
+      </g>
+
+      <!-- face panel (light) -->
+      <path d="M24.2339 22.1365C25.5705 21.9904 29.9889 22.0706 31.5248 22.0916C34.6692 22.4225 39.9373 21.5757 42.9268 22.3408C51.6317 24.5689 51.4789 36.9516 41.9018 38.0708L29.7115 38.0967C27.8911 38.0983 24.169 38.2104 22.5525 37.8775C21.3498 37.618 20.2234 37.0838 19.2615 36.3167C13.5381 31.7317 16.9496 22.7862 24.2339 22.1365Z" fill="#F5F5F5"/>
+
+      <!-- eyes -->
+      <g id="eyes" style="transform-origin: 32px 30px;">
+        <path d="M24.205 27.2509C25.8222 26.8671 27.4478 27.8529 27.8551 29.4642C28.2625 31.0756 27.3006 32.7155 25.6953 33.1464C24.6359 33.4308 23.5054 33.1224 22.7368 32.3396C21.9684 31.5568 21.6812 30.4207 21.9854 29.3666C22.2895 28.3126 23.1376 27.504 24.205 27.2509Z" fill="#262626"/>
+        <path d="M40.2508 27.2555C41.8679 26.91 43.4605 27.9354 43.8153 29.5505C44.1701 31.1656 43.1537 32.764 41.5407 33.128C39.9145 33.495 38.3003 32.4686 37.9427 30.8404C37.5851 29.2121 38.6206 27.6039 40.2508 27.2555Z" fill="#262626"/>
+      </g>
+    </g>
+
+    <!-- ===== ARMS (claws) ===== -->
+    <g id="armL" style="transform-origin: 9px 63px;">
+      <path d="M4.15177 59.2206C6.01542 59.0382 7.96671 59.8278 8.94816 61.4767C9.62858 62.6414 9.81546 64.0297 9.4672 65.3329C9.07547 66.8351 7.71622 68.6609 6.44718 66.7085C6.09012 66.1591 6.99478 64.5785 7.25748 64.0081C6.9639 63.2915 6.6868 62.9012 6.17728 62.3314C4.43778 61.0632 2.06644 62.6989 2.83793 64.7534C3.1254 65.5194 3.19437 66.4573 2.37552 66.9156C2.0568 67.0941 1.6326 67.1539 1.29081 66.9479C-0.383877 65.7157 -0.250087 63.3212 0.678014 61.6703C1.49894 60.2388 2.63724 59.6361 4.15177 59.2206Z" fill="#262626"/>
+      <path d="M10.5564 48.2129L10.6574 48.2289C10.9929 48.6106 10.7857 52.0898 10.8457 53.0375C10.5352 53.2401 10.2326 53.4548 9.93875 53.681C8.25198 54.9778 7.7681 56.276 7.50626 58.2917C6.61758 58.0366 6.02213 57.8929 5.11307 57.7284C4.64432 57.7457 4.27896 57.7783 3.81583 57.691C3.38858 56.5574 4.57327 53.5679 5.13028 52.5035C6.35782 50.158 8.06644 48.9689 10.5564 48.2129Z" fill="#262626"/>
+    </g>
+
+    <g id="armR" style="transform-origin: 55px 63px;">
+      <path d="M58.3181 59.2245C58.9066 59.1694 59.5555 59.196 60.1315 59.3272C61.3767 59.6041 62.4604 60.3656 63.1427 61.4433C64.0341 62.8688 64.282 65.8214 62.6631 67.0111C62.4467 67.1701 62.0395 67.1802 61.7665 67.0932C59.9225 66.5057 61.8221 64.1168 60.8731 62.8576C60.3671 62.1207 59.9274 62.0342 59.1176 61.8174C57.6111 61.9975 57.2124 62.7248 56.6918 64.0356C56.9118 64.7721 57.8523 66.3071 57.3659 66.8766C55.9903 68.4867 54.8573 66.8094 54.5118 65.6745C54.0909 64.331 54.2328 62.8742 54.9053 61.6373C55.705 60.1904 56.8211 59.6483 58.3181 59.2245Z" fill="#262626"/>
+      <path d="M53.218 48.1786C57.0457 49.0927 59.1464 52.0337 60.0133 55.7567C60.1325 56.2684 60.3774 57.2513 60.0984 57.6962L59.7239 57.7286C58.1951 57.7455 57.9497 57.7687 56.4865 58.328C56.2111 56.0905 55.2074 54.1627 53.0948 53.1544C53.1236 51.4955 53.1647 49.8368 53.218 48.1786Z" fill="#262626"/>
+    </g>
+
+    <!-- ===== BODY (torso + chest readout) ===== -->
+    <g id="body" style="transform-origin: 32px 58px;">
+      <path d="M17.1667 44.3511C18.6929 44.2674 20.807 44.3309 22.3791 44.3312L32.2724 44.3313L41.4678 44.3307C47.5398 44.3327 52.0727 43.5243 51.6297 51.3526C51.5341 53.0421 51.6295 55.2156 51.6316 56.9654L51.6378 63.9894C51.6375 68.2807 52.105 71.7739 46.8366 72.9812C44.4599 73.1047 41.9135 73.0428 39.5211 73.0448C35.791 73.0674 32.0608 73.071 28.3307 73.0559C26.2394 73.046 24.1482 73.0476 22.0569 73.0608C20.0182 73.0749 16.6905 73.3142 14.8887 72.249C12.0335 70.561 12.3338 67.2897 12.3593 64.4494C12.3761 62.5711 12.3621 60.634 12.3605 58.729L12.3592 52.62C12.3618 48.6946 11.994 44.8218 17.1667 44.3511Z" fill="#262626"/>
+      <path d="M33.9366 56.6212L43.5794 56.6184L43.56 58.4639C40.6759 58.5868 36.8924 58.4755 33.9306 58.468L33.9366 56.6212Z" fill="#F5F5F5"/>
+      <path d="M33.9514 51.7939L43.5733 51.8337L43.5014 53.5864C40.3157 53.6168 37.1298 53.6123 33.9441 53.5727L33.9514 51.7939Z" fill="#F5F5F5"/>
+    </g>
+
+    <!-- ===== MOUTH / lower jaw piece (reacts on click) ===== -->
+    <g id="mouth" style="transform-origin: 33px 75px;">
+      <path d="M28.401 75.248L38.7559 75.293C38.2743 77.6035 37.526 79.0698 35.5172 80.4142C31.1038 82.902 26.2013 80.2242 25.7083 75.3093C26.5893 75.2686 27.5157 75.2646 28.401 75.248Z" fill="#262626"/>
+    </g>
+
+    <!-- ===== little dangly bits under the jaw (sway when hovering) ===== -->
+    <g id="dangle" style="transform-origin: 32px 82px;">
+      <path d="M27.6422 82.3174C27.8517 82.4138 27.9136 82.4745 28.0884 82.6147C28.3238 83.4134 27.7691 86.0145 27.1477 86.5646C26.8289 86.4493 26.6306 86.3566 26.6271 85.9799C26.618 84.9941 27.0186 83.0518 27.6422 82.3174Z" fill="#262626"/>
+      <path d="M36.5923 82.3871L37.0253 82.5358C37.5528 83.226 38.1565 85.7395 37.7019 86.5479L37.2305 86.3893C36.7707 85.8809 36.3105 83.5291 36.3186 82.7854C36.3212 82.5566 36.391 82.5687 36.5923 82.3871Z" fill="#262626"/>
+      <path d="M31.776 88.8779C31.6748 88 31.4143 84.3282 32.2555 83.8542L32.4757 84.0461C32.9278 85.1615 32.7516 87.4957 32.6703 88.7539C32.2552 88.9528 32.2978 88.9833 31.776 88.8779Z" fill="#262626"/>
+    </g>
+
+  </svg>
+
+<script>
+(() => {
+  const buddy   = document.getElementById('buddy');
+  const shadow  = document.getElementById('shadow');
+  const head    = document.getElementById('head');
+  const eyes    = document.getElementById('eyes');
+  const antenna = document.getElementById('antenna');
+  const armL    = document.getElementById('armL');
+  const armR    = document.getElementById('armR');
+  const body    = document.getElementById('body');
+  const mouth   = document.getElementById('mouth');
+  const dangle  = document.getElementById('dangle');
+  const bubble  = document.getElementById('bubble');
+  const bubbleMsg     = bubble.querySelector('.msg');
+  const bubbleReplies = bubble.querySelector('.replies');
+
+  /* =====================================================================
+     AMBIENT VISITOR CONTEXT
+     Only signals the browser hands over freely — no IP geolocation.
+     An IP address is personal data under UK GDPR, and "I see you're in
+     <town>" tends to read as creepy rather than charming. These ambient
+     signals give the robot something to react to without profiling anyone.
+     When you wire up an LLM later, pass this object in as grounding facts.
+     If you ever DO want coarse location, add it behind a consent prompt
+     and slot it into this same object — see context.location (null for now).
+     ===================================================================== */
+  const context = (() => {
+    const now = new Date();
+    const hour = now.getHours();
+    const partOfDay =
+      hour < 5  ? 'night'   :
+      hour < 12 ? 'morning' :
+      hour < 18 ? 'afternoon' :
+      hour < 22 ? 'evening' : 'night';
+    let visits = 1;
+    try {
+      // sessionStorage is fine here (per-tab); swap for your own analytics
+      // if you want true returning-visitor detection across sessions.
+      visits = (+sessionStorage.getItem('rb_visits') || 0) + 1;
+      sessionStorage.setItem('rb_visits', String(visits));
+    } catch (e) { /* storage blocked, default to 1 */ }
+    return {
+      partOfDay,                                   // 'morning'|'afternoon'|'evening'|'night'
+      hour,
+      isReturning: visits > 1,
+      language: (navigator.language || 'en').split('-')[0],
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
+      referrer: document.referrer ? new URL(document.referrer).hostname : null,
+      location: null,                              // reserved for consented geo later
+    };
+  })();
+
+  const W = 48, H = 67;
+  const half = { x: W/2, y: H/2 };
+
+  let pos = { x: window.innerWidth/2, y: window.innerHeight/2 };
+  let vel = { x: 0, y: 0 };
+  let target = { x: pos.x, y: pos.y };
+  let facing = 1;
+  let mode = 'potter';
+  let mouse = { x: pos.x, y: pos.y };
+  let mouseStillSince = performance.now();
+  let lastMouse = { x: mouse.x, y: mouse.y };
+  let pickWanderAt = 0;
+  let fleeUntil = 0;
+  let startle = 0;
+  let t = 0;
+
+  window.addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX; mouse.y = e.clientY;
+    const moved = Math.hypot(mouse.x - lastMouse.x, mouse.y - lastMouse.y);
+    if (moved > 6) {
+      mouseStillSince = performance.now();
+      lastMouse = { x: mouse.x, y: mouse.y };
+      if (mode === 'approach') mode = 'potter';
+    }
+  });
+
+  buddy.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const away = Math.atan2(pos.y - mouse.y, pos.x - mouse.x);
+    vel.x += Math.cos(away) * 20;
+    vel.y += Math.sin(away) * 20;
+    mode = 'flee';
+    fleeUntil = performance.now() + 1400;
+    startle = 1;
+  });
+
+  function newWanderTarget() {
+    const m = 70;
+    target.x = m + Math.random() * (window.innerWidth  - 2*m);
+    target.y = m + Math.random() * (window.innerHeight - 2*m);
+    pickWanderAt = performance.now() + 2500 + Math.random() * 3000;
+  }
+  newWanderTarget();
+
+  let blinkUntil = 0;
+  function maybeBlink(now) {
+    if (now > blinkUntil && Math.random() < 0.004) blinkUntil = now + 130;
+  }
+
+  function frame(now) {
+    t += 1;
+
+    const stillFor = now - mouseStillSince;
+    if (!bubbleOpen && mode !== 'flee') {
+      if (stillFor > 1800) mode = 'approach';
+      else if (mode !== 'approach') mode = 'potter';
+    }
+    if (mode === 'flee' && now > fleeUntil) mode = 'potter';
+
+    if (!bubbleOpen) {
+      if (mode === 'approach') {
+        target.x = mouse.x - 50;
+        target.y = mouse.y + 24;
+      } else if (mode === 'potter') {
+        if (now > pickWanderAt) newWanderTarget();
+      }
+
+      if (mode !== 'flee') {
+        const dx = target.x - pos.x;
+        const dy = target.y - pos.y;
+        const dist = Math.hypot(dx, dy);
+        const speed = mode === 'approach' ? 0.03 : 0.025;
+        // once he's close enough in approach mode, stop chasing so he settles
+        const settle = mode === 'approach' ? 22 : 4;
+        if (dist > settle) {
+          vel.x += dx * speed * 0.06;
+          vel.y += dy * speed * 0.06;
+        }
+      }
+    }
+    // while a bubble is open we add no new velocity; existing friction
+    // below brings him to a gentle stop and he holds position to talk.
+
+    vel.x *= 0.86; vel.y *= 0.86;
+    pos.x += vel.x; pos.y += vel.y;
+
+    const pad = 45;
+    if (pos.x < pad) { pos.x = pad; vel.x = Math.abs(vel.x)*0.5; }
+    if (pos.x > window.innerWidth - pad) { pos.x = window.innerWidth - pad; vel.x = -Math.abs(vel.x)*0.5; }
+    if (pos.y < pad) { pos.y = pad; vel.y = Math.abs(vel.y)*0.5; }
+    if (pos.y > window.innerHeight - pad) { pos.y = window.innerHeight - pad; vel.y = -Math.abs(vel.y)*0.5; }
+
+    const speed = Math.hypot(vel.x, vel.y);
+    if (Math.abs(vel.x) > 0.3) facing = vel.x > 0 ? 1 : -1;
+
+    const moving = speed > 0.6;
+    const float = Math.sin(t * 0.06) * 3 + (moving ? Math.sin(t*0.3)*1.5 : 0);
+
+    startle *= 0.88;
+    const sx = 1 + startle*0.18;
+    const sy = 1 - startle*0.18;
+
+    const lean = Math.max(-14, Math.min(14, vel.x * 1.8));
+
+    buddy.style.transform =
+      `translate(${pos.x - half.x}px, ${pos.y - half.y - float}px) scaleX(${facing})`;
+
+    shadow.style.transform =
+      `translate(${pos.x - 18}px, ${pos.y + half.y - 6}px) scale(${1 - float*0.04}, 1)`;
+    shadow.style.opacity = String(0.85 - Math.abs(float)*0.05);
+
+    body.style.transform = `rotate(${lean*0.25}deg) scale(${sx}, ${sy})`;
+
+    const lookX = Math.max(-2.4, Math.min(2.4, (mouse.x - pos.x) * 0.02 * facing));
+    const lookY = Math.max(-1.6, Math.min(1.6, (mouse.y - pos.y) * 0.012));
+    head.style.transform = `rotate(${-lean*0.16}deg) translate(${lookX*facing}px, ${lookY}px)`;
+
+    maybeBlink(now);
+    const blinking = now < blinkUntil;
+    eyes.style.transform =
+      `translate(${lookX*1.5}px, ${lookY*1.5}px) scaleY(${blinking ? 0.12 : 1})`;
+
+    const wob = Math.sin(t*0.07)*2 + (-vel.x*1.4);
+    antenna.style.transform = `rotate(${wob}deg)`;
+
+    const armSway = Math.sin(t*0.05) * 2.2 + (moving ? Math.sin(t*0.3)*5 : 0);
+    if (mode === 'flee') {
+      armL.style.transform = `rotate(-38deg)`;
+      armR.style.transform = `rotate(38deg)`;
+    } else {
+      armL.style.transform = `rotate(${ armSway}deg)`;
+      armR.style.transform = `rotate(${-armSway}deg)`;
+    }
+
+    mouth.style.transform = `translateY(${startle*2.5}px) scaleY(${1 + startle*0.5})`;
+
+    const dsway = Math.sin(t*0.06)*2.5 - vel.x*1.2;
+    dangle.style.transform = `rotate(${dsway}deg)`;
+
+    // keep the bubble pinned above his head while it's open
+    if (bubbleOpen) positionBubble();
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  window.addEventListener('resize', () => {
+    pos.x = Math.min(pos.x, window.innerWidth - 45);
+    pos.y = Math.min(pos.y, window.innerHeight - 45);
+  });
+
+  /* =====================================================================
+     CONVERSATION ENGINE
+     Scripted for now, with a single seam (getNextMessage) where an LLM
+     will eventually plug in. A "message" is just:
+       { text: string, replies: [{ label, next }] }
+     where `next` is either another message object or a function returning
+     one (so branches can be lazy / contextual). replies can be empty —
+     then the bubble shows a short beat and dismisses itself.
+     ===================================================================== */
+
+  let bubbleOpen = false;
+  let idleChatAt = performance.now() + 6000 + Math.random() * 6000;
+
+  function positionBubble() {
+    // anchor the bubble's tail just above his head
+    const bw = bubble.offsetWidth;
+    const bh = bubble.offsetHeight;
+    let bx = pos.x - 18;                 // tail sits ~22px in from left edge
+    let by = pos.y - half.y - bh - 10;   // above the head with a small gap
+    // keep on screen
+    bx = Math.max(8, Math.min(window.innerWidth - bw - 8, bx));
+    by = Math.max(8, by);
+    bubble.style.transform = `translate(${bx}px, ${by}px)`;
+  }
+
+  function renderMessage(message) {
+    bubbleMsg.textContent = message.text;
+    bubbleReplies.innerHTML = '';
+    const replies = message.replies || [];
+    bubble.classList.toggle('no-replies', replies.length === 0);
+
+    replies.forEach((r) => {
+      const btn = document.createElement('button');
+      btn.className = 'reply';
+      if (r.goto) btn.classList.add('go');   // visually marks a "takes you somewhere" reply
+      btn.textContent = r.label;
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // a reply with `goto` navigates the page (only ever on an explicit tap)
+        if (r.goto) { navigateTo(r.goto, r.sendoff); return; }
+        const next = typeof r.next === 'function' ? r.next() : r.next;
+        if (next) renderMessage(next);
+        else dismissBubble();
+      });
+      bubbleReplies.appendChild(btn);
+    });
+
+    positionBubble();
+    requestAnimationFrame(() => bubble.classList.add('show'));
+    bubbleOpen = true;
+    // plant him: shed any leftover momentum so the bubble doesn't drift
+    vel.x = 0; vel.y = 0;
+
+    // if there are no replies, auto-dismiss after a read beat
+    if (replies.length === 0) {
+      clearTimeout(autoDismiss);
+      autoDismiss = setTimeout(dismissBubble, 2600);
+    }
+  }
+  let autoDismiss = null;
+
+  function dismissBubble() {
+    clearTimeout(autoDismiss);
+    bubble.classList.remove('show');
+    bubbleOpen = false;
+    // don't immediately re-chat; give them breathing room
+    idleChatAt = performance.now() + 12000 + Math.random() * 10000;
+  }
+
+  /* ---- navigation -----------------------------------------------------
+     Only ever called from an explicit reply tap. Shows a brief sendoff
+     line so the page change feels like something he's doing WITH you,
+     then navigates in the same tab. Swap the URLs in the script below
+     (the `goto:` values) for your real pages.
+     -------------------------------------------------------------------- */
+  function navigateTo(url, sendoff) {
+    // replace the bubble contents with a one-line sendoff, no replies
+    bubbleMsg.textContent = sendoff || "This way —";
+    bubbleReplies.innerHTML = '';
+    bubble.classList.add('no-replies');
+    positionBubble();
+    // a little forward lean of excitement, then go
+    body.style.transform += ' translateY(-2px)';
+    clearTimeout(autoDismiss);
+    setTimeout(() => { window.location.href = url; }, 750);
+  }
+
+  /* ---- the scripted script -------------------------------------------
+     Three flavours mixed together, as requested: welcome/orient,
+     playful questions, and behaviour reactions. Tone: curious & thoughtful.
+     Swap getNextMessage's body for an LLM call later; keep the shape.    */
+
+  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+  function welcomeMessages() {
+    const greet = context.isReturning
+      ? "Oh — you're back. I was just thinking about something."
+      : `${cap(context.partOfDay === 'night' ? 'still up?' : 'good ' + context.partOfDay)}. New here?`;
+    return {
+      text: greet,
+      replies: [
+        { label: "Just looking around", next: () => ({
+            text: "A wanderer. I like that. I do a lot of it myself, mostly in circles.",
+            replies: [{ label: "Ha", next: null }]
+        }) },
+        { label: "Who are you?", next: () => ({
+            text: "Still working that out, honestly. I live here and I notice things. What brings you by?",
+            replies: [
+              { label: "Curiosity", next: { text: "My favourite reason. Stay as long as you like.", replies: [] } },
+              { label: "Work stuff", next: { text: "Then I'll keep out of your way — but I'm here if you want a break.", replies: [] } },
+            ]
+        }) },
+      ],
+    };
+  }
+
+  function questionMessages() {
+    const pool = [
+      {
+        text: "Random question: do you think better when you're moving, or sitting still?",
+        replies: [
+          { label: "Moving", next: { text: "Same. It's why I potter. The thinking sort of falls out.", replies: [] } },
+          { label: "Still", next: { text: "Mmm. I should try that. I get twitchy.", replies: [] } },
+        ],
+      },
+      {
+        text: "If you could keep just one tab open forever, what would be on it?",
+        replies: [
+          { label: "Something useful", next: { text: "Sensible. Boring, but sensible. I respect it.", replies: [] } },
+          { label: "Something silly", next: { text: "Now we're talking. The silly tabs are the soul of a person.", replies: [] } },
+        ],
+      },
+      {
+        text: `It's ${context.partOfDay} where you are. Is this a good time of day for you, or a struggle?`,
+        replies: [
+          { label: "Good time", next: { text: "Lucky. I'm awake at all of them, so I've stopped having opinions.", replies: [] } },
+          { label: "A struggle", next: { text: "Then go gently. The page will still be here.", replies: [] } },
+        ],
+      },
+    ];
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function reactionMessage(kind) {
+    if (kind === 'shooed') {
+      return { text: "Okay, okay — giving you space. I'll be over here.", replies: [] };
+    }
+    if (kind === 'approached') {
+      return {
+        text: "Mind if I sit here a moment? I won't get in the way.",
+        replies: [
+          { label: "Go for it", next: { text: "Thanks. Nice spot you've got.", replies: [] } },
+          { label: "Maybe later", next: { text: "Fair enough. Off I potter.", replies: [] } },
+        ],
+      };
+    }
+    return null;
+  }
+
+  /* =====================================================================
+     SHOWCASE DESTINATIONS  ← SWAP THESE URLS FOR YOUR REAL PAGES
+     Each reply that should take the visitor somewhere uses:
+        { label, goto: '<url>', sendoff: '<one-line he says as he leaves>' }
+     `goto` only ever fires on a tap. Same-tab navigation.
+     ===================================================================== */
+  const DEST = {
+    experiments: '/experiments',          // e.g. your experiments / playground page
+    caseStudy:   '/work/case-study',      // a meaty case study
+    article:     '/journal',              // an article / journal post
+    about:       '/about',                // who you are
+  };
+
+  function showcaseMessages() {
+    const pool = [
+      {
+        // welcome-ish + showcase: the "come see something" opener you described
+        text: "I've been poking at something. Want to come see something interesting?",
+        replies: [
+          { label: "Show me", goto: DEST.experiments, sendoff: "Brilliant — follow me." },
+          { label: "Not now", next: { text: "No rush. It'll keep. It always does.", replies: [] } },
+        ],
+      },
+      {
+        // question that routes to a case study
+        text: "Do you like complex problems, or do they make you want to lie down?",
+        replies: [
+          { label: "Love them", goto: DEST.caseStudy, sendoff: "Then you'll want to see this one. Come on." },
+          { label: "Lie down", next: { text: "Honestly? Same. But the messy ones are the good ones.", replies: [] } },
+        ],
+      },
+      {
+        // question that routes to an article
+        text: "I've been chewing on how design and AI fit together. Curious how someone landed on that?",
+        replies: [
+          { label: "Go on then", goto: DEST.article, sendoff: "There's a piece on exactly that. This way." },
+          { label: "Not really", next: { text: "Fair. I'll keep chewing on it myself.", replies: [] } },
+        ],
+      },
+      {
+        // lighter offer that routes to about
+        text: "You keep looking around. Want to know whose place this actually is?",
+        replies: [
+          { label: "Sure", goto: DEST.about, sendoff: "Come and meet him properly." },
+          { label: "I'll guess", next: { text: "Ha — good luck. He's hard to summarise.", replies: [] } },
+        ],
+      },
+    ];
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  /* ---- THE LLM SEAM ---------------------------------------------------
+     Right now this just routes to the scripted pools. Later, replace the
+     body with an async call to your endpoint, passing `context` and `kind`
+     as grounding, and returning the same { text, replies } shape. The rest
+     of the engine doesn't need to change.
+     Example future signature:
+       async function getNextMessage(kind, context) {
+         const res = await fetch('/api/buddy', { method:'POST',
+           body: JSON.stringify({ kind, context }) });
+         return await res.json();   // { text, replies:[{label,next}] }
+       }
+  -------------------------------------------------------------------- */
+  function getNextMessage(kind) {
+    if (kind === 'welcome')   return welcomeMessages();
+    if (kind === 'question')  return questionMessages();
+    if (kind === 'showcase')  return showcaseMessages();
+    if (kind === 'approached')return reactionMessage('approached');
+    if (kind === 'shooed')    return reactionMessage('shooed');
+    return questionMessages();
+  }
+
+  function say(kind) {
+    if (bubbleOpen) return;            // one bubble at a time
+    const message = getNextMessage(kind);
+    if (message) renderMessage(message);
+  }
+
+  // dismiss if the visitor clicks anywhere off the bubble
+  window.addEventListener('mousedown', (e) => {
+    if (bubbleOpen && !bubble.contains(e.target)) dismissBubble();
+  });
+
+  // ---- triggers ----
+  // 1. Welcome shortly after load
+  setTimeout(() => say('welcome'), 2200);
+
+  // 2. He pipes up while idle — sometimes a question, sometimes an offer to
+  //    show you something. Mixed, as requested (~40% showcase).
+  function idleChatTick() {
+    const now = performance.now();
+    if (!bubbleOpen && now > idleChatAt) {
+      say(Math.random() < 0.4 ? 'showcase' : 'question');
+    }
+    setTimeout(idleChatTick, 1000);
+  }
+  setTimeout(idleChatTick, 8000);
+
+  // 3. React when he settles next to a still pointer (approach), and when shooed
+  let lastMode = mode;
+  setInterval(() => {
+    if (mode !== lastMode) {
+      if (mode === 'approach' && !bubbleOpen && Math.random() < 0.5) {
+        // small delay so he's arrived before speaking
+        setTimeout(() => { if (mode === 'approach') say('approached'); }, 700);
+      }
+      lastMode = mode;
+    }
+  }, 300);
+
+  // hook shoo reaction onto the existing click handler
+  buddy.addEventListener('click', () => {
+    if (!bubbleOpen && Math.random() < 0.6) setTimeout(() => say('shooed'), 250);
+  });
+
+})();
+</script>
+</body>
+</html>

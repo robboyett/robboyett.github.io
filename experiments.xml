@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<experiments>
+    <entry>
+        <title>UX &amp; Research Insights for VS Code</title>
+        <url>/experiments/vscode-ux-insights/</url>
+        <description>Surface UX research markdown directly in your codebase — sidebar, status bar, and rich preview.</description>
+        <thumbnail>https://raw.githubusercontent.com/robboyett/vscode-ux-insights/main/Marketing-Image-01.png</thumbnail>
+    </entry>
+    <entry>
+        <title>PennyWise</title>
+        <url>/experiments/pennywise/</url>
+        <description>A tactile digital tabletop for children to learn British currency through play.</description>
+    </entry>
+    <entry>
+        <title>Sliiides</title>
+        <url>/experiments/sliiides/</url>
+        <description>Story-first presentation kit — write in Markdown, layer in custom HTML slides when they earn their place.</description>
+    </entry>
+    <entry>
+        <title>Sonderheft</title>
+        <url>/experiments/sonderheft/</url>
+        <description>Swiss-style ordered dither backgrounds for the web — homage to TM Sonderheft Nr. 3 (1986).</description>
+    </entry>
+    <entry>
+        <title>MD ↔ FigJam</title>
+        <url>/experiments/md-figjam/</url>
+        <description>Figma plugin to import markdown into sticky notes and export selections back to clipboard-ready markdown.</description>
+    </entry>
+    <entry>
+        <title>TabClear</title>
+        <url>/experiments/tabclear/</url>
+        <description>Chrome extension that closes every tab and saves an organised HTML archive before you start fresh.</description>
+    </entry>
+</experiments>
