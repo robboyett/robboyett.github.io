@@ -1,44 +1,21 @@
-/* Robot buddy — homepage mascot (loaded only on index.html) */
+/* Robot buddy — site-wide mascot (loaded on every page by site-nav.js).
+   He sits in a small dock, bottom right. Chat is a thread of floating bubbles
+   above him; unplugged, he wanders the page and carries a single bubble. */
 
-/* Mute toggle — sits in the top-right corner beside "Thinking About" */
-#rb-mute {
-  position: fixed;
-  top: 6px;
-  right: 14px;
-  z-index: 1002;
-  width: 32px;
-  height: 32px;
-  margin: 0;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  color: #666;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+:root {
+  --rb-gap: 24px;        /* dock distance from the viewport corner */
+  --rb-kb: 0px;          /* height covered by a phone's on-screen keyboard (set in JS) */
+  --rb-ground: #F1F1F1;  /* page colour under him (set in JS) */
+  --rb-yellow: #FDB916;
+  --rb-ink: #1A1A1A;
+  --rb-lift: 0 2px 8px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  --rb-font: 'Inter var', 'InterVariable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-#rb-mute:hover {
-  color: #1A1A1A;
-  background: #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-}
-
-#rb-mute.muted {
-  color: #1A1A1A;
-  background: #fff;
-}
-
-#rb-mute svg {
-  width: 16px;
-  height: 16px;
-  display: block;
-}
-
+/* ---------------------------------------------------------------------
+   The robot himself. Page coordinates while away; viewport-anchored
+   (position: fixed) while seated, so scrolling never shakes him.
+   --------------------------------------------------------------------- */
 #rb-root {
   position: absolute;
   top: 0;
@@ -48,6 +25,10 @@
   pointer-events: none;
   z-index: 500;
   overflow: visible;
+}
+
+#rb-root.rb-fixed {
+  position: fixed;
 }
 
 #rb-shadow {
@@ -75,6 +56,15 @@
   overflow: visible;
 }
 
+/* Seated: thrusters off, and the dock's seat button takes the clicks. */
+#rb-buddy.rb-seated {
+  pointer-events: none;
+}
+
+#rb-buddy.rb-seated #rb-dangle path[stroke] {
+  display: none;
+}
+
 #rb-broken {
   position: absolute;
   top: 0;
@@ -88,6 +78,9 @@
   will-change: transform;
 }
 
+/* ---------------------------------------------------------------------
+   The bubble he carries while wandering
+   --------------------------------------------------------------------- */
 #rb-bubble {
   position: absolute;
   top: 0;
@@ -97,7 +90,7 @@
   width: max-content;
   max-width: 240px;
   box-sizing: border-box;
-  background: #FDB916;
+  background: var(--rb-yellow);
   color: #000000;
   border-radius: 20px;
   padding: 14px 16px;
@@ -105,37 +98,22 @@
   font-size: 13.5px;
   line-height: 1.34;
   font-weight: 700;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--rb-font);
   opacity: 0;
   transform: translateY(6px) scale(0.96);
   transform-origin: bottom left;
-  transition: opacity 0.18s ease, transform 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+  transition: opacity 0.18s ease;
   will-change: transform, opacity;
 }
 
 #rb-bubble.show {
   opacity: 1;
-  transform: translateY(0) scale(1);
   pointer-events: auto;
 }
 
-#rb-bubble.loading .msg {
-  color: rgba(0, 0, 0, 0.45);
-}
-
-/* The "…" thinking bubble is otherwise so narrow the tail overhangs the rounded
-   corner and looks jagged — give it a floor so the tail sits on a flat edge. */
-#rb-bubble.loading {
-  min-width: 64px;
-}
-
 #rb-bubble .msg {
-  margin: 0;
+  margin: 0 0 8px;
   user-select: none;
-}
-
-#rb-bubble.has-footer .msg {
-  margin-bottom: 8px;
 }
 
 #rb-bubble .links {
@@ -145,7 +123,12 @@
   margin-bottom: 8px;
 }
 
-#rb-bubble .link-go {
+#rb-bubble .links:empty {
+  display: none;
+}
+
+#rb-bubble .link-go,
+#rb-bubble .reply {
   appearance: none;
   border: none;
   background: none;
@@ -157,32 +140,15 @@
   text-underline-offset: 2px;
   cursor: pointer;
   text-align: left;
-}
-
-#rb-bubble .link-go:hover {
-  color: #000;
-}
-
-#rb-bubble .discuss {
-  appearance: none;
-  border: none;
-  background: none;
-  padding: 0;
-  font: inherit;
-  font-size: 11.5px;
-  color: rgba(0, 0, 0, 0.55);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  cursor: pointer;
   display: block;
 }
 
-#rb-bubble .discuss:hover {
+#rb-bubble .link-go:hover,
+#rb-bubble .reply:hover {
   color: #000;
 }
 
-#rb-bubble .discuss[hidden],
-#rb-bubble .links:empty {
+#rb-bubble .reply[hidden] {
   display: none;
 }
 
@@ -193,177 +159,365 @@
   bottom: -9px;
   width: 22px;
   height: 12px;
-  background: #FDB916;
+  background: var(--rb-yellow);
   clip-path: polygon(0 0, 100% 0, 18% 100%);
 }
 
-/* Compose panel — floating bottom-center pod */
-#rb-compose {
+/* ---------------------------------------------------------------------
+   The dock: a thin ledge, a status light, and controls that appear
+   only when you reach for him.
+   --------------------------------------------------------------------- */
+#rb-dock {
   position: fixed;
-  left: 50%;
-  bottom: 20px;
-  z-index: 502;
+  right: var(--rb-gap);
+  bottom: calc(var(--rb-gap) + var(--rb-kb));
+  z-index: 501;
+  height: 80px;
+  display: flex;
+  align-items: flex-end;
+  pointer-events: none;
+  font-family: var(--rb-font);
+}
+
+#rb-dock > * {
   pointer-events: auto;
-  width: min(300px, calc(100vw - 32px));
-  padding: 10px;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #1e1e20;
-  border: 1.5px solid #3a3a3e;
-  border-radius: 20px;
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.35),
-    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
-  transform: translateX(-50%) translateY(calc(100% + 48px));
-  opacity: 0;
-  transition:
-    transform 0.24s cubic-bezier(0.2, 0.9, 0.3, 1.1),
-    opacity 0.18s ease;
 }
 
-#rb-compose.open {
-  transform: translateX(-50%) translateY(0);
-  opacity: 1;
-}
-
-#rb-compose .done {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  z-index: 1;
+#rb-dock .rb-seat {
   appearance: none;
-  border: 1.5px solid #1e1e20;
-  width: 26px;
-  height: 26px;
+  width: 56px;
+  height: 80px;
+  margin: 0;
   padding: 0;
-  background: #e0564f;
-  color: #fff;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+#rb-dock .rb-seat:focus-visible,
+#rb-dock .rb-btn:focus-visible,
+#rb-dock .rb-tool:focus-visible,
+#rb-dock .rb-callback:focus-visible,
+#rb-dock .rb-input:focus-visible {
+  outline: 2px solid var(--rb-ink);
+  outline-offset: 2px;
+}
+
+#rb-dock .rb-ledge {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 56px;
+  height: 6px;
+  border-radius: 3px;
+  background: #1e1e20;
+  pointer-events: none;
+}
+
+#rb-dock .rb-light {
+  position: absolute;
+  right: 4px;
+  bottom: 1px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
-  font-size: 16px;
-  font-weight: 500;
+  background: #3ddc84;
+  pointer-events: none;
+}
+
+#rb-dock.is-away .rb-light { background: var(--rb-yellow); }
+#rb-dock.is-offline .rb-light { background: #8a8a8a; }
+#rb-dock.is-offline .rb-ledge { background: #8a8a8a; }
+
+/* White pill buttons */
+#rb-dock .rb-btn,
+#rb-dock .rb-callback {
+  appearance: none;
+  height: 44px;
+  margin: 0;
+  padding: 0 16px;
+  border: none;
+  border-radius: 22px;
+  background: #ffffff;
+  color: var(--rb-ink);
+  box-shadow: var(--rb-lift);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
   line-height: 1;
   cursor: pointer;
+  flex-shrink: 0;
+}
+
+#rb-dock .rb-icon {
+  width: 44px;
+  padding: 0;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  transition: background 0.15s ease, transform 0.12s ease;
 }
 
-#rb-compose .done:hover:not(:disabled) {
-  background: #ee6a63;
-  transform: scale(1.08);
+#rb-dock .rb-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
 }
 
-#rb-compose .done:active:not(:disabled) {
-  transform: scale(0.94);
+#rb-dock [hidden] {
+  display: none !important;
 }
 
-#rb-compose .done:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+/* Hover controls: Ask, Unplug, Mute. Hidden until the dock is hovered or focused;
+   the short delay on hiding lets the pointer travel from him to the buttons. */
+#rb-dock .rb-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0s linear 0.45s;
 }
 
-#rb-compose .rb-compose-display {
-  min-height: 28px;
-  max-height: 56px;
-  overflow-y: auto;
-  margin-bottom: 8px;
-  padding: 7px 9px;
-  background: #141416;
-  border: 1px solid #333338;
-  border-radius: 10px;
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-  font-size: 11.5px;
-  line-height: 1.35;
-  color: #f0f0f2;
-  white-space: pre-wrap;
-  word-break: break-word;
+#rb-dock.is-docked:not(.is-open):hover .rb-controls,
+#rb-dock.is-docked:not(.is-open):focus-within .rb-controls {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
 }
 
-#rb-compose .rb-compose-display:empty::before {
-  content: "Type a message…";
-  color: #6b6b70;
+#rb-dock.is-open .rb-controls,
+#rb-dock.is-away .rb-controls {
+  display: none;
 }
 
-#rb-keyboard {
+/* Away: an empty ledge and one way to fetch him */
+#rb-dock .rb-callback {
+  display: none;
+  margin-right: 8px;
+}
+
+#rb-dock.is-away .rb-callback {
+  display: block;
+}
+
+/* Chat open: a real text field beside him, with two quiet tools above it */
+#rb-dock .rb-chat {
+  display: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  padding-right: 8px;
+}
+
+#rb-dock.is-open .rb-chat {
+  display: flex;
+}
+
+#rb-dock .rb-tools {
+  display: flex;
+  gap: 4px;
+}
+
+#rb-dock .rb-tool {
+  appearance: none;
+  height: 28px;
+  margin: 0;
+  padding: 0 10px;
+  border: none;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #444444;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#rb-dock .rb-tool:hover {
+  color: #000000;
+}
+
+#rb-dock .rb-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+#rb-dock .rb-input {
+  appearance: none;
+  width: 244px;
+  height: 44px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 16px;
+  border: none;
+  border-radius: 22px;
+  background: #ffffff;
+  color: var(--rb-ink);
+  box-shadow: var(--rb-lift);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+#rb-dock .rb-input::placeholder {
+  color: #5c5c5c;
+}
+
+/* ---------------------------------------------------------------------
+   The thread: floating bubbles above him, no panel
+   --------------------------------------------------------------------- */
+#rb-thread {
+  position: fixed;
+  right: calc(var(--rb-gap) - 8px);
+  top: 0;
+  bottom: calc(var(--rb-gap) + 72px + var(--rb-kb));
+  z-index: 501;
+  width: min(344px, calc(100vw - 16px));
+  box-sizing: border-box;
+  padding: 24px 8px 8px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  margin-bottom: 8px;
-  user-select: none;
+  justify-content: flex-end;
+  gap: 8px;
+  pointer-events: none;
+  font-family: var(--rb-font);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 28%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 28%);
 }
 
-#rb-keyboard .kb-row {
-  display: flex;
-  justify-content: center;
-  gap: 3px;
+#rb-thread[data-state="closed"] {
+  display: none;
 }
 
-#rb-keyboard .kb-key {
-  appearance: none;
-  border: none;
-  background: #2c2c30;
-  color: #f0f0f2;
-  border-radius: 7px;
-  min-width: 20px;
-  height: 26px;
-  padding: 0 5px;
-  font-size: 10.5px;
-  font-weight: 500;
-  font-family: inherit;
+/* Peek: only his latest line, and it invites a click */
+#rb-thread[data-state="peek"] {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+#rb-thread[data-state="peek"] > :not(:last-child) {
+  display: none;
+}
+
+#rb-thread[data-state="peek"] .rb-item {
   cursor: pointer;
-  line-height: 1;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset;
 }
 
-#rb-keyboard .kb-key:hover {
-  background: #38383c;
+#rb-thread .rb-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+  pointer-events: auto;
 }
 
-#rb-keyboard .kb-key:active {
-  background: #48484e;
+#rb-thread .rb-from-buddy {
+  align-self: flex-end;
+  align-items: flex-end;
+  max-width: 270px;
 }
 
-#rb-keyboard .kb-key.wide {
-  min-width: 36px;
-  font-size: 12px;
+#rb-thread .rb-from-visitor {
+  align-self: flex-start;
+  align-items: flex-start;
+  max-width: 250px;
 }
 
-#rb-keyboard .kb-key.space {
-  flex: 1;
-  max-width: 90px;
-  font-size: 9.5px;
-  letter-spacing: 0.02em;
-  color: #a8a8ad;
+#rb-thread .rb-bubble {
+  box-sizing: border-box;
+  padding: 10px 14px;
+  box-shadow: var(--rb-lift);
+  font-size: 13.5px;
+  overflow-wrap: anywhere;
 }
 
-#rb-keyboard .kb-key.submit {
-  background: #4a7c59;
-  color: #f3f8f4;
-  font-size: 10.5px;
-  font-weight: 600;
-  padding: 0 12px;
+#rb-thread .rb-from-buddy .rb-bubble {
+  background: var(--rb-yellow);
+  color: #000000;
+  border-radius: 18px 18px 6px 18px;
+  line-height: 1.34;
+  font-weight: 700;
+}
+
+#rb-thread .rb-from-visitor .rb-bubble {
+  background: #ffffff;
+  color: var(--rb-ink);
+  border-radius: 18px 18px 18px 6px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+#rb-thread .rb-loading .rb-bubble {
   min-width: 44px;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.6);
 }
 
-#rb-keyboard .kb-key.submit:hover:not(:disabled) {
-  background: #568a66;
+#rb-thread .rb-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 8px 14px;
+  background: #ffffff;
+  color: var(--rb-ink);
+  border-radius: 14px;
+  box-shadow: var(--rb-lift);
+  font-size: 13px;
+  line-height: 1.3;
+  font-weight: 600;
+  text-decoration: none;
 }
 
-#rb-keyboard .kb-key.submit:active:not(:disabled) {
-  background: #3f6b4d;
+#rb-thread .rb-chip:hover {
+  color: #000000;
 }
 
-#rb-keyboard .kb-key.submit:disabled {
-  background: #34403a;
-  color: #6f7a73;
-  cursor: not-allowed;
-  box-shadow: none;
+#rb-thread .rb-chip svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
-/* Expression states — face swaps, colour, and pose overrides.
+/* Links arrive once he has finished typing the line */
+#rb-thread .rb-typing .rb-chip {
+  display: none;
+}
+
+#rb-thread .rb-moved {
+  align-self: center;
+  flex-shrink: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 4px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #444444;
+  font-size: 11px;
+  line-height: 1.3;
+  font-weight: 600;
+  text-align: center;
+  pointer-events: auto;
+}
+
+/* Phone only: fade the page out behind the input row while chatting */
+#rb-fade {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------
+   Expression states — face swaps, colour, and pose overrides.
    Motion for each state lives in the JS frame() loop; CSS handles the
-   swappable SVG parts, colour/filter, and steam animation. */
+   swappable SVG parts, colour/filter, and steam animation.
+   --------------------------------------------------------------------- */
 #rb-eyes-happy,
 #rb-eyes-angry,
 #rb-eyes-cross,
@@ -398,28 +552,43 @@
   50%      { opacity: 1;    transform: translateY(-1.5px); }
 }
 
+/* ---------------------------------------------------------------------
+   Phones
+   --------------------------------------------------------------------- */
 @media (max-width: 480px) {
-  #rb-mute {
-    top: 4px;
-    right: 12px;
-    width: 28px;
-    height: 28px;
+  :root {
+    --rb-gap: 16px;
+    --rb-lift: 0 4px 14px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.04);
   }
 
-  #rb-mute svg {
-    width: 14px;
-    height: 14px;
+  #rb-dock .rb-input {
+    width: calc(100vw - 32px - 56px - 8px - 50px);
+    font-size: 16px;   /* below 16px iOS zooms the page on focus */
   }
 
-  #rb-compose {
-    bottom: 14px;
-    width: min(280px, calc(100vw - 24px));
-    padding: 8px;
+  #rb-thread {
+    width: min(320px, calc(100vw - 16px));
   }
 
-  #rb-keyboard .kb-key {
-    min-width: 18px;
-    height: 24px;
-    font-size: 10px;
+  /* Only the latest few lines fit above a phone keyboard */
+  #rb-thread[data-state="open"] {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  #rb-thread[data-state="open"] > :nth-last-child(n+4) {
+    display: none;
+  }
+
+  #rb-fade.show {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: calc(150px + var(--rb-kb));
+    z-index: 499;
+    pointer-events: none;
+    background: linear-gradient(to bottom, transparent 0%, var(--rb-ground) 55%);
   }
 }

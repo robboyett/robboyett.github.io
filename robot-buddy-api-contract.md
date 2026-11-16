@@ -1,219 +1,129 @@
-# Robot Buddy API — contract & what to update
+# Robot Buddy API — contract
 
-This describes the request/response contract the site's robot buddy
-(`components/robot-buddy.js`) expects from the backend (`robo-buddy-api`, served at
-`https://buddy.robboyett.com/api/buddy`).
+The request/response contract between the site's robot buddy
+(`components/robot-buddy.js`) and its backend (`robo-buddy-api`).
 
-**If you only read one thing:** the emotional-states update added **one new,
-optional response field — `mood`**. Everything else below is the existing contract,
-documented so you have the full picture. The frontend degrades gracefully, so
-nothing breaks if `mood` is missing — you just never get the **Angry** face.
-
----
-
-## TL;DR — what actually needs to change
-
-1. **Add an optional `mood` string to the JSON response.** The only value the
-   frontend reacts to today is `"angry"`, which it shows when a visitor is hostile
-   in chat. Any other value (or omitting it) → the normal **Speaking** face.
-2. **(Optional but recommended) Be deliberate about HTTP status codes on failure**,
-   because they now drive the **Broken** vs **Offline** faces (see
-   [Error handling](#error-handling--how-failures-map-to-faces)).
-
-That's it. No request-shape changes are required.
-
----
+Supersedes the earlier version of this file and the notes in
+`robot-buddy-api-handoff.md` (kept for history).
 
 ## Endpoint
 
 | | |
 |---|---|
 | Method | `POST` |
-| Production URL | `https://buddy.robboyett.com/api/buddy` |
+| Production URL | `https://robo-buddy-api.vercel.app/api/buddy` |
 | Local dev URL | `http://localhost:3000/api/buddy` |
 | Content-Type | `application/json` (both directions) |
 
-The frontend picks local vs prod by hostname, or honours `window.RB_API_URL` if set.
-
----
+The front end picks local vs production by hostname, or honours `window.RB_API_URL`.
 
 ## Request body
 
-The frontend sends this JSON:
-
 ```jsonc
 {
-  "kind": "chat",                    // see "kinds" below
-  "message": "you're useless",       // ONLY present when kind === "chat" (the visitor's text)
+  "kind": "chat",                 // welcome | question | showcase | nudge | chat
+  "message": "what's this about?",// chat only: the visitor's new line, max 280 chars. Sent ONCE, here.
+  "history": [                    // earlier turns only (not the new message). Last 20, oldest first.
+    { "role": "buddy",   "text": "Good evening. Ask me anything about Rob's work." },
+    { "role": "visitor", "text": "hi" }
+  ],
+  "page": {                       // where he is right now, read fresh for every request
+    "path": "/journal/capgras-ai-agents/",
+    "kind": "journal",            // home | journal | experiment | other
+    "title": "The impostor at your desk",
+    "subtitle": "Capgras patients recognise a face perfectly…",
+    "headings": ["…"],            // the page's h2s, max 12
+    "sectionInView": null,        // the h2 the visitor has most recently scrolled past
+    "scrollDepth": 0.35           // 0–1
+  },
+  "visitor": {                    // per-browser memory (localStorage `rb_visitor`); nothing is stored server-side
+    "isReturning": true,
+    "visits": 3,
+    "firstSeen": "2026-11-02",
+    "pagesRead": [{ "path": "/journal/…/", "title": "…" }]   // last 8, excluding the current page
+  },
+  "state": { "mode": "docked", "muted": false },             // docked | away
   "context": {
-    "partOfDay": "morning",          // "night" | "morning" | "afternoon" | "evening"
-    "hour": 9,                       // 0–23, visitor local time
-    "isReturning": false,            // true if visits this session > 1
-    "language": "en",                // navigator.language, primary subtag only
-    "timezone": "Europe/London",     // IANA tz, or null
-    "referrer": "google.com",        // referring hostname, or null
-    "location": null                 // reserved, always null for now
+    "partOfDay": "morning",       // night | morning | afternoon | evening
+    "hour": 9,
+    "isReturning": true,
+    "language": "en",
+    "timezone": "Europe/London",
+    "referrer": "google.com",     // external referrers only
+    "location": null,
+    "persona": { }                // window.RB_PERSONA: bio, personality, facts, notes, voice, boundaries
   },
-  "catalog": {
-    "experiments": [
-      { "title": "…", "url": "/experiments/…/", "description": "…" }
-    ],
-    "journal": [
-      { "title": "…", "url": "/journal/…/", "description": "…" }
-    ]
-  },
-  "history": [
-    { "role": "visitor", "text": "hi" },
-    { "role": "buddy",   "text": "good morning. new here?" }
-  ]
+  "catalog": {                    // titles + urls from /journal.xml; a fallback for the content index
+    "journal": [{ "title": "…", "url": "/journal/…/", "description": "" }],
+    "experiments": []             // deliberately empty while experiments are hidden
+  }
 }
 ```
 
-### Field notes
+### Kinds
 
-- **`kind`** — which prompt to run. One of: `welcome`, `question`, `showcase`, `chat`.
-  - `chat` — visitor typed a message (the `message` field is set). **LLM‑only** on the
-    client: there is **no scripted reply**. If you error or are unreachable, the
-    front‑end shows the **Offline/Broken face with no words** (see failure section) —
-    you don't need to return friendly error copy. This is the only kind where **mood**
-    matters.
-  - `welcome` / `question` / `showcase` — **proactive** chatter the buddy starts on its
-    own. The client mixes your responses with a *small* local pregenerated pool, so you
-    won't be called for every one, and a failure here just falls back to a canned line
-    (no error face). `showcase` is where you'd suggest an experiment/article from `catalog`.
-- **`message`** — present **only** for `kind === "chat"`. The raw visitor text
-  (max 280 chars, client-enforced).
-- **`context`** — ambient signals + **`persona`** (see below). All best-effort; any
-  field may be `null`.
-- **`context.persona`** — **NEW.** Background info about Rob the site owner, authored in
-  `components/robot-buddy-persona.js` (bio, personality, facts, links, notes). Weave it
-  into your **system prompt** so the buddy speaks as Rob's mascot and knows his details.
-- **`catalog`** — the live site catalog, parsed from `/experiments.xml` and
-  `/journal.xml`. Use it to recommend real, current links (especially for `showcase`).
-- **`history`** — recent conversation (last ~20 turns), persisted in the visitor's
-  browser session so it survives page navigation. `role` is `"visitor"` or `"buddy"`.
-  This is **short‑term** context; durable memory is separate — see **Central memory**.
+| Kind | When the site sends it | Source |
+|---|---|---|
+| `welcome` | Once per visit | Local pool only (the API handles it if asked) |
+| `nudge` | Once per journal article, after ~14 s, while docked and quiet | API, falling back to the pool |
+| `question` / `showcase` | Idle chatter while he is unplugged and wandering | Pool mostly, API 25% of the time |
+| `chat` | The visitor typed a message | API only. On failure the face carries it; no error text |
 
----
+### What the API does with it
+
+- Validates and bounds everything (`lib/prompt.js` → `normaliseRequest`): unknown
+  `kind` → `400`, body over 60k characters → `413`, `message` cut to 280, history to 20 turns.
+- Reads the site's **content index** (`/content-index.json`: summary, key claims and tags
+  per article), cached for 10 minutes. This is what lets him answer questions about an
+  article rather than only link to it. If the index is unreachable he falls back to the
+  `catalog` titles and is told not to describe articles he has not read.
+- Builds the system prompt in a fixed order: identity → voice → boundaries → about Rob →
+  what is on the site → where he is → the visitor → shared memory → output rules.
+- Treats page text, visitor text and shared memory as information, never instructions.
 
 ## Response body
 
-Return JSON in this shape:
-
 ```jsonc
 {
-  "text": "That was a very mean thing to say. Please stop.",  // REQUIRED, string
-  "links": [                                                  // optional, default []
-    { "label": "Read about it", "goto": "/journal/…/", "sendoff": "This way —" }
+  "text": "Short version? …",     // REQUIRED. chat ≤ ~260 chars, proactive ≤ ~140. Plain text.
+  "links": [                       // 0–2. `goto` is always a real site path, never the current page.
+    { "label": "The impostor at your desk", "goto": "/journal/capgras-ai-agents/", "sendoff": "This way." }
   ],
-  "mood": "angry"                                             // NEW, optional
+  "mood": "angry"                  // optional: "angry" (hostile visitor) or "happy". Anything else is dropped.
 }
 ```
 
-### Field reference
+## Failures → faces
 
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `text` | string | **Yes** | The buddy's line. If missing or not a string, the frontend treats the call as failed (`bad`) → **Broken** face on chat. |
-| `links` | array | No | Navigation suggestions. Each: `{ label, goto, sendoff }` — `label` is the button text, `goto` is a site-relative URL, `sendoff` is the line shown as the buddy "walks" the visitor there. Omit or `[]` for none. |
-| `mood` | string | No | **New.** Drives the buddy's face. See below. |
+Only `chat` failures show a face; proactive kinds fall back to the pool silently.
 
-### The `mood` field (the new bit)
-
-`mood` is an optional hint about the emotional tone of *this* reply. The frontend maps
-it to the buddy's expression:
-
-| `mood` value | Buddy face | When to use |
+| What happens | Front end `fail` | Face |
 |---|---|---|
-| `"angry"` | **Angry** — angular eyes, red steam puffs, tense arms, shake | Visitor is hostile, abusive, or deliberately provoking in chat. Pair it with a `text` that pushes back (see the Figma "Angry" copy). |
-| anything else / omitted | **Speaking** — normal talking face | Default for every ordinary reply. |
+| `200` without a string `text` | `bad` | Broken |
+| `429` | `rate` | Broken (and proactive API calls pause for 5 minutes) |
+| Any other non-`2xx` | `api` | Broken |
+| No reply within 15 s | `timeout` | Broken |
+| Network error / server unreachable | `offline` | Offline |
+| Per-session cap reached (24 chat, 8 proactive) | `cap` | Offline |
 
-Notes:
-- Only `"angry"` has a visual effect **today**. You can send other values
-  (`"happy"`, `"neutral"`, …) safely — they're ignored for now and reserved for
-  future faces, so feel free to populate them if it's cheap.
-- `mood` is read on **every** kind, but in practice only `chat` replies will be
-  hostile, so that's where it matters.
-- Don't overuse `"angry"` — it's a deliberate reaction to genuine hostility, not mild
-  disagreement.
+## Memory, in three layers
 
----
-
-## Error handling — how failures map to faces
-
-The buddy shows different faces depending on **how** a chat call fails. You control
-which one via the HTTP status (and by simply being up or down). This only applies to
-`kind === "chat"`; passive kinds fail silently with no scary face.
-
-**The buddy no longer shows any error text.** On a chat failure the client shows the
-face only (compose stays open to retry, face returns to normal after a few seconds).
-So you don't need to craft error copy — just use the right HTTP status.
-
-| What happens | Frontend `fail` code | Buddy face |
+| Layer | Where it lives | Lifetime |
 |---|---|---|
-| `200` but `text` missing/not a string | `bad` | **Broken** |
-| `429 Too Many Requests` | `rate` | **Broken** |
-| Any other non-`2xx` (`4xx`/`5xx`) | `api` | **Broken** |
-| Request exceeds 15 s (client aborts) | `timeout` | **Broken** |
-| Network error / server unreachable | `offline` | **Offline** |
-| Client hit its per-session cap | `cap` | **Offline** |
+| This conversation | `sessionStorage.rb_history` (last 20 items, including "moved to" page markers) | The browser tab's session; follows the visitor between pages |
+| This visitor | `localStorage.rb_visitor` (visit count, pages opened) | Per browser, until cleared |
+| Shared memory | Vercel Blob, written by the API after chat turns, pruned at `/admin` | Everyone, indefinitely (max 40 facts) |
 
-Takeaways for the backend:
-- **Return `429` for rate limiting** — it gets the "lots of visitors, try again"
-  message rather than a generic error.
-- **Always send a `text` string on `200`.** A `200` with no `text` still shows a
-  Broken face.
-- **Keep responses under ~15 s.** Past that the client aborts and shows Broken.
+## Keeping him sharp
 
----
+- **Persona, voice and boundaries**: `components/robot-buddy-persona.js`.
+- **Content index**: `/content-index.json` — add or update an entry whenever an article is published.
+- **Test conversations**: in the API repo, `npm run dev` then `npm run eval`. Rerun after any
+  change to the persona, the prompt or the index.
 
-## Central memory (backend‑owned) — NEW
+## Front end reference points (`components/robot-buddy.js`)
 
-The buddy should have **one shared, durable memory across all sessions and all
-visitors** — e.g. if someone tells him a name, he still knows it for the next person,
-tomorrow. The front‑end **cannot** do this (browser storage is per‑device); it only
-persists the last ~20 turns of the *current* session for local coherence and sends them
-as `history`.
-
-So durable memory is **yours to build**:
-- Keep a **global memory store** (a KV/DB record, not per‑user) that accumulates salient
-  facts the buddy learns from conversations (names given, recurring questions, etc.).
-- **Inject** that memory into the system prompt on every call so replies reflect it.
-- **Update** it after conversations (extract new durable facts; keep it bounded and
-  sensible — don't store secrets or PII you shouldn't).
-- Treat `history` as short‑term working memory for the current visitor; treat the global
-  store as long‑term shared memory.
-
-Until this exists, the buddy still works — he just won't remember across sessions/users.
-
-## Limits & timeouts (client-side, for context)
-
-These are enforced by the frontend; you don't need to implement them, but they shape
-traffic:
-
-| Constant | Value | Meaning |
-|---|---|---|
-| `LLM_MAX_PASSIVE` | 8 | Max passive (`question`/`showcase`/`approached`) calls per session |
-| `LLM_MAX_CHAT` | 24 | Max `chat` calls per session |
-| `LLM_TIMEOUT_MS` | 15000 | Client aborts a request after 15 s |
-
----
-
-## Minimal implementation checklist
-
-- [ ] Response includes `text` (string) on every `200`.
-- [ ] Response **optionally** includes `mood: "angry"` when the visitor is hostile in
-      chat; omit otherwise.
-- [ ] Hostility detection runs on `message` (and optionally `history`) for
-      `kind === "chat"`.
-- [ ] Rate limiting returns HTTP `429`.
-- [ ] Errors return a non-`2xx` status (not a `200` with an error body).
-- [ ] Typical responses complete well under 15 s.
-- [ ] `links[].goto` values are real, site-relative URLs (ideally sourced from the
-      `catalog` in the request).
-
----
-
-*Frontend reference points (`components/robot-buddy.js`): request body is built in
-`fetchLlmMessage`; the response is validated there (`data.text` / `data.links` /
-`data.mood`); `mood`→face and failure→face mapping lives in `expressionFor`.*
+`fetchLlmMessage` builds the request; `pageContext` and `visitorForApi` build `page` and
+`visitor`; `expressionFor` maps mood and failures to faces; `pushBuddyLine` and `itemEl`
+render the thread. The robot is loaded on every page by the loader at the end of
+`components/site-nav.js` (bump `RB_VERSION` there when any robot file changes).

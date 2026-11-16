@@ -1,1 +1,1 @@
-cd /Users/robertboyett/Documents/GitHub/robboyett.github.io && python3 -m http.server 8000
+cd /Users/robertboyett/Documents/GitHub.nosync/robboyett.github.io && python3 -m http.server 8123

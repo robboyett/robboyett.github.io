@@ -1,7 +1,15 @@
 /**
- * Robot buddy — homepage mascot with Discuss chat + optional LLM backend.
+ * Robot buddy — site-wide mascot.
+ *
+ * He lives in a small dock, bottom right of every page (loaded by site-nav.js).
+ * Click him to chat: a multi-turn thread of floating bubbles above the dock,
+ * typed into a real text field. Unplug him and he wanders the page as before.
+ * Lines come from the buddy API, with a small local pool for proactive chatter.
  */
 (() => {
+  if (window.__rbLoaded) return;
+  window.__rbLoaded = true;
+
   const LOCAL_API = 'http://localhost:3000/api/buddy';
   const PROD_API = 'https://robo-buddy-api.vercel.app/api/buddy';
   const isLocalHost = /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
@@ -9,15 +17,14 @@
   const LLM_MAX_PASSIVE = 8;
   const LLM_MAX_CHAT = 24;
   const LLM_TIMEOUT_MS = 15000;
-  const PROACTIVE_LLM_CHANCE = 0.25;          // idle chatter mostly uses the pool
+  const PROACTIVE_LLM_CHANCE = { question: 0.25, showcase: 0.25, nudge: 1 };  // welcome is pool-only
   const PROACTIVE_RATE_PAUSE_MS = 5 * 60 * 1000;  // after a 429, stop poking the LLM for proactive lines
-  const LLM_KINDS = new Set(['question', 'showcase', 'approached', 'chat']);
   const PASSIVE_DISMISS_MS = 6400;
+  const HISTORY_MAX = 20;
+  const MAX_DRAFT = 280;
   const TOUCH_ONLY = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
   const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const EXP_CLASSES = ['exp-normal', 'exp-speaking', 'exp-thinking', 'exp-angry', 'exp-broken', 'exp-offline'];
-  const KEY_ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
-  const MAX_DRAFT = 280;
 
   const BUDDY_SVG = `<svg id="rb-buddy" viewBox="0 0 64 89" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <g id="rb-head" style="transform-origin: 32px 31px;">
@@ -114,51 +121,71 @@
     <path d="M46 71.5 A6.5 6.5 0 0 1 59 71.5 Z" fill="#FDBC1B"/>
   </svg>`;
 
-  function buildKeyboardHTML() {
-    const rows = KEY_ROWS.map((row) => {
-      const keys = [...row].map((ch) =>
-        `<button type="button" class="kb-key" data-key="${ch}">${ch}</button>`
-      ).join('');
-      return `<div class="kb-row">${keys}</div>`;
-    }).join('');
-    return `${rows}
-      <div class="kb-row">
-        <button type="button" class="kb-key wide" data-key="backspace">⌫</button>
-        <button type="button" class="kb-key space" data-key=" ">space</button>
-        <button type="button" class="kb-key submit">Send</button>
-      </div>`;
-  }
-
   const MUTE_ICON = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 12c0-1.77-1-3.29-2.5-4.03v8.05c1.5-.74 2.5-2.26 2.5-4.02z" fill="currentColor"/><path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" fill="currentColor"/></svg>`;
   const MUTED_ICON = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M15.5 8.5l7 7M22.5 8.5l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+  const PLUG_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0V8zM12 17v5"/></svg>`;
+  const CLOSE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>`;
+  const ARROW_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`;
 
   function injectDOM() {
+    // Robot + the bubble he carries while wandering. Page coordinates when he is
+    // away, viewport coordinates (position: fixed) while he sits in the dock.
     const wrap = document.createElement('div');
     wrap.id = 'rb-root';
     wrap.innerHTML = `
       <div id="rb-shadow"></div>
-      <div id="rb-bubble" role="dialog" aria-live="polite">
+      <div id="rb-bubble" role="status">
         <p class="msg"></p>
         <div class="links"></div>
-        <button type="button" class="discuss">Discuss</button>
+        <button type="button" class="reply">Reply</button>
       </div>
       ${BUDDY_SVG}
       ${BROKEN_SVG}
     `;
     document.body.appendChild(wrap);
 
-    const compose = document.createElement('div');
-    compose.id = 'rb-compose';
-    compose.innerHTML = `
-      <button type="button" class="done" aria-label="Close">×</button>
-      <div class="rb-compose-display" aria-live="polite"></div>
-      <div id="rb-keyboard">${buildKeyboardHTML()}</div>
+    const thread = document.createElement('div');
+    thread.id = 'rb-thread';
+    thread.dataset.state = 'closed';
+    thread.setAttribute('role', 'log');
+    thread.setAttribute('aria-live', 'polite');
+    thread.setAttribute('aria-label', 'Conversation with the robot');
+    document.body.appendChild(thread);
+
+    const fade = document.createElement('div');
+    fade.id = 'rb-fade';
+    fade.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(fade);
+
+    const dock = document.createElement('div');
+    dock.id = 'rb-dock';
+    dock.innerHTML = `
+      <div class="rb-controls">
+        <button type="button" class="rb-btn rb-ask">Ask</button>
+        <button type="button" class="rb-btn rb-icon" data-rb-unplug aria-label="Unplug the robot for a wander" title="Unplug him">${PLUG_ICON}</button>
+        <button type="button" class="rb-btn rb-icon" data-rb-mute="icon"></button>
+      </div>
+      <div class="rb-chat">
+        <div class="rb-tools">
+          <button type="button" class="rb-tool" data-rb-unplug>Unplug him</button>
+          <button type="button" class="rb-tool" data-rb-mute="text"></button>
+        </div>
+        <form class="rb-form" autocomplete="off">
+          <button type="button" class="rb-btn rb-icon rb-close" aria-label="Close chat">${CLOSE_ICON}</button>
+          <input class="rb-input" type="text" maxlength="${MAX_DRAFT}" enterkeyhint="send" autocapitalize="sentences" aria-label="Message the robot" placeholder="Ask me anything">
+        </form>
+      </div>
+      <button type="button" class="rb-callback">Call him back</button>
+      <button type="button" class="rb-seat" aria-label="Chat with the robot"></button>
+      <span class="rb-ledge" aria-hidden="true"></span>
+      <span class="rb-light" aria-hidden="true"></span>
     `;
-    document.body.appendChild(compose);
+    document.body.appendChild(dock);
   }
 
   injectDOM();
 
+  const root        = document.getElementById('rb-root');
   const buddy       = document.getElementById('rb-buddy');
   const shadow      = document.getElementById('rb-shadow');
   const head        = document.getElementById('rb-head');
@@ -174,12 +201,91 @@
   const bubble      = document.getElementById('rb-bubble');
   const bubbleMsg   = bubble.querySelector('.msg');
   const bubbleLinks = bubble.querySelector('.links');
-  const discussBtn  = bubble.querySelector('.discuss');
-  const compose     = document.getElementById('rb-compose');
-  const draftDisplay = compose.querySelector('.rb-compose-display');
-  const keyboard    = document.getElementById('rb-keyboard');
-  const submitBtn   = compose.querySelector('.submit');
-  const doneBtn     = compose.querySelector('.done');
+  const replyBtn    = bubble.querySelector('.reply');
+  const thread      = document.getElementById('rb-thread');
+  const dockEl      = document.getElementById('rb-dock');
+  const form        = dockEl.querySelector('.rb-form');
+  const input       = dockEl.querySelector('.rb-input');
+  const seatBtn     = dockEl.querySelector('.rb-seat');
+  const fadeEl      = document.getElementById('rb-fade');
+
+  function sget(key) { try { return sessionStorage.getItem(key); } catch (e) { return null; } }
+  function sset(key, val) { try { sessionStorage.setItem(key, val); } catch (e) { /* storage blocked */ } }
+  function sdel(key) { try { sessionStorage.removeItem(key); } catch (e) { /* */ } }
+
+  /* =====================================================================
+     WHERE HE IS, AND WHO IS VISITING
+     ===================================================================== */
+  const PATH = window.location.pathname;
+  const PAGE_KIND =
+    (PATH === '/' || PATH === '/index.html') ? 'home' :
+    PATH.startsWith('/journal/') ? 'journal' :
+    PATH.startsWith('/experiments/') ? 'experiment' : 'other';
+
+  function clip(str, max) {
+    const s = (str || '').replace(/\s+/g, ' ').trim();
+    return s.length > max ? s.slice(0, max - 1).trim() + '…' : s;
+  }
+
+  function pageTitle() {
+    if (PAGE_KIND === 'home') return 'Home';
+    const h = document.querySelector('h1.article-title, h1.experiment-title, article h1, h1');
+    const fromDoc = document.title.replace(/\s*\|\s*Rob Boyett\s*$/, '');
+    return clip((h && h.textContent) || fromDoc, 140) || 'this page';
+  }
+
+  // Read fresh on every request: what he's looking at changes as the visitor scrolls.
+  function pageContext() {
+    const sub = document.querySelector('.article-subtitle, .experiment-subtitle');
+    const h2s = [...document.querySelectorAll('.article-content h2, article h2')];
+    const mid = window.innerHeight * 0.5;
+    let section = null;
+    h2s.forEach((h) => { if (h.getBoundingClientRect().top < mid) section = h; });
+    const depth = Math.min(1, (scrollY() + window.innerHeight) / Math.max(1, pageHeight()));
+    return {
+      path: PATH,
+      kind: PAGE_KIND,
+      title: pageTitle(),
+      subtitle: sub ? clip(sub.textContent, 300) : null,
+      headings: h2s.slice(0, 12).map((h) => clip(h.textContent, 80)),
+      sectionInView: section ? clip(section.textContent, 80) : null,
+      scrollDepth: Math.round(depth * 100) / 100,
+    };
+  }
+
+  // Per-browser memory: lives in localStorage only, and a small slice is sent with
+  // each request so he can tell a returning visitor from a new one.
+  const visitor = (() => {
+    const blank = { firstSeen: null, lastSeen: null, visits: 0, pagesRead: [] };
+    let v = blank;
+    try { v = Object.assign({}, blank, JSON.parse(localStorage.getItem('rb_visitor') || '{}')); } catch (e) { /* */ }
+    if (!Array.isArray(v.pagesRead)) v.pagesRead = [];
+    const today = new Date().toISOString().slice(0, 10);
+    if (!v.firstSeen) v.firstSeen = today;
+    if (!sget('rb_session')) { v.visits = (+v.visits || 0) + 1; sset('rb_session', '1'); }
+    v.lastSeen = today;
+    return v;
+  })();
+
+  function saveVisitor() {
+    try { localStorage.setItem('rb_visitor', JSON.stringify(visitor)); } catch (e) { /* */ }
+  }
+
+  function notePageRead() {
+    if (PAGE_KIND !== 'journal' && PAGE_KIND !== 'experiment') return;
+    visitor.pagesRead = visitor.pagesRead.filter((p) => p && p.path !== PATH);
+    visitor.pagesRead.push({ path: PATH, title: pageTitle(), at: visitor.lastSeen });
+    visitor.pagesRead = visitor.pagesRead.slice(-20);
+  }
+
+  function visitorForApi() {
+    return {
+      isReturning: visitor.visits > 1,
+      visits: visitor.visits,
+      firstSeen: visitor.firstSeen,
+      pagesRead: visitor.pagesRead.filter((p) => p.path !== PATH).slice(-8).map((p) => ({ path: p.path, title: p.title })),
+    };
+  }
 
   const context = (() => {
     const now = new Date();
@@ -189,18 +295,16 @@
       hour < 12 ? 'morning' :
       hour < 18 ? 'afternoon' :
       hour < 22 ? 'evening' : 'night';
-    let visits = 1;
-    try {
-      visits = (+sessionStorage.getItem('rb_visits') || 0) + 1;
-      sessionStorage.setItem('rb_visits', String(visits));
-    } catch (e) { /* storage blocked */ }
+    let referrer = null;
+    try { referrer = document.referrer ? new URL(document.referrer).hostname : null; } catch (e) { /* */ }
+    if (referrer === window.location.hostname) referrer = null;
     return {
       partOfDay,
       hour,
-      isReturning: visits > 1,
+      isReturning: visitor.visits > 1,
       language: (navigator.language || 'en').split('-')[0],
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
-      referrer: document.referrer ? new URL(document.referrer).hostname : null,
+      referrer,
       location: null,
       persona: (window.RB_PERSONA || null),   // background info about Rob (see robot-buddy-persona.js)
     };
@@ -255,30 +359,30 @@
     } catch (e) { /* never let speech break the buddy */ }
   }
 
-  function syncMuteButton() {
-    const btn = document.getElementById('rb-mute');
-    if (!btn) return;
-    btn.classList.toggle('muted', speechMuted);
-    btn.setAttribute('aria-pressed', speechMuted ? 'true' : 'false');
-    btn.setAttribute('aria-label', speechMuted ? 'Unmute robot voice' : 'Mute robot voice');
-    btn.title = speechMuted ? 'Unmute robot' : 'Mute robot';
-    btn.innerHTML = speechMuted ? MUTED_ICON : MUTE_ICON;
+  const muteButtons = [...dockEl.querySelectorAll('[data-rb-mute]')];
+
+  function syncMuteButtons() {
+    muteButtons.forEach((btn) => {
+      if (!CAN_SPEAK) { btn.hidden = true; return; }
+      btn.setAttribute('aria-pressed', speechMuted ? 'true' : 'false');
+      if (btn.dataset.rbMute === 'icon') {
+        btn.setAttribute('aria-label', speechMuted ? 'Unmute robot voice' : 'Mute robot voice');
+        btn.title = speechMuted ? 'Unmute him' : 'Mute him';
+        btn.innerHTML = speechMuted ? MUTED_ICON : MUTE_ICON;
+      } else {
+        btn.textContent = speechMuted ? 'Unmute him' : 'Mute him';
+      }
+    });
   }
 
-  function injectMuteButton() {
-    if (!CAN_SPEAK) return;
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.id = 'rb-mute';
-    btn.addEventListener('click', () => {
-      speechMuted = !speechMuted;
-      try { localStorage.setItem('rb_muted', speechMuted ? '1' : '0'); } catch (e) { /* */ }
-      if (speechMuted) stopSpeaking();
-      syncMuteButton();
-    });
-    document.body.appendChild(btn);
-    syncMuteButton();
-  }
+  muteButtons.forEach((btn) => btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    speechMuted = !speechMuted;
+    try { localStorage.setItem('rb_muted', speechMuted ? '1' : '0'); } catch (err) { /* */ }
+    if (speechMuted) stopSpeaking();
+    syncMuteButtons();
+  }));
+  syncMuteButtons();
 
   if (CAN_SPEAK) {
     pickRobotVoice();
@@ -302,25 +406,51 @@
     window.addEventListener('touchstart', unlock, { passive: true });
   }
 
-  injectMuteButton();
-
+  /* =====================================================================
+     STATE
+     ===================================================================== */
   let catalog = { experiments: [], journal: [] };
-  let chatDraft = '';
-  let chatMode = false;
+  let chatOpen = false;
+  let pendingOpen = false;           // open the chat once he's back in the dock
   let failReturn = null;
   let typeTimer = null;
+  let peekTimer = null;
+  let restTimer = null;
   let proactiveLlmPausedUntil = 0;   // set when a 429 is seen; proactive chatter goes pool-only until then
 
-  // Session memory — survives page-to-page navigation within a visit so he stays
-  // coherent (the shared, cross-user memory is maintained server-side). Capped.
+  // Session memory — survives page-to-page navigation within a visit so the thread
+  // follows the visitor round the site (the shared, cross-visitor memory is
+  // maintained server-side). Items: { role: 'buddy'|'visitor'|'moved', text, links? }.
   function loadHistory() {
-    try { return JSON.parse(sessionStorage.getItem('rb_history') || '[]'); } catch (e) { return []; }
+    try {
+      const h = JSON.parse(sget('rb_history') || '[]');
+      return Array.isArray(h) ? h.filter((i) => i && typeof i.text === 'string') : [];
+    } catch (e) { return []; }
   }
   function persistHistory() {
-    conversationHistory = conversationHistory.slice(-20);
-    try { sessionStorage.setItem('rb_history', JSON.stringify(conversationHistory)); } catch (e) { /* */ }
+    conversationHistory = conversationHistory.slice(-HISTORY_MAX);
+    sset('rb_history', JSON.stringify(conversationHistory));
   }
   let conversationHistory = loadHistory();
+
+  // What the API sees: real turns only, text only.
+  function historyForApi() {
+    return conversationHistory
+      .filter((i) => i.role === 'buddy' || i.role === 'visitor')
+      .map((i) => ({ role: i.role, text: i.text }));
+  }
+
+  // Mark the move in the thread when the visitor arrives on a new page mid-conversation.
+  (function notePageChange() {
+    const last = sget('rb_path');
+    sset('rb_path', PATH);
+    if (!last || last === PATH) return;
+    if (!conversationHistory.some((i) => i.role === 'visitor')) return;
+    const tail = conversationHistory[conversationHistory.length - 1];
+    if (tail && tail.role === 'moved') conversationHistory.pop();
+    conversationHistory.push({ role: 'moved', text: pageTitle() });
+    persistHistory();
+  })();
 
   async function parseXmlEntries(url) {
     const res = await fetch(url, { cache: 'no-cache' });
@@ -348,19 +478,8 @@
 
   loadCatalog();
 
-  const DEST = {
-    article: '/journal/determinism-ai-ux/',
-    caseStudy: "/journal/the-designer's-eval-loop/",
-    about: '/#intro',
-  };
-
   function pickRandom(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
-  }
-
-  function shortTitle(title, max = 40) {
-    if (title.length <= max) return title;
-    return title.slice(0, max - 1).trim() + '…';
   }
 
   const W = 48, H = 67;
@@ -371,38 +490,94 @@
   const pageWidth = () => Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
   const pageHeight = () => Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
 
-  // Start just off-canvas on the left and potter in on load.
-  let entering = true;
-  let pos = { x: scrollX() - 90, y: scrollY() + window.innerHeight * 0.55 };
+  /* =====================================================================
+     DOCK
+     'docked'    seated on the ledge, viewport-anchored
+     'away'      unplugged and wandering the page (page coordinates)
+     'returning' flying back to the dock
+     ===================================================================== */
+  let mode = (!REDUCE_MOTION && sget('rb_mode') === 'away') ? 'away' : 'docked';
+
+  const dockGap = () => (window.innerWidth <= 480 ? 16 : 24);
+
+  // On phones the on-screen keyboard covers the bottom of the layout viewport;
+  // lift the dock (and everything stacked on it) by the covered amount.
+  function keyboardInset() {
+    const vv = window.visualViewport;
+    if (!vv) return 0;
+    return Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+  }
+  function syncKeyboardInset() {
+    document.documentElement.style.setProperty('--rb-kb', `${keyboardInset()}px`);
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', syncKeyboardInset);
+    window.visualViewport.addEventListener('scroll', syncKeyboardInset);
+  }
+  syncKeyboardInset();
+
+  // The ground colour under him, for the fade behind the phone input row.
+  (function syncGround() {
+    const clear = (c) => !c || c === 'transparent' || /rgba\(.*,\s*0\)$/.test(c);
+    let c = getComputedStyle(document.body).backgroundColor;
+    if (clear(c)) c = getComputedStyle(document.documentElement).backgroundColor;
+    if (clear(c)) c = '#ffffff';
+    document.documentElement.style.setProperty('--rb-ground', c);
+  })();
+
+  // Centre of the robot when seated, in viewport coordinates. His yellow base
+  // dips 3px behind the ledge (the ledge is 56 x 6, flush with the dock corner).
+  function seatPos() {
+    const g = dockGap();
+    return {
+      x: document.documentElement.clientWidth - g - 28,
+      y: window.innerHeight - g - keyboardInset() - 6 - 24,
+    };
+  }
+
+  function syncDock() {
+    dockEl.classList.toggle('is-docked', mode === 'docked');
+    dockEl.classList.toggle('is-away', mode !== 'docked');
+    dockEl.classList.toggle('is-open', chatOpen);
+    root.classList.toggle('rb-fixed', mode === 'docked');
+    buddy.classList.toggle('rb-seated', mode === 'docked');
+    seatBtn.setAttribute('aria-label', chatOpen ? 'Close chat with the robot' : 'Chat with the robot');
+    seatBtn.setAttribute('aria-expanded', chatOpen ? 'true' : 'false');
+    fadeEl.classList.toggle('show', chatOpen);
+  }
+
+  let entering = mode === 'away';   // an unplugged robot potters in from off-canvas on load
+  let pos = mode === 'away'
+    ? { x: scrollX() - 90, y: scrollY() + window.innerHeight * 0.55 }
+    : seatPos();
   let vel = { x: 0, y: 0 };
   let target = { x: pos.x, y: pos.y };
   let facing = 1;
-  let mode = 'potter';
+  let wmode = 'potter';             // how he moves while away: potter | approach | flee
   let mouse = { x: pos.x, y: pos.y };
   let pointerClient = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
   let mouseStillSince = performance.now();
   let lastPointer = { x: mouse.x, y: mouse.y };
   let pickWanderAt = 0;
   let approachRepickAt = 0;
-  let gaze = { x: pos.x + 100, y: pos.y };
-  let idleGaze = { x: pos.x + 100, y: pos.y };
+  let gaze = { x: pos.x - 100, y: pos.y };
+  let idleGaze = { x: pos.x - 100, y: pos.y };
   let gazePickAt = 0;
   let fleeUntil = 0;
   let startle = 0;
   let t = 0;
-  let bubbleOpen = false;
+  let bubbleOpen = false;           // the bubble he carries while away
   let idleChatAt = performance.now() + 6000 + Math.random() * 6000;
   let autoDismiss = null;
   let sayInFlight = false;
   let expression = 'normal';
-  let expressionSince = performance.now();
 
   buddy.classList.add('exp-normal');
   function setExpression(name) {
     if (expression === name) return;
     expression = name;
-    expressionSince = performance.now();
     EXP_CLASSES.forEach((c) => buddy.classList.toggle(c, c === `exp-${name}`));
+    dockEl.classList.toggle('is-offline', name === 'offline' || name === 'broken');
   }
   if (isLocalHost) window.__rbExp = setExpression;  // dev-only state preview
 
@@ -419,7 +594,7 @@
     if (moved > 6) {
       mouseStillSince = performance.now();
       lastPointer = { x: mouse.x, y: mouse.y };
-      if (mode === 'approach') mode = 'potter';
+      if (wmode === 'approach') wmode = 'potter';
     }
   }
 
@@ -432,12 +607,14 @@
   }, { passive: true });
   window.addEventListener('scroll', syncMousePage, { passive: true });
 
+  // Poke him while he's out wandering and he darts away.
   buddy.addEventListener('click', (e) => {
     e.stopPropagation();
+    if (mode !== 'away') return;
     const away = Math.atan2(pos.y - mouse.y, pos.x - mouse.x);
     vel.x += Math.cos(away) * 9;
     vel.y += Math.sin(away) * 9;
-    mode = 'flee';
+    wmode = 'flee';
     fleeUntil = performance.now() + 1400;
     startle = 1;
   });
@@ -450,10 +627,50 @@
     target.y = sy + m + Math.random() * (window.innerHeight - 2 * m);
     pickWanderAt = performance.now() + 4200 + Math.random() * 4000;
   }
-  newWanderTarget();
-  // Override the first stop: amble in to a spot in the left of the view, then wander.
-  target.x = scrollX() + Math.min(260, window.innerWidth * 0.22);
-  target.y = pos.y;
+  if (mode === 'away') {
+    newWanderTarget();
+    // Override the first stop: amble in to a spot in the left of the view, then wander.
+    target.x = scrollX() + Math.min(260, window.innerWidth * 0.22);
+    target.y = pos.y;
+  }
+
+  function settleInDock() {
+    mode = 'docked';
+    sset('rb_mode', 'docked');
+    pos = seatPos();
+    vel.x = 0; vel.y = 0;
+    facing = 1;
+    syncDock();
+    if (pendingOpen) { pendingOpen = false; openChat(); }
+  }
+
+  function unplug() {
+    if (REDUCE_MOTION || mode !== 'docked') return;
+    closeChat();
+    clearTimeout(peekTimer);
+    setThread('closed');
+    const s = seatPos();
+    mode = 'away';
+    sset('rb_mode', 'away');
+    pos = { x: s.x + scrollX(), y: s.y + scrollY() };   // viewport → page coordinates
+    vel = { x: -4, y: -8 };                              // hop up off the ledge
+    entering = false;
+    wmode = 'potter';
+    startle = 1;
+    newWanderTarget();
+    idleChatAt = performance.now() + 9000 + Math.random() * 6000;
+    setExpression('normal');
+    syncDock();
+  }
+
+  function callBack() {
+    if (mode !== 'away') return;
+    dismissBubble(false);
+    entering = false;
+    mode = 'returning';
+    sset('rb_mode', 'docked');
+    syncDock();
+  }
 
   let blinkUntil = 0;
   function maybeBlink(now) {
@@ -466,6 +683,13 @@
 
   function frame(now) {
     t += 1;
+    const seated = mode === 'docked';
+
+    if (seated) {
+      const s = seatPos();
+      pos.x = s.x; pos.y = s.y;
+      vel.x = 0; vel.y = 0;
+    }
 
     // Broken — frozen still arrangement: no movement, no shadow.
     if (expression === 'broken') {
@@ -479,61 +703,85 @@
     }
     if (brokenEl.style.display === 'block') { brokenEl.style.display = 'none'; buddy.style.display = ''; }
 
-    const stillFor = now - mouseStillSince;
-    if (!bubbleOpen && mode !== 'flee' && !entering) {
-      if (stillFor > approachStillThreshold()) mode = 'approach';
-      else if (mode !== 'approach') mode = 'potter';
-    }
-    if (mode === 'flee' && now > fleeUntil) mode = 'potter';
-
-    if (!bubbleOpen) {
-      if (mode === 'approach') {
-        // Drift toward the cursor unhurriedly, with the occasional detour so he
-        // still feels like he's wandering rather than locking on.
-        if (now > approachRepickAt) {
-          const wander = Math.random() < 0.45;
-          const scatterX = wander ? (Math.random() * 2 - 1) * 190 : 0;
-          const scatterY = wander ? (Math.random() * 2 - 1) * 130 : 0;
-          target.x = mouse.x - 50 + scatterX;
-          target.y = mouse.y + 24 + scatterY;
-          approachRepickAt = now + (wander ? 1600 : 2600) + Math.random() * 2200;
-        }
-      } else if (mode === 'potter' && now > pickWanderAt) {
-        newWanderTarget();
+    if (mode === 'returning') {
+      // Fly home: a firmer pull than wandering, straight at the seat.
+      const s = seatPos();
+      const dx = s.x + scrollX() - pos.x;
+      const dy = s.y + scrollY() - pos.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < 4) {
+        settleInDock();
+      } else if (dist < 90) {
+        // Final approach: ease straight onto the seat rather than orbiting it.
+        vel.x = dx * 0.14; vel.y = dy * 0.14;
+        pos.x += vel.x; pos.y += vel.y;
+      } else {
+        vel.x += dx * 0.003;
+        vel.y += dy * 0.003;
+        vel.x *= 0.88; vel.y *= 0.88;
+        pos.x += vel.x; pos.y += vel.y;
       }
-      if (mode !== 'flee') {
-        const dx = target.x - pos.x;
-        const dy = target.y - pos.y;
-        const dist = Math.hypot(dx, dy);
-        // Lower pull + approach gentler than potter, so he ambles over.
-        const speed = mode === 'approach' ? 0.005 : 0.006;
-        const settle = mode === 'approach' ? 30 : 4;
-        if (dist > settle) {
-          vel.x += dx * speed * 0.035;
-          vel.y += dy * speed * 0.035;
+    } else if (mode === 'away') {
+      const stillFor = now - mouseStillSince;
+      if (!bubbleOpen && wmode !== 'flee' && !entering) {
+        if (stillFor > approachStillThreshold()) wmode = 'approach';
+        else if (wmode !== 'approach') wmode = 'potter';
+      }
+      if (wmode === 'flee' && now > fleeUntil) wmode = 'potter';
+
+      if (!bubbleOpen) {
+        if (wmode === 'approach') {
+          // Drift toward the cursor unhurriedly, with the occasional detour so he
+          // still feels like he's wandering rather than locking on.
+          if (now > approachRepickAt) {
+            const wander = Math.random() < 0.45;
+            const scatterX = wander ? (Math.random() * 2 - 1) * 190 : 0;
+            const scatterY = wander ? (Math.random() * 2 - 1) * 130 : 0;
+            target.x = mouse.x - 50 + scatterX;
+            target.y = mouse.y + 24 + scatterY;
+            approachRepickAt = now + (wander ? 1600 : 2600) + Math.random() * 2200;
+          }
+        } else if (wmode === 'potter' && now > pickWanderAt) {
+          newWanderTarget();
+        }
+        if (wmode !== 'flee') {
+          const dx = target.x - pos.x;
+          const dy = target.y - pos.y;
+          const dist = Math.hypot(dx, dy);
+          // Lower pull + approach gentler than potter, so he ambles over.
+          const pull = wmode === 'approach' ? 0.005 : 0.006;
+          const settle = wmode === 'approach' ? 30 : 4;
+          if (dist > settle) {
+            vel.x += dx * pull * 0.035;
+            vel.y += dy * pull * 0.035;
+          }
         }
       }
+
+      vel.x *= 0.92;
+      vel.y *= 0.92;
+      pos.x += vel.x;
+      pos.y += vel.y;
+
+      const pad = 45;
+      const maxX = pageWidth() - pad;
+      const maxY = pageHeight() - pad;
+      if (entering) { if (pos.x >= pad) entering = false; }   // let him drift on from off-canvas
+      else if (pos.x < pad) { pos.x = pad; vel.x = Math.abs(vel.x) * 0.5; }
+      if (pos.x > maxX) { pos.x = maxX; vel.x = -Math.abs(vel.x) * 0.5; }
+      if (pos.y < pad) { pos.y = pad; vel.y = Math.abs(vel.y) * 0.5; }
+      if (pos.y > maxY) { pos.y = maxY; vel.y = -Math.abs(vel.y) * 0.5; }
     }
 
-    vel.x *= 0.92;
-    vel.y *= 0.92;
-    pos.x += vel.x;
-    pos.y += vel.y;
-
-    const pad = 45;
-    const maxX = pageWidth() - pad;
-    const maxY = pageHeight() - pad;
-    if (entering) { if (pos.x >= pad) entering = false; }   // let him drift on from off-canvas
-    else if (pos.x < pad) { pos.x = pad; vel.x = Math.abs(vel.x) * 0.5; }
-    if (pos.x > maxX) { pos.x = maxX; vel.x = -Math.abs(vel.x) * 0.5; }
-    if (pos.y < pad) { pos.y = pad; vel.y = Math.abs(vel.y) * 0.5; }
-    if (pos.y > maxY) { pos.y = maxY; vel.y = -Math.abs(vel.y) * 0.5; }
-
+    // Still inside this frame he may have just landed in the dock.
+    const sitting = mode === 'docked';
     const speed = Math.hypot(vel.x, vel.y);
-    if (Math.abs(vel.x) > 0.3) facing = vel.x > 0 ? 1 : -1;
+    if (!sitting && Math.abs(vel.x) > 0.3) facing = vel.x > 0 ? 1 : -1;
 
     const moving = speed > 0.35;
-    let float = Math.sin(t * 0.06) * 3 + (moving ? Math.sin(t * 0.3) * 1.5 : 0);
+    let float = sitting
+      ? (REDUCE_MOTION ? 0 : Math.sin(t * 0.045) * 0.7)        // a slow breath on the ledge
+      : Math.sin(t * 0.06) * 3 + (moving ? Math.sin(t * 0.3) * 1.5 : 0);
     startle *= 0.88;
     const sx = 1 + startle * 0.18;
     const sy = 1 - startle * 0.18;
@@ -562,23 +810,29 @@
 
     buddy.style.transform =
       `translate(${pos.x - half.x}px, ${pos.y - half.y - float}px) scaleX(${facing})${buddyExtra}`;
-    shadow.style.transform =
-      `translate(${pos.x - 18}px, ${pos.y + half.y - 6}px) scale(${1 - float * 0.04}, 1)`;
-    shadow.style.opacity = String(0.85 - Math.abs(float) * 0.05);
+    if (sitting) {
+      shadow.style.opacity = '0';
+    } else {
+      shadow.style.transform =
+        `translate(${pos.x - 18}px, ${pos.y + half.y - 6}px) scale(${1 - float * 0.04}, 1)`;
+      shadow.style.opacity = String(0.85 - Math.abs(float) * 0.05);
+    }
     body.style.transform = `rotate(${lean * 0.25}deg) scale(${sx}, ${sy})`;
     chest.style.transform = `scaleX(${facing})`;   // keep chest lines on the right when he flips
 
     // Gaze: he favours the cursor when it's moving or when he's heading that
     // way, but otherwise lets his eyes wander to whatever he's drifting toward.
+    // Seated, `pos` is in viewport coordinates, so compare against the client pointer.
+    const mp = sitting ? pointerClient : mouse;
     const cursorActive = (now - mouseStillSince) < 1600;
-    const toMouseX = mouse.x - pos.x;
-    const toMouseY = mouse.y - pos.y;
+    const toMouseX = mp.x - pos.x;
+    const toMouseY = mp.y - pos.y;
     const headingToCursor =
-      mode === 'approach' ||
+      (!sitting && wmode === 'approach') ||
       (moving && (vel.x * toMouseX + vel.y * toMouseY) > 0 && Math.hypot(toMouseX, toMouseY) < 380);
     if (cursorActive || headingToCursor) {
-      gaze.x += (mouse.x - gaze.x) * 0.12;
-      gaze.y += (mouse.y - gaze.y) * 0.12;
+      gaze.x += (mp.x - gaze.x) * 0.12;
+      gaze.y += (mp.y - gaze.y) * 0.12;
     } else {
       if (now > gazePickAt) {
         if (moving && Math.random() < 0.6) {
@@ -597,9 +851,8 @@
 
     const lookX = Math.max(-2.4, Math.min(2.4, (gaze.x - pos.x) * 0.02 * facing));
     const lookY = Math.max(-1.6, Math.min(1.6, (gaze.y - pos.y) * 0.012));
-    const headDrop = expression === 'broken' ? 2 : 0;
     head.style.transform =
-      `rotate(${-lean * 0.16 + headExtraRot}deg) translate(${lookX * facing}px, ${lookY + headDrop}px)`;
+      `rotate(${-lean * 0.16 + headExtraRot}deg) translate(${lookX * facing}px, ${lookY}px)`;
 
     maybeBlink(now);
     const blinking = now < blinkUntil;
@@ -617,7 +870,7 @@
       armL.style.transformOrigin = '9px 63px';
       armL.style.transform = `rotate(${armOverride[0]}deg)`;
       armR.style.transform = `rotate(${armOverride[1]}deg)`;
-    } else if (mode === 'flee') {
+    } else if (!sitting && wmode === 'flee') {
       armL.style.transformOrigin = '9px 63px';
       armL.style.transform = 'rotate(-38deg)';
       armR.style.transform = 'rotate(38deg)';
@@ -626,17 +879,20 @@
       armL.style.transform = `rotate(${armSway}deg)`;
       armR.style.transform = `rotate(${-armSway}deg)`;
     }
-    dangle.style.transform = `rotate(${Math.sin(t * 0.06) * 2.5 - vel.x * 1.2}deg)`;
+    dangle.style.transform = sitting ? '' : `rotate(${Math.sin(t * 0.06) * 2.5 - vel.x * 1.2}deg)`;
 
     if (bubbleOpen) positionBubble();
     requestAnimationFrame(frame);
   }
-  // Place him off-canvas before the first paint so he doesn't flash at (0,0).
+  // Place him before the first paint so he doesn't flash at (0,0).
+  syncDock();
   buddy.style.transform = `translate(${pos.x - half.x}px, ${pos.y - half.y}px) scaleX(1)`;
   shadow.style.opacity = '0';
   requestAnimationFrame(frame);
 
   window.addEventListener('resize', () => {
+    syncKeyboardInset();
+    if (mode !== 'away') return;
     pos.x = Math.min(pos.x, pageWidth() - 45);
     pos.y = Math.min(pos.y, pageHeight() - 45);
   });
@@ -653,12 +909,11 @@
     bubble.style.transform = `translate(${bx}px, ${by}px)`;
   }
 
+  /* =====================================================================
+     LINES: the API, with a small local pool for proactive chatter
+     ===================================================================== */
   function getLlmCallCount(key) {
-    try { return +sessionStorage.getItem(key) || 0; } catch (e) { return 0; }
-  }
-
-  function incrementLlmCallCount(key) {
-    try { sessionStorage.setItem(key, String(getLlmCallCount(key) + 1)); } catch (e) { /* */ }
+    return +sget(key) || 0;
   }
 
   function canCallLlm(kind) {
@@ -675,7 +930,16 @@
       const res = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ kind, context, catalog, history: conversationHistory, ...extra }),
+        body: JSON.stringify({
+          kind,
+          context,
+          page: pageContext(),
+          visitor: visitorForApi(),
+          state: { mode: mode === 'away' ? 'away' : 'docked', muted: speechMuted },
+          catalog,
+          history: historyForApi(),
+          ...extra,
+        }),
         signal: controller.signal,
       });
       clearTimeout(timeout);
@@ -687,7 +951,7 @@
       const data = await res.json();
       if (!data || typeof data.text !== 'string') return { fail: 'bad' };
       const key = kind === 'chat' ? 'rb_llm_chat' : 'rb_llm_passive';
-      incrementLlmCallCount(key);
+      sset(key, String(getLlmCallCount(key) + 1));
       return { text: data.text, links: data.links || [], mood: data.mood || null };
     } catch (e) {
       clearTimeout(timeout);
@@ -700,20 +964,31 @@
   // Chat replies are LLM-only; failures show the Offline/Broken face, not words.
   const POOL = {
     welcome: [
-      { text: 'Oh — hello. I was just pottering about.', links: [] },
-      { text: `Good ${context.partOfDay}. Make yourself at home.`, links: [] },
+      { text: `Good ${context.partOfDay}. I live down here now. Ask me anything about Rob's work.`, links: [] },
+      { text: "Oh, hello. I'm Rob's robot. Give me a poke if you want to chat.", links: [] },
     ],
     question: [
       { text: 'Random thought: do you think better moving, or sitting still?', links: [] },
       { text: "If you could keep just one tab open forever, what'd be on it?", links: [] },
     ],
+    nudge: [
+      { text: 'I know this one well. Ask me anything about it.', links: [] },
+      { text: 'Want the short version of this one?', links: [] },
+    ],
     showcase: [
-      { text: 'There is a piece I keep coming back to.', links: [{ label: 'Read it', goto: DEST.article, sendoff: "It's this way." }] },
-      { text: 'Do you like a messy problem, or do they make you want to lie down?', links: [{ label: 'Show me one', goto: DEST.caseStudy, sendoff: "Then you'll want this." }] },
+      'There is a piece I keep coming back to.',
+      'If you fancy a read, this is a good one.',
     ],
   };
 
   function pooledMessage(kind) {
+    if (kind === 'showcase') {
+      // Point at a real article from the live catalogue, never a hardcoded one.
+      const others = catalog.journal.filter((e) => e.url !== PATH);
+      if (!others.length) return pickRandom(POOL.question);
+      const pick = pickRandom(others);
+      return { text: pickRandom(POOL.showcase), links: [{ label: clip(pick.title, 40), goto: pick.url, sendoff: "It's this way." }] };
+    }
     const pool = POOL[kind];
     return pool ? pickRandom(pool) : null;
   }
@@ -728,15 +1003,15 @@
     if (kind === 'chat') {
       // LLM only — no scripted reply. On failure, return the reason so the caller
       // shows the Offline/Broken face instead of words.
-      if (!canCallLlm('chat')) return { fail: 'cap' };
       const llm = await fetchLlmMessage('chat', extra);
       if (!llm.text) noteRateLimit(llm.fail);
       return llm.text ? llm : { fail: llm.fail };
     }
-    // Proactive: mostly the pregenerated pool, occasionally the LLM — and never the
+    // Proactive: mostly the pregenerated pool, sometimes the LLM — and never the
     // LLM while we're backing off from a recent rate-limit.
-    const mayUseLlm = LLM_KINDS.has(kind) && canCallLlm(kind) && performance.now() >= proactiveLlmPausedUntil;
-    if (mayUseLlm && Math.random() < PROACTIVE_LLM_CHANCE) {
+    const chance = PROACTIVE_LLM_CHANCE[kind] || 0;
+    const mayUseLlm = chance > 0 && canCallLlm(kind) && performance.now() >= proactiveLlmPausedUntil;
+    if (mayUseLlm && Math.random() < chance) {
       const llm = await fetchLlmMessage(kind, extra);
       if (llm.text) return llm;
       noteRateLimit(llm.fail);
@@ -753,276 +1028,322 @@
     return 'speaking';
   }
 
-  function renderLinks(links) {
-    bubbleLinks.innerHTML = '';
-    (links || []).forEach((link) => {
-      if (!link?.goto) return;
-      const a = document.createElement('button');
-      a.type = 'button';
-      a.className = 'link-go';
-      a.textContent = `${link.label} →`;
+  // Let the raised arm and talking face settle once he has finished a line.
+  function restAfterSpeaking(delay = 1600) {
+    clearTimeout(restTimer);
+    restTimer = setTimeout(() => {
+      if (expression === 'speaking' || expression === 'angry') setExpression('normal');
+    }, delay);
+  }
+
+  function typeInto(el, full, onStep, onDone) {
+    clearTimeout(typeTimer);
+    if (REDUCE_MOTION || full.length <= 1) { el.textContent = full; onDone(); return; }
+    el.textContent = '';
+    let i = 0;
+    const step = () => {
+      i += 1;
+      el.textContent = full.slice(0, i);
+      if (onStep) onStep();
+      if (i < full.length) typeTimer = setTimeout(step, 22 + Math.random() * 34);
+      else { typeTimer = null; onDone(); }
+    };
+    typeTimer = setTimeout(step, 60);
+  }
+
+  function navigateTo(url) {
+    if (chatOpen) sset('rb_chat_open', '1');
+    setTimeout(() => { window.location.href = url; }, 220);
+  }
+
+  /* =====================================================================
+     THE THREAD: floating bubbles above the dock
+     data-state: closed | peek (latest line only) | open (the conversation)
+     ===================================================================== */
+  function setThread(state) {
+    thread.dataset.state = state;
+  }
+
+  function itemEl(item) {
+    if (item.role === 'moved') {
+      const m = document.createElement('div');
+      m.className = 'rb-moved';
+      m.textContent = `Moved to ${item.text}`;
+      return m;
+    }
+    const wrap = document.createElement('div');
+    wrap.className = `rb-item ${item.role === 'visitor' ? 'rb-from-visitor' : 'rb-from-buddy'}`;
+    const b = document.createElement('div');
+    b.className = 'rb-bubble';
+    b.textContent = item.text;
+    wrap.appendChild(b);
+    (item.links || []).forEach((link) => {
+      if (!link || !link.goto) return;
+      const a = document.createElement('a');
+      a.className = 'rb-chip';
+      a.href = link.goto;
+      const label = document.createElement('span');
+      label.textContent = link.label || 'Take a look';
+      a.appendChild(label);
+      a.insertAdjacentHTML('beforeend', ARROW_ICON);
       a.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
-        navigateTo(link.goto, link.sendoff);
+        navigateTo(link.goto);
       });
-      bubbleLinks.appendChild(a);
+      wrap.appendChild(a);
+    });
+    return wrap;
+  }
+
+  function renderThread() {
+    thread.innerHTML = '';
+    conversationHistory.forEach((item) => thread.appendChild(itemEl(item)));
+  }
+
+  function pushItem(item) {
+    conversationHistory.push(item);
+    persistHistory();
+    renderThread();
+    return thread.lastElementChild;
+  }
+
+  function showLoading() {
+    removeLoading();
+    const wrap = document.createElement('div');
+    wrap.className = 'rb-item rb-from-buddy rb-loading';
+    wrap.innerHTML = '<div class="rb-bubble">…</div>';
+    thread.appendChild(wrap);
+  }
+
+  function removeLoading() {
+    thread.querySelectorAll('.rb-loading').forEach((el) => el.remove());
+  }
+
+  // He says a line into the thread: typed out, spoken aloud, face to match.
+  function pushBuddyLine(message, onDone) {
+    const full = message.text || '';
+    speak(full);
+    setExpression(expressionFor(message));
+    const el = pushItem({ role: 'buddy', text: full, links: (message.links || []).slice(0, 2) });
+    el.classList.add('rb-typing');
+    typeInto(el.querySelector('.rb-bubble'), full, null, () => {
+      el.classList.remove('rb-typing');
+      restAfterSpeaking();
+      if (onDone) onDone();
     });
   }
 
-  function updateDiscussVisibility(loading) {
-    discussBtn.hidden = loading || chatMode;
+  // A proactive line while docked: one bubble that tidies itself away.
+  function showPeek(message) {
+    clearTimeout(peekTimer);
+    setThread('peek');
+    pushBuddyLine(message, () => {
+      peekTimer = setTimeout(() => {
+        if (!chatOpen) setThread('closed');
+      }, PASSIVE_DISMISS_MS);
+    });
   }
 
-  function schedulePassiveDismiss() {
-    clearTimeout(autoDismiss);
-    if (chatMode) return;
-    autoDismiss = setTimeout(() => closeChatAndBubble(), PASSIVE_DISMISS_MS);
+  function openChat(opts = {}) {
+    if (mode !== 'docked') {            // chatting happens at the dock: fetch him first
+      pendingOpen = true;
+      callBack();
+      return;
+    }
+    if (chatOpen) return;
+    clearTimeout(peekTimer);
+    chatOpen = true;
+    sset('rb_chat_open', '1');
+    renderThread();
+    setThread('open');
+    syncDock();
+    if (!conversationHistory.length && !sayInFlight) pushBuddyLine(pooledMessage('welcome'));
+    if (opts.focus !== false) {
+      try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); }
+    }
   }
 
-  function renderMessage(message) {
+  function closeChat() {
+    if (!chatOpen) return;
+    chatOpen = false;
+    sdel('rb_chat_open');
+    setThread('closed');
+    syncDock();
+    input.blur();
+  }
+
+  async function submitChat() {
+    const text = input.value.trim().slice(0, MAX_DRAFT);
+    if (!text || sayInFlight) return;
+
+    const history = historyForApi();   // the turns before this one; the new line travels as `message`
+    input.value = '';
     clearTimeout(typeTimer);
-    bubble.classList.remove('loading');
+    pushItem({ role: 'visitor', text });
+
+    sayInFlight = true;
+    setExpression('thinking');
+    showLoading();
+
+    try {
+      const message = await getNextMessage('chat', { message: text, history });
+      removeLoading();
+      if (message.text) pushBuddyLine(message);
+      else showChatFailure(message.fail);
+    } finally {
+      sayInFlight = false;
+    }
+  }
+
+  // Chat failure — no words, the face carries it. The field stays open to retry.
+  function showChatFailure(fail) {
+    const expr = (fail === 'offline' || fail === 'cap') ? 'offline' : 'broken';
+    setExpression(expr);
+    clearTimeout(failReturn);
+    failReturn = setTimeout(() => {
+      if (expression === expr) setExpression('normal');
+    }, 3600);
+  }
+
+  /* =====================================================================
+     THE BUBBLE HE CARRIES WHILE AWAY
+     ===================================================================== */
+  function showAwayBubble(message) {
     const full = message.text || '';
-    speak(full);            // read it aloud (parallel to typing; no effect on visuals)
-
+    speak(full);
     setExpression(expressionFor(message));
+    conversationHistory.push({ role: 'buddy', text: full, links: (message.links || []).slice(0, 2) });
+    persistHistory();
 
-    // Open the bubble empty; links/Discuss appear once the text finishes typing.
     bubbleLinks.innerHTML = '';
-    const hasFooter = (message.links?.length > 0) || !chatMode;
-    bubble.classList.toggle('has-footer', hasFooter);
-    updateDiscussVisibility(true);
+    replyBtn.hidden = true;
     bubbleMsg.textContent = '';
     positionBubble();
     requestAnimationFrame(() => bubble.classList.add('show'));
     bubbleOpen = true;
     vel.x = 0;
     vel.y = 0;
-
-    conversationHistory.push({ role: 'buddy', text: full });
-    persistHistory();
-
-    const finish = () => {
-      bubbleMsg.textContent = full;
-      renderLinks(message.links);
-      updateDiscussVisibility(false);
-      positionBubble();
-      schedulePassiveDismiss();
-    };
-
-    // Type it out (bottom of the bubble stays anchored to the tail as it grows).
-    if (REDUCE_MOTION || full.length <= 1) { finish(); return; }
-    let i = 0;
-    const step = () => {
-      i += 1;
-      bubbleMsg.textContent = full.slice(0, i);
-      positionBubble();
-      typeTimer = (i < full.length) ? setTimeout(step, 22 + Math.random() * 34) : (finish(), null);
-    };
-    typeTimer = setTimeout(step, 60);
-  }
-
-  function showLoadingBubble() {
-    setExpression('thinking');
-    bubbleMsg.textContent = '…';
-    bubbleLinks.innerHTML = '';
-    bubble.classList.add('loading');
-    bubble.classList.remove('has-footer');
-    updateDiscussVisibility(true);
-    positionBubble();
-    requestAnimationFrame(() => bubble.classList.add('show'));
-    bubbleOpen = true;
-    vel.x = 0;
-    vel.y = 0;
     clearTimeout(autoDismiss);
-  }
 
-  function updateDraftDisplay() {
-    draftDisplay.textContent = chatDraft;
-    submitBtn.disabled = !chatDraft.trim() || sayInFlight;
-  }
-
-  function appendToDraft(str) {
-    if (chatDraft.length >= MAX_DRAFT) return;
-    chatDraft = (chatDraft + str).slice(0, MAX_DRAFT);
-    updateDraftDisplay();
-  }
-
-  function backspaceDraft() {
-    chatDraft = chatDraft.slice(0, -1);
-    updateDraftDisplay();
-  }
-
-  function openChat() {
-    if (!bubbleOpen) return;
-    chatMode = true;
-    chatDraft = '';
-    updateDraftDisplay();
-    clearTimeout(autoDismiss);
-    updateDiscussVisibility(false);
-    compose.classList.add('open');
-    setComposeEnabled(true);
-  }
-
-  function setComposeEnabled(on) {
-    submitBtn.disabled = !on || !chatDraft.trim() || sayInFlight;
-    doneBtn.disabled = !on || sayInFlight;
-    keyboard.querySelectorAll('.kb-key:not(.submit)').forEach((k) => { k.disabled = !on; });
-  }
-
-  function closeChat() {
-    chatMode = false;
-    chatDraft = '';
-    updateDraftDisplay();
-    compose.classList.remove('open');
-    setComposeEnabled(true);
-    updateDiscussVisibility(false);
-  }
-
-  function closeChatAndBubble() {
-    closeChat();
-    dismissBubble();
+    typeInto(bubbleMsg, full, positionBubble, () => {
+      (message.links || []).slice(0, 2).forEach((link) => {
+        if (!link || !link.goto) return;
+        const a = document.createElement('button');
+        a.type = 'button';
+        a.className = 'link-go';
+        a.textContent = `${link.label || 'Take a look'} →`;
+        a.addEventListener('click', (e) => { e.stopPropagation(); navigateTo(link.goto); });
+        bubbleLinks.appendChild(a);
+      });
+      replyBtn.hidden = false;
+      positionBubble();
+      restAfterSpeaking();
+      autoDismiss = setTimeout(() => dismissBubble(), PASSIVE_DISMISS_MS);
+    });
   }
 
   function dismissBubble(resetIdle = true) {
     clearTimeout(autoDismiss);
-    clearTimeout(typeTimer);
-    bubble.classList.remove('show', 'loading');
+    if (bubbleOpen) clearTimeout(typeTimer);
+    bubble.classList.remove('show');
     bubbleOpen = false;
-    setExpression('normal');
-    if (chatMode) closeChat();
-    if (resetIdle) {
-      idleChatAt = performance.now() + 12000 + Math.random() * 10000;
-    }
+    if (expression === 'speaking' || expression === 'thinking') setExpression('normal');
+    if (resetIdle) idleChatAt = performance.now() + 12000 + Math.random() * 10000;
   }
 
-  function navigateTo(url, sendoff) {
-    closeChat();
-    bubbleMsg.textContent = sendoff || 'This way —';
-    bubbleLinks.innerHTML = '';
-    bubble.classList.remove('has-footer', 'loading');
-    discussBtn.hidden = true;
-    positionBubble();
-    body.style.transform += ' translateY(-2px)';
-    clearTimeout(autoDismiss);
-    setTimeout(() => { window.location.href = url; }, 750);
-  }
-
-  async function submitChat() {
-    const text = chatDraft.trim();
-    if (!text || sayInFlight) return;
-
-    conversationHistory.push({ role: 'visitor', text });
-    persistHistory();
-    chatDraft = '';
-    updateDraftDisplay();
-
+  // Proactive chatter: a peek bubble at the dock, or the carried bubble when away.
+  async function say(kind) {
+    if (chatOpen || sayInFlight || bubbleOpen || mode === 'returning') return;
     sayInFlight = true;
-    setComposeEnabled(false);
-    showLoadingBubble();
-
     try {
-      const message = await getNextMessage('chat', { message: text });
-      if (message.text && bubbleOpen) renderMessage(message);
-      else showChatFailure(message.fail);
-    } finally {
-      sayInFlight = false;
-      setComposeEnabled(true);
-      updateDraftDisplay();
-    }
-  }
-
-  // Chat failure — no words, the face carries it. Compose stays open to retry.
-  function showChatFailure(fail) {
-    bubble.classList.remove('show', 'loading');
-    bubbleOpen = false;
-    const expr = (fail === 'offline' || fail === 'cap') ? 'offline' : 'broken';
-    setExpression(expr);
-    clearTimeout(failReturn);
-    failReturn = setTimeout(() => {
-      if (expression === expr && !bubbleOpen) setExpression('normal');
-    }, 3600);
-  }
-
-  async function say(kind, extra = {}) {
-    if (bubbleOpen || sayInFlight) return;
-    sayInFlight = true;
-    const willLoad = LLM_KINDS.has(kind) && canCallLlm(kind);
-    if (willLoad) showLoadingBubble();
-    try {
-      const message = await getNextMessage(kind, extra);
-      if (message && message.text && (bubbleOpen || !willLoad)) renderMessage(message);
-      else dismissBubble();
+      const message = await getNextMessage(kind);
+      if (!message || !message.text || chatOpen || mode === 'returning') return;
+      if (mode === 'docked') showPeek(message);
+      else showAwayBubble(message);
     } finally {
       sayInFlight = false;
     }
   }
 
-  discussBtn.addEventListener('click', (e) => {
+  /* =====================================================================
+     WIRING
+     ===================================================================== */
+  seatBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    clearTimeout(autoDismiss);
-    openChat();
+    if (chatOpen) closeChat(); else openChat();
   });
 
-  submitBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
+  dockEl.querySelector('.rb-ask').addEventListener('click', (e) => { e.stopPropagation(); openChat(); });
+  dockEl.querySelector('.rb-close').addEventListener('click', (e) => { e.stopPropagation(); closeChat(); });
+  dockEl.querySelector('.rb-callback').addEventListener('click', (e) => { e.stopPropagation(); callBack(); });
+  dockEl.querySelectorAll('[data-rb-unplug]').forEach((btn) => {
+    if (REDUCE_MOTION) { btn.hidden = true; return; }
+    btn.addEventListener('click', (e) => { e.stopPropagation(); unplug(); });
+  });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
     submitChat();
   });
 
-  doneBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    closeChatAndBubble();
+  // A peeking bubble is an invitation: click it to carry on the conversation.
+  thread.addEventListener('click', (e) => {
+    if (thread.dataset.state !== 'peek' || e.target.closest('.rb-chip')) return;
+    openChat();
   });
 
-  keyboard.addEventListener('click', (e) => {
-    const key = e.target.closest('.kb-key');
-    if (!key || key.disabled) return;
+  replyBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (key.classList.contains('submit')) return;
-    const val = key.dataset.key;
-    if (val === 'backspace') backspaceDraft();
-    else appendToDraft(val);
+    openChat();
   });
 
   document.addEventListener('keydown', (e) => {
-    if (!chatMode) return;
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      submitChat();
-      return;
-    }
-    if (e.key === 'Backspace') {
-      e.preventDefault();
-      backspaceDraft();
-      return;
-    }
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      closeChatAndBubble();
-      return;
-    }
-    if (e.key.length === 1) {
-      e.preventDefault();
-      appendToDraft(e.key);
-    }
+    if (e.key === 'Escape' && chatOpen) { e.preventDefault(); closeChat(); }
   });
 
   window.addEventListener('mousedown', (e) => {
-    if (!bubbleOpen && !chatMode) return;
-    if (bubble.contains(e.target) || buddy.contains(e.target) || compose.contains(e.target)) return;
-    closeChatAndBubble();
+    const inside = (el) => el.contains(e.target);
+    if (chatOpen && !inside(thread) && !inside(dockEl) && !inside(buddy)) closeChat();
+    if (bubbleOpen && !inside(bubble) && !inside(buddy)) dismissBubble();
   });
 
-  // Greet only once he's pottered onto the canvas.
-  setTimeout(function welcomeWhenReady() {
-    if (entering) { setTimeout(welcomeWhenReady, 400); return; }
-    say('welcome');
+  /* =====================================================================
+     START
+     ===================================================================== */
+  notePageRead();
+  saveVisitor();
+
+  // The conversation was open when the visitor followed a link: keep it open.
+  if (mode === 'docked' && sget('rb_chat_open') === '1') {
+    openChat({ focus: false });
+  }
+
+  // One greeting per visit; after that, one nudge per article.
+  setTimeout(function greetWhenReady() {
+    if (entering) { setTimeout(greetWhenReady, 400); return; }
+    if (!sget('rb_welcomed')) {
+      sset('rb_welcomed', '1');
+      say('welcome');
+      return;
+    }
+    if (PAGE_KIND !== 'journal') return;
+    let nudged = [];
+    try { nudged = JSON.parse(sget('rb_nudged') || '[]'); } catch (e) { /* */ }
+    if (nudged.includes(PATH)) return;
+    setTimeout(() => {
+      if (chatOpen || mode !== 'docked') return;
+      nudged.push(PATH);
+      sset('rb_nudged', JSON.stringify(nudged.slice(-40)));
+      say('nudge');
+    }, 12000);
   }, 2200);
 
+  // Out of the dock he is chattier, as he always was.
   function idleChatTick() {
     const now = performance.now();
-    if (!bubbleOpen && !sayInFlight && !chatMode && !entering && now > idleChatAt) {
+    if (mode === 'away' && !bubbleOpen && !sayInFlight && !entering && now > idleChatAt) {
+      idleChatAt = now + 12000 + Math.random() * 10000;
       say(Math.random() < 0.4 ? 'showcase' : 'question');
     }
     setTimeout(idleChatTick, 1000);

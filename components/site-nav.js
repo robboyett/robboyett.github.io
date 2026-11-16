@@ -71,7 +71,7 @@ class SiteNav extends HTMLElement {
                 }
 
                 .nav-item {
-                    background: white;
+                    background: var(--nav-tile-bg, white);
                     padding: 34px 44px;
                     font-weight: 700;
                     font-size: 30px;
@@ -100,7 +100,7 @@ class SiteNav extends HTMLElement {
                 }
 
                 .journal-toggle {
-                    background: white;
+                    background: var(--nav-tile-bg, white);
                     padding: 27px;
                     font-weight: 700;
                     font-size: 30px;
@@ -117,7 +117,7 @@ class SiteNav extends HTMLElement {
                 }
 
                 .journal-toggle:hover {
-                    background: #fafafa;
+                    background: var(--nav-tile-hover, #fafafa);
                 }
 
                 .journal-toggle .arrow {
@@ -148,7 +148,7 @@ class SiteNav extends HTMLElement {
                 }
 
                 .journal-menu-item {
-                    background: white;
+                    background: var(--nav-tile-bg, white);
                     padding: 34px 44px;
                     font-weight: 700;
                     font-size: 30px;
@@ -165,12 +165,12 @@ class SiteNav extends HTMLElement {
                 }
 
                 .journal-menu-item:hover {
-                    background: #fafafa;
+                    background: var(--nav-tile-hover, #fafafa);
                 }
 
                 /* Experiments pill link */
                 .experiments-link {
-                    background: white;
+                    background: var(--nav-tile-bg, white);
                     padding: 27px 44px;
                     font-weight: 700;
                     font-size: 30px;
@@ -369,3 +369,38 @@ class SiteNav extends HTMLElement {
 // Register the custom element
 customElements.define('site-nav', SiteNav);
 
+/**
+ * Robot buddy loader.
+ * site-nav.js is the one script every page already loads, so the mascot is
+ * bootstrapped from here instead of adding tags to each page. Skipped inside
+ * iframes: the home page loads journal pages into hidden preview frames.
+ * Bump RB_VERSION whenever a robot-buddy file changes.
+ */
+(function loadRobotBuddy() {
+    const RB_VERSION = '11';
+    let framed = false;
+    try { framed = window.self !== window.top; } catch (e) { framed = true; }
+    if (framed || window.__rbLoader) return;
+    window.__rbLoader = true;
+
+    function inject() {
+        const css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = '/components/robot-buddy.css?v=' + RB_VERSION;
+        document.head.appendChild(css);
+
+        // async = false keeps execution in insertion order: persona first, then the robot.
+        ['robot-buddy-persona.js', 'robot-buddy.js'].forEach((file) => {
+            const s = document.createElement('script');
+            s.src = '/components/' + file + '?v=' + RB_VERSION;
+            s.async = false;
+            document.body.appendChild(s);
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', inject);
+    } else {
+        inject();
+    }
+})();

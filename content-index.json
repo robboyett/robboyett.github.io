@@ -1,0 +1,377 @@
+{
+  "version": 1,
+  "updated": "2026-11-16",
+  "articles": [
+    {
+      "url": "/journal/agent-behaviour-in-the-design-system/",
+      "title": "Bringing agent behaviour into the design system",
+      "date": "2026-11-15",
+      "summary": "Rob argues that how a bank's AI agent speaks and behaves belongs in the design system as a written, versioned and testable specification, drawing on a sandbox agent he built on his own Monzo account.",
+      "keyClaims": [
+        "Rob argues agent voice cannot be a veneer of brand adjectives: in banking, tone, hedging and warmth change outcomes and are a compliance matter.",
+        "His rule: how something is said can never change what is true, and what the agent guesses about a person can never change what it offers them.",
+        "Each register setting (warmth, hedging, disagreement, volunteering, opening) is written as what it licenses and forbids, then turned into yes/no tests.",
+        "After he rewrote two badly written test questions the pass rate went from 58% to 88%; the written register and a bare label both scored 88% on one run.",
+        "Rob built the sandbox in July: a chat agent reading his real Monzo data, with a Lab page of nine dials where he writes a prediction before changing one."
+      ],
+      "tags": [
+        "ai agents",
+        "banking",
+        "design systems",
+        "evals",
+        "tone of voice"
+      ]
+    },
+    {
+      "url": "/journal/capgras-ai-agents/",
+      "title": "The impostor at your desk",
+      "date": "2026-08-21",
+      "summary": "Rob uses Capgras delusion, where a familiar face feels like an impostor, to predict how workers will feel when the AI agents they rely on are changed underneath them: they will be right but unable to prove it.",
+      "keyClaims": [
+        "Capgras patients recognise faces but lose the feeling of familiarity; Ellis and Young proposed in 1990 that these are two separate systems, tested in 1997.",
+        "Rob cites the retirement of GPT-4o in February 2026 and a petition of over 22,000 signatures as evidence that people notice when the system underneath changes.",
+        "He argues \"it's not the same\" will be heard as sentiment, unlike measurable software complaints, and will hit support, admin and care workers hardest.",
+        "Instead of release notes, Rob would replay a worker's past resolved cases through the new agent and show where its behaviour diverges from the old one."
+      ],
+      "tags": [
+        "ai agents",
+        "workplace",
+        "psychology",
+        "trust"
+      ]
+    },
+    {
+      "url": "/journal/ai-native-aesthetic/",
+      "title": "Are AI-generated images going to give birth to a new, distinct visual aesthetic, eventually?",
+      "date": "2026-08-01",
+      "summary": "Rob asks whether AI image generation will produce its own visual aesthetic, as earlier media did through their limitations, and suggests it may lie in the discarded traces of the process, not the finished image.",
+      "keyClaims": [
+        "Earlier image technologies exposed aesthetics through technical limitations, such as film grain, halftones, scanlines and low polygon counts.",
+        "Rob collects the printed Midjourney magazines and so far sees simulations of existing aesthetics in them, not a new one.",
+        "He finds the errors of earlier models (wrong finger counts, waxy skin, garbled detail) the closest thing to a unique style, and they are disappearing.",
+        "Using 3D-print support structures as an analogy, he suggests AI's native visual language may be in attention fields, latent trajectories and denoising.",
+        "He points to Nathan Lu's Aperture project, which lets you scrub through the diffusion process and watch the model's attention move."
+      ],
+      "tags": [
+        "ai images",
+        "aesthetics",
+        "midjourney",
+        "visual culture"
+      ]
+    },
+    {
+      "url": "/journal/unbundling-smartphone-features/",
+      "title": "The unbundling of smartphone features into focused products",
+      "date": "2026-06-18",
+      "summary": "Rob argues that after fifteen years of the smartphone absorbing every household object, a growing category of single-purpose devices is pulling features back out, and their craft lies in what they leave out.",
+      "keyClaims": [
+        "Rob built his children a pocket balance display with an M5StickC Plus and a Raspberry Pi using the Monzo API, for about forty pounds and a weekend.",
+        "Examples he covers: Tin Can's Wi-Fi landline for kids, Yoto and Tonies audio players, Chechirp's magnetic Vinyls and the Light Phone.",
+        "He cites Yoto's revenue growing about 86% in 2024 to roughly £95m, and a kids' audio-player market valued at around $3.2bn in 2025.",
+        "These products remove the feed, notifications and open network, and replace on-screen menus with physical tokens such as cards and figurines.",
+        "Rob argues their value proposition is a list of things they refuse to do, which only holds if the maker is certain of the object's single job."
+      ],
+      "tags": [
+        "product design",
+        "hardware",
+        "children",
+        "smartphones"
+      ]
+    },
+    {
+      "url": "/journal/ai-advisors-in-banking/",
+      "title": "Reflections for designers of AI advisors in banking",
+      "date": "2026-05-30",
+      "summary": "Rob argues that a bank's AI advisor is not a neutral messenger: it produces advice-shaped output without an adviser's duties, people over-trust it, and customer satisfaction is not a safe signal of good outcomes.",
+      "keyClaims": [
+        "A bank's AI sits in three relationships at once: delegation from the bank, advice to the customer and product sales to the customer.",
+        "Rob cites PPI, with a redress bill of about £38 billion, as mis-selling where most customers were satisfied with the sale at the time.",
+        "He cites research that people prefer and over-trust LLM advice, and Anthropic's Project Deal, where the losing side rated fairness the same.",
+        "He names three failure modes of an LLM advisor: sycophancy, patronising or paternalistic behaviour, and dependence formed through heavy use.",
+        "Rob argues CSAT and NPS measure the wrong thing; the right measure is cohort outcomes at one, three and five years. Refusal is not safety either."
+      ],
+      "tags": [
+        "banking",
+        "ai agents",
+        "financial advice",
+        "regulation",
+        "trust"
+      ]
+    },
+    {
+      "url": "/journal/the-designer's-eval-loop/",
+      "title": "The designer's eval loop",
+      "date": "2026-03-31",
+      "summary": "A guide by Rob to prototyping LLM features with rigour before any infrastructure exists, treating the system prompt as a design material that is crafted, tested against a fixed scenario set, scored and versioned.",
+      "keyClaims": [
+        "The loop has six steps: craft the system prompt, run the eval set, score outputs, diagnose and form a hypothesis, version the prompt, add new evals.",
+        "Rob says to start with five to eight scenarios covering normal use, edge cases and failure-prone inputs, kept in a plain text or JSON file.",
+        "Outputs are scored on four dimensions: tone and voice, reasoning quality, edge case handling and output structure.",
+        "The discipline is one diagnosis, one hypothesis, one change, with every meaningful change recorded as a named version with its reason and result.",
+        "The method was shaped by an LLM-enabled feature for AstraZeneca's clinical trials platform, where model behaviour was a design concern."
+      ],
+      "tags": [
+        "evals",
+        "prompt design",
+        "llm",
+        "design process",
+        "prototyping"
+      ]
+    },
+    {
+      "url": "/journal/determinism-ai-ux/",
+      "title": "The vending machine and the colleague. How to think about LLM integration for digital products.",
+      "date": "2026-02-06",
+      "summary": "Rob argues that LLM features break the deterministic contract GUIs gave users, same action and same result, and sets out integration patterns and a decision framework for adding AI without abandoning users' mental models.",
+      "keyClaims": [
+        "Adding LLM features puts colleagues inside vending machines: users expect a fixed result from a button but get a variable interpretation.",
+        "Rob reviews early failures including Bing Chat, Snapchat My AI, Figma Make Designs, Gemini images, Air Canada, Replit, McDonald's and DPD.",
+        "He describes three integration patterns: conversational interfaces, single-shot prompt interfaces, and automated or invisible AI.",
+        "The 90/10 principle: successful AI products keep about 90% familiar interface and 10% conversational, as with GitHub Copilot and Photoshop.",
+        "Conversational LLMs bring back an articulation tax and add a verification burden; chat is the default because it is easiest to build."
+      ],
+      "tags": [
+        "ai ux",
+        "llm",
+        "interaction design",
+        "product strategy"
+      ]
+    },
+    {
+      "url": "/journal/pocket-money-device/",
+      "title": "Am I a bank now? Building a pocket-sized way for my kids to see their money — that's not a smartphone",
+      "date": "2026-01-30",
+      "summary": "Rob describes building a pocket device that lets his children see their Monzo balances and send each other money without a smartphone, growing from a simple balance display into a local ledger.",
+      "keyClaims": [
+        "Version 1 is an M5StickC Plus that polls the Monzo API every 5 minutes and shows each child's balance with their own colour and drawn face.",
+        "Version 2 adds a Raspberry Pi ledger for instant transfers between siblings, which Rob later reconciles with real Monzo transfers from an admin screen.",
+        "Amounts are built with a chip stack of coin denominations on two buttons, and received money stays pending until the recipient accepts it.",
+        "Rob learned that money feels more tangible when you must do something to see it, and that peer-to-peer matters more than parent-to-child.",
+        "He noticed children sending money from siblings' accounts to their own; PIN codes and savings goals are next."
+      ],
+      "tags": [
+        "hardware",
+        "children",
+        "money",
+        "monzo",
+        "prototyping"
+      ]
+    },
+    {
+      "url": "/journal/51-million-no-receipts-ai-research/",
+      "title": "£51 million and no receipts: is AI generated research the cost effective speedy option it seems?",
+      "date": "2026-01-29",
+      "summary": "Rob ran ten synthetic interviews alongside ten human ones on how people manage money. Synthetic research matched the themes but missed texture, and he argues nobody is tracking whether it leads to good decisions.",
+      "keyClaims": [
+        "Rob built his own synthetic interview setup with code, folders and an LLM, because commercial tools are black boxes.",
+        "His composite fidelity score was 85.1 out of 100, with a theme correlation of 0.80; sixteen of eighteen themes appeared in both sets.",
+        "Sentiment was nearly identical (0.15 human, 0.14 synthetic), but human transcripts averaged 168 hesitation markers per interview against 40.",
+        "Generational perspectives appeared in 20% of human transcripts and no synthetic ones; cash flow pressure appeared in 70% against 30%.",
+        "He proposes synthetic research to map the territory and human research for lived texture, and calls for published failure cases and outcome tracking."
+      ],
+      "tags": [
+        "user research",
+        "synthetic users",
+        "ai",
+        "research methods"
+      ]
+    },
+    {
+      "url": "/journal/surface-trap/",
+      "title": "The Surface Trap",
+      "date": "2026-01-21",
+      "summary": "Rob argues that knowledge work locks its thinking inside decks, boards and documents, and that teams should separate ingestion, accumulation and surface so that surfaces become views, not vaults.",
+      "keyClaims": [
+        "Rob separates three modes of handling information: ingestion, accumulation in a canonical queryable store, and surfaces made for people.",
+        "When everything lives in surfaces, insight is frozen to the slide, every handoff is an extraction task and context does not compound.",
+        "AI struggles to help when knowledge is scattered across a hundred decks and boards, because there is no coherent context to give a model.",
+        "LLMs now make the separation practical: they can do the ingestion, generate surfaces on demand and query accumulated knowledge.",
+        "The key design question Rob poses is what the canonical layer is, meaning where understanding actually accumulates between projects and people."
+      ],
+      "tags": [
+        "knowledge management",
+        "ai",
+        "design practice",
+        "ways of working"
+      ]
+    },
+    {
+      "url": "/journal/m5-monzo-display/",
+      "title": "Pocket Money, Made Physical",
+      "date": "2026-01-14",
+      "summary": "Rob connected an M5Stick to the Monzo API to make a small physical display of his children's bank balances, and reflects on what changes when financial data is ambient and tangible instead of behind adult interfaces.",
+      "keyClaims": [
+        "The build took a couple of hours, most of it spent on the OAuth flow, not the display logic.",
+        "The device does one thing: it shows a balance, with no transaction history, categories or budgeting tools, and Rob sees that constraint as its value.",
+        "Rob argues a balance visible on the kitchen table changes children's relationship with money compared with a number seen when a parent logs in.",
+        "The project was inspired by Shay Moradi's LLM experiments with M5Stack devices."
+      ],
+      "tags": [
+        "hardware",
+        "children",
+        "money",
+        "monzo",
+        "ambient display"
+      ]
+    },
+    {
+      "url": "/journal/bringing-back-the-fun/",
+      "title": "Bringing back the fun!",
+      "date": "2026-01-13",
+      "summary": "Rob argues that LLMs have collapsed the cost of making a rough thing, and that designers should use the speed to try more ideas and play, not only to reach polish faster.",
+      "keyClaims": [
+        "Most ideas used to die because the effort needed to find out whether they were good was too high.",
+        "Rob sees most people using the tools to compress the refinement stage, when the more interesting opportunity is compressing the commitment stage.",
+        "He has been making more small projects that exist to answer a question, not to ship, and calls it sketching in code instead of in decks.",
+        "His closing line is to play more, sharpen less and see what emerges."
+      ],
+      "tags": [
+        "play",
+        "prototyping",
+        "ai",
+        "design practice"
+      ]
+    },
+    {
+      "url": "/journal/npm-design-method/",
+      "title": "Why can't I npm a design method yet?",
+      "date": "2026-01-10",
+      "summary": "Rob contrasts engineering's habit of abstraction and sharing with design, where knowledge lives in people and teams, and asks why design methods and decisions do not compound the way code packages do.",
+      "keyClaims": [
+        "Engineering work compounds through libraries, open source and version history; design progress tends to live in people, meetings and slide decks.",
+        "Design systems show design can compound, but most stall at tokens and basic components and do not reach flows, behaviour or decision rationale.",
+        "Rob argues the remaining barrier is psychological more than tooling: design treats its knowledge as personal, situational and non-transferable.",
+        "LLMs have made it cheap to summarise decisions, surface precedents and translate context, weakening the practical excuses.",
+        "He proposes making decisions inspectable, capturing trade-offs and rejected paths, and letting small contributions improve shared patterns."
+      ],
+      "tags": [
+        "design practice",
+        "design systems",
+        "engineering",
+        "knowledge sharing"
+      ]
+    },
+    {
+      "url": "/journal/md-figjam/",
+      "title": "MD ↔ FigJam",
+      "date": "2026-01",
+      "summary": "Rob made a small FigJam plugin, MD ↔ FigJam, that imports and exports sticky notes as markdown so structured content can move in and out of FigJam without endless clicking.",
+      "keyClaims": [
+        "You write in a simple markdown-like format, define colours inline with [Yellow], and the plugin generates the stickies in a grid.",
+        "Selecting stickies exports them back to the same format.",
+        "Rob suggests it for workshop prep and importing research notes, and it is free on the Figma Community."
+      ],
+      "tags": [
+        "figjam",
+        "plugin",
+        "markdown",
+        "tools"
+      ]
+    },
+    {
+      "url": "/journal/ux-insights-vscode/",
+      "title": "UX Insights for VS Code",
+      "date": "2025-12-23",
+      "summary": "Rob describes an experiment in keeping UX research alongside the code it informs, through a VS Code extension that surfaces research insights inside the development environment.",
+      "keyClaims": [
+        "Rob's concern is that design context gets lost between research and delivery, so developers receive outcomes without the reasoning behind them.",
+        "The idea is research, rationale and constraints as first-class, versioned artefacts in the repository, encountered in the flow of work.",
+        "He argues AI-assisted coding makes this more important, because code alone is insufficient context: intent, trade-offs and evidence matter.",
+        "The extension is published as robboyett/vscode-ux-insights; Rob calls the plugin one expression of the principle, not the point in itself."
+      ],
+      "tags": [
+        "user research",
+        "vs code",
+        "developer tools",
+        "design context"
+      ]
+    },
+    {
+      "url": "/journal/midjourney-material-studies/",
+      "title": "Midjourney Material Studies",
+      "date": "2025-12-23",
+      "summary": "A set of images from Rob's systematic material studies in Midjourney, using geometric forms as constants to test how the model handled metals, woods, plastics and textured finishes.",
+      "keyClaims": [
+        "Rob began the studies around 17 months after Midjourney's public beta launched.",
+        "The constrained approach showed where the tool reliably understood material properties and where it became ambiguous.",
+        "He presents the images as a record of a particular moment in AI image generation and of a method for systematically testing new tools."
+      ],
+      "tags": [
+        "midjourney",
+        "ai images",
+        "materials",
+        "experiments"
+      ]
+    },
+    {
+      "url": "/journal/vibe-coding-field-guide/",
+      "title": "A Field Guide to Vibe Coding as a Digital Product Designer",
+      "date": "2025-12-23",
+      "summary": "A short introduction to Rob's field guide of methods and patterns he has found useful in AI-assisted prototyping, with a link to the guide itself.",
+      "keyClaims": [
+        "The guide is deliberately versioned as 0.1 and described as unfinished.",
+        "It covers context management, tool selection and debugging patterns.",
+        "Rob wants it to be a collaborative resource that evolves with the practice instead of claiming fixed answers."
+      ],
+      "tags": [
+        "vibe coding",
+        "prototyping",
+        "ai",
+        "design practice"
+      ]
+    },
+    {
+      "url": "/journal/camera-was-always-off/",
+      "title": "The camera was always off — What a stint working with offshore developers taught me about large language models",
+      "date": "2025-11-28",
+      "summary": "Rob compares prompting LLMs to briefing offshore developers at a UK bank whom he never saw on camera, and argues that clear, context-rich handovers prepared up front are what make the work come back right.",
+      "keyClaims": [
+        "Rob learned to understand the developers' world first: their setup, what they knew and what assumptions they might be making.",
+        "He aimed for a one-shot handover, preparing full packs of context, rationale and supporting material because he would not be there to answer questions.",
+        "He replaced \"Do you have any questions?\" with specific checks, and suggests asking an LLM to reflect back its understanding and assumptions.",
+        "He realised the fundamental limitation was on his side: his ability to package the work so it could be understood and acted on.",
+        "He warns an LLM is tuned to be helpful and impress, which creates a false sense of shared understanding and confident answers that are subtly off."
+      ],
+      "tags": [
+        "llm",
+        "prompting",
+        "communication",
+        "ways of working"
+      ]
+    },
+    {
+      "url": "/journal/synthetic-nielsen-review/",
+      "title": "Synthetic Jakob Nielsen Reviews Your Site",
+      "date": "2025-10-23",
+      "summary": "A short note on Rob's experiment using Claude to control Chrome and run a heuristic evaluation, with a synthetic \"Jakob Nielsen\" stepping through the Anthropic site to a specific article.",
+      "keyClaims": [
+        "Rob has been experimenting with LLMs to evaluate built UI, ideally across full flows and not only single pages.",
+        "His aims are quick review of launched work and catching heuristic, accessibility and quality issues in prototypes before human testing.",
+        "He found the results surprisingly useful, if a little long."
+      ],
+      "tags": [
+        "heuristic evaluation",
+        "claude",
+        "usability",
+        "experiments"
+      ]
+    },
+    {
+      "url": "/journal/drawbot/",
+      "title": "Drawbot",
+      "date": "2020-02",
+      "summary": "Drawbot is a cardboard crafting kit for young makers that Rob created in early 2020 while exploring a small business. The page is mostly images of the kit and its branding.",
+      "keyClaims": [
+        "Rob set out to create a crafting set for younger children using cardboard and simple electronics.",
+        "The pack sold 150 units in the run-up to Christmas 2020.",
+        "The page shows the kit, flyers, posters, stickers, characters and colour variants."
+      ],
+      "tags": [
+        "craft kit",
+        "children",
+        "making",
+        "side project"
+      ]
+    }
+  ]
+}

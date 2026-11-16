@@ -1,5 +1,7 @@
 :root {
-    --journal-bg: #F1F1F1;
+    --journal-bg: #FFFFFF;
+    --journal-tile: #F1F1F1;          /* nav tiles and other blocks that sit on the white ground */
+    --journal-tile-hover: #E8E8E8;
     --journal-text: #1A1A1A;
     --journal-content-text: #333;
     --journal-muted: #666;
@@ -179,6 +181,13 @@ body {
     margin: 32px 0;
 }
 
+/* White-edged screenshots need an edge now the page itself is white. */
+.article-content img.framed,
+img.framed {
+    outline: 1px solid rgba(0, 0, 0, 0.1);
+    outline-offset: -1px;
+}
+
 .article-content a {
     color: var(--journal-link);
     text-decoration: underline;
@@ -223,4 +232,11 @@ body {
     .article-content h3 {
         font-size: 20px;
     }
+}
+
+/* Subpages sit on white; the shared nav's tiles flip to grey to stay visible.
+   (The home page sets nothing and keeps white tiles on its grey ground.) */
+site-nav {
+    --nav-tile-bg: var(--journal-tile);
+    --nav-tile-hover: var(--journal-tile-hover);
 }

@@ -94,8 +94,28 @@ Before considering a journal page complete:
 - [ ] Entry added to `journal.xml`
 - [ ] Item added to `feed.xml`
 - [ ] `<lastBuildDate>` updated in `feed.xml`
+- [ ] Entry added to `content-index.json` (see below)
 - [ ] All images/assets are in the page folder
 
 ### Exceptions
 
 `determinism-ai-ux` and `bringing-back-the-fun` use their own inline CSS (custom layout / Three.js canvas). Link `/journal/journal.js` only — do not link `/journal/journal.css` on those pages.
+
+## Update content-index.json (what the robot knows)
+
+The robot buddy answers questions about articles from `/content-index.json`, not from the
+page itself. Add an entry at the top of `articles` for every new article (and update it if
+an article's argument changes), then set `updated` to today's date:
+
+```json
+{
+  "url": "/journal/your-article-slug/",
+  "title": "The page's h1",
+  "date": "YYYY-MM-DD",
+  "summary": "One or two plain sentences, max 240 characters.",
+  "keyClaims": ["3 to 5 specific points from the article, max 160 characters each"],
+  "tags": ["2 to 5", "lowercase", "topics"]
+}
+```
+
+Only state what the article says. Unpublished pages must not be listed.
