@@ -6,8 +6,16 @@
         <link>https://robboyett.com</link>
         <atom:link href="https://robboyett.com/feed.xml" rel="self" type="application/rss+xml"/>
         <language>en-gb</language>
-        <lastBuildDate>Fri, 21 Aug 2026 00:00:00 +0000</lastBuildDate>
-
+        <lastBuildDate>Sun, 15 Nov 2026 00:00:00 +0000</lastBuildDate>
+        
+        <item>
+            <title>Bringing agent behaviour into the design system</title>
+            <link>https://robboyett.com/journal/agent-behaviour-in-the-design-system/</link>
+            <guid>https://robboyett.com/journal/agent-behaviour-in-the-design-system/</guid>
+            <pubDate>Sun, 15 Nov 2026 00:00:00 +0000</pubDate>
+            <description>Why an agent’s tone of voice can’t be applied as a veneer, what regulation does to the design problem in banking, and the sandbox I built on my own bank account to design and test how an agent speaks.</description>
+        </item>
+        
         <item>
             <title>The impostor at your desk</title>
             <link>https://robboyett.com/journal/capgras-ai-agents/</link>
